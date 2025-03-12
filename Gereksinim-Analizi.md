@@ -40,6 +40,6 @@
 
 
 # Gereksinim Dağılımları
-1. [Ali Atabak'ın Gereksinimleri](Ali-Atabak-Gereksinimler.md)
+1. [İlayda Çelikkaya'nın Gereksinimleri](İlayda-Celikkaya-Gereksinimleri.md)
 2. [Ayşe Topu Tut'nn Gereksinimleri](Ali-Atabak-Gereksinimler.md)
-3. ........
+3. [Ömer Faruk Yılmaz'ın Gereksinimleri](Omer-Faruk-Yılmaz-Gereksinimler.md)
