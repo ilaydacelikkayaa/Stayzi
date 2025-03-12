@@ -12,7 +12,7 @@ Projemiz mobil uygulama olarak geliştirilecektir. Kullanıcılar, iOS ve Androi
 
 **Uygulama Adresi:** -
 
-**Grup Adı:** Syntax Terrors
+**Grup Adı:** Syntax Terror
 
 **Proje Ekibi:** İclal Karahisar , İlayda Çelikkaya , Ömer Faruk Yılmaz , Ahmet Koca
 
