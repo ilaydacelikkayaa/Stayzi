@@ -1,9 +1,43 @@
-Tüm gereksinimlerinizi çıkardıktan sonra beraber tartışıyoruz ve son gereksinimlerin isimlerini ve kısa açıklamalarını buraya numaralı bir şekilde yazıyorsunuz. Daha sonra aşağıya herkes kendi gereksinimiyle ilgili sayfayı oluşturmalı ve kendi sayfasında kendine ait gereksinimleri numaralı bir şekilde listeleyerek her bir gereksinimin açıklamalarını yazmalı. Toplamda grup üyesi sayısı kadar sayfa oluşturulmalı. Her grup üyesine eşit sayıda gereksinim atanmalı.
-
 # Gereksinimler
-1. Üye Olma (Ali Atabak)
-2. Kayıt Olma (Ali Atabak
-3. .....
+1. Maille Giriş Yapma (İclal Karahisar)  
+2. Telefonla Giriş Yapma (İclal Karahisar)  
+3. Maille Kayıt Olma (İclal Karahisar)  
+4. Telefonla Kayıt Olma (İclal Karahisar)  
+5. Arama Yapma (İclal Karahisar)  
+6. Filtreli Arama (İclal Karahisar)  
+7. Kişi Sayısı Filtreleme (İclal Karahisar)  
+8. Tarih Filtreleme (İclal Karahisar)  
+9. Yer Filtreleme (İclal Karahisar)  
+10. Genel Filtreleme (İclal Karahisar)  
+11. İlan Görünümü (İlayda Çelikkaya)  
+12. İlan Favorileme (İlayda Çelikkaya)  
+13. Favori Silme (İlayda Çelikkaya)  
+14. Favori Listeleme (İlayda Çelikkaya)  
+15. Liste Detayı (İlayda Çelikkaya)  
+16. Profil Sayfası (İlayda Çelikkaya)  
+17. Kişisel Bilgiler Görüntüleme (İlayda Çelikkaya)  
+18. Kişisel Bilgiler Düzenleme (İlayda Çelikkaya)  
+19. Profil Göster (İlayda Çelikkaya)  
+20. Fotoğraf Ekleme (İlayda Çelikkaya)  
+21. Çıkış Yapma (Ömer Faruk Yılmaz)  
+22. Hesabı Devre Dışı Bırakma (Ömer Faruk Yılmaz)  
+23. İlan Bilgisi (Ömer Faruk Yılmaz)  
+24. Yorumlar ve Değerlendirme Puanı (Ömer Faruk Yılmaz)  
+25. Yorumlarda Arama Yapma (Ömer Faruk Yılmaz)  
+26. Ev Sahibi Detayları (Ömer Faruk Yılmaz)  
+27. Rezerve Etme (Ömer Faruk Yılmaz)  
+28. Müsaitlik Takvimi Kaydetme (Ömer Faruk Yılmaz)  
+29. Konum Bilgisi (Ömer Faruk Yılmaz)  
+30. Ev Kuralları (Ahmet Koca)  
+31. Olanaklar (Ahmet Koca)  
+32. Ev İlanı Ekleme (Ahmet Koca)  
+33. Fotoğraf Ekleme (Ahmet Koca)  
+34. İlanlarım Listeleme (Ahmet Koca)  
+35. İlanlarım Düzenleme (Ahmet Koca)  
+36. İlan Silme (Ahmet Koca)  
+37. Kredi Kartı ile Ödeme Yapma (Ahmet Koca)  
+38. Banka ile Ödeme Yapma (Ahmet Koca)
+
 
 # Gereksinim Dağılımları
 1. [Ali Atabak'ın Gereksinimleri](Ali-Atabak-Gereksinimler.md)
