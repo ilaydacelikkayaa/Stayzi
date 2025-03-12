@@ -1,18 +1,20 @@
-# PROJE ADI 
+# Stayzi 
 
-**Proje Tanımı:** Projenin ne iş yaptığını anlatan bir paragraflık tanıtım metni. 
+**Proje Tanımı:** 
 
-Örnek: X isimli e-ticaret sitemiz, online alışveriş deneyimini kolay ve keyifli hale getirmek için tasarlandı. Geniş ürün yelpazemiz sayesinde müşterilerimize en iyi seçenekleri sunarken, kullanıcı dostu arayüzümüz ile de alışveriş yapmayı daha rahat hale getiriyoruz.Sitemizde yer alan ürünler, kaliteli ve güvenilir markaların en yeni ve trend ürünlerinden oluşuyor. Müşterilerimiz, aradıkları ürünleri hızlı ve kolay bir şekilde bulabilirken, aynı zamanda satın alma süreçlerinde de sorunsuz bir deneyim yaşayacaklar.Hızlı teslimat seçenekleri, güvenli ödeme sistemleri ve müşteri memnuniyetine önem veren satış sonrası hizmetlerimizle, X olarak müşterilerimizin beklentilerini en üst seviyede karşılamayı hedefliyoruz. Her zaman en iyi fiyatlarla, kaliteli ürünleri müşterilerimize sunmak için çalışıyoruz ve müşteri memnuniyeti bizim için her zaman önceliklidir.X e-ticaret sitemize hoş geldiniz, size hizmet vermek için sabırsızlanıyoruz.
+Bu proje, kullanıcıların konaklama için ev veya oda kiralayabileceği bir Airbnb klonudur. Kullanıcılar, farklı şehirlerdeki kiralık konutları listeleyebilir, filtreleyebilir ve detaylarını inceleyerek rezervasyon yapabilirler. Ev sahipleri ise platforma konutlarını ekleyerek kısa veya uzun dönemli kiralamalar için ilan oluşturabilirler. Sistem, kullanıcı dostu bir arayüz, güvenli ödeme entegrasyonu ve kullanıcıların yorum yapabileceği bir değerlendirme sistemi sunarak konaklama deneyimini en iyi hale getirmeyi amaçlamaktadır.
 
-**Proje Kategorisi:** Projenin hangi alanda yapıldığını belirten bir kategori. Örnek: E-Ticaret, Sosyal Medya vb. 
+Projemiz mobil uygulama olarak geliştirilecektir. Kullanıcılar, iOS ve Android platformlarında uygulamayı indirerek kolayca konaklama rezervasyonu yapabileceklerdir.
 
-**Referans Uygulama:** [abc.com](abc.com)
+**Proje Kategorisi:**  Konaklama, Kısa Dönem Kiralama, Marketplace, Mobil Uygulama
 
-**Uygulama Adresi:** [abc.com](abc.com)
+**Referans Uygulama:** [https://www.airbnb.com](https://www.airbnb.com)
 
-**Grup Adı:** Belirlediğiniz grup adı
+**Uygulama Adresi:** -
 
-**Proje Ekibi:** Ali, Veli, Selami, Ayşe, Fatma, Hayriye
+**Grup Adı:** Sytanx Terrors
+
+**Proje Ekibi:** İclal Karahisar , İlayda Çelikkaya , Ömer Faruk Yılmaz , Ahmet Koca
 
 1. [Gereksinim Analizi](Gereksinim-Analizi.md)
 2. [Durum Diyagramı](Durum-Diyagramı.md)
