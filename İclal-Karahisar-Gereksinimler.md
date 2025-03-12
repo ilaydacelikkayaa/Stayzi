@@ -1,4 +1,4 @@
-# İclal Karahisar Gereksinimler
+# İclal Karahisar-Gereksinimler
 
 ## 1. Maille Giriş Yapma
 Kullanıcıların e-posta adresleri ve şifreleriyle kimlik doğrulaması yaparak hesaplarına erişmelerini sağlar. Bu yöntem, güvenli bir giriş süreci sunar ve yetkisiz erişimi önlemeye yardımcı olur. Kullanıcılar, giriş işlemi sırasında yanlış bilgileri girdiklerinde hata mesajları alabilir ve gerektiğinde **"Şifremi Unuttum"** seçeneğini kullanarak şifrelerini sıfırlayabilirler.
