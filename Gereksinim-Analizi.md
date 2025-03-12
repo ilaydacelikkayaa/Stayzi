@@ -41,5 +41,5 @@
 
 # Gereksinim Dağılımları
 1. [Ali Atabak'ın Gereksinimleri](Ali-Atabak-Gereksinimler.md)
-2. [Ayşe Topu Tut'nn Gereksinimleri](Ali-Atabak-Gereksinimler.md)
+2. [İclal Karahisar'ın Gereksinimleri](İclal-Karahisar-Gereksinimler.md)
 3. ........
