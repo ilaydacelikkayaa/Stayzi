@@ -1,4 +1,4 @@
-# Gereksinimler
+# İlayda Çelikkaya-Gereksinimler
 
 ## 1. İlan Görünümü  
 Kullanıcı, ana sayfada listelenen ilanların özet bilgilerini görüntüleyebilir. Bu gereksinim aşağıdaki bilgileri içerir:  
