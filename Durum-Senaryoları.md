@@ -2,3 +2,5 @@ Gereksinim analizi sayfasında olduğu gibi herkes kendi ismiyle aşağıya numa
 
 1. [Ali Atabak Durum Senaryosu](AliAtabakDurumSenaryosu.pdf)
 2. [Ayşe Topu Durum Senaryosu](AliAtabakDurumSenaryosu.pdf)
+3. [..... Durum Senaryosu](AliAtabakDurumSenaryosu.pdf)
+4. [Ahmet Koca Durum Senaryosu](AliAtabakDurumSenaryosu.pdf)
