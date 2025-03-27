@@ -1,3 +1,3 @@
 # Durum Diyagramı
 
-![Durum Diyagramı](usecase.png)
+![Durum Diyagramı](Durum Diyagramı.png)
