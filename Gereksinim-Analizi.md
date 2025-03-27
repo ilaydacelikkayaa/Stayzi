@@ -36,7 +36,10 @@
 35. İlanlarım Düzenleme (Ahmet Koca)  
 36. İlan Silme (Ahmet Koca)  
 37. Kredi Kartı ile Ödeme Yapma (Ahmet Koca)  
-38. Banka ile Ödeme Yapma (Ahmet Koca)
+38. Banka ile Ödeme Yapma (Ahmet Koca)  
+39. İlan Detay (Ahmet Koca)  
+40. Ödeme (Ahmet Koca)  
+41. Filtreli İlan Görünümü (Ahmet Koca)  
 
 
 # Gereksinim Dağılımları
