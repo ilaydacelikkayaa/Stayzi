@@ -7,7 +7,7 @@
 6. Filtreli Arama (İclal Karahisar)  
 7. Kişi Sayısı Filtreleme (İclal Karahisar)  
 8. Tarih Filtreleme (İclal Karahisar)  
-9. Yer Filtreleme (İclal Karahisar)  
+9. Konum Filtreleme (İclal Karahisar)  
 10. Genel Filtreleme (İclal Karahisar)  
 11. İlan Görünümü (İlayda Çelikkaya)  
 12. İlan Favorileme (İlayda Çelikkaya)  
