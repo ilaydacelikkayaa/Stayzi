@@ -43,8 +43,8 @@
 
 
 # Gereksinim Dağılımları
-1. [İlayda Çelikkaya'nın Gereksinimleri](İlayda-Celikkaya-Gereksinimleri.md)
-2. [İclal Karahisar'ın Gereksinimleri](İclal-Karahisar-Gereksinimler.md)
+1. [İclal Karahisar'ın Gereksinimleri](İclal-Karahisar-Gereksinimler.md)
+2. [İlayda Çelikkaya'nın Gereksinimleri](İlayda-Celikkaya-Gereksinimleri.md)
 3. [Ömer Faruk Yılmaz'ın Gereksinimleri](Omer-Faruk-Yılmaz-Gereksinimler.md)
 4. [Ahmet Koca'nın Gereksinimleri](Ahmet-Koca-Gereksinimler.md)
 
