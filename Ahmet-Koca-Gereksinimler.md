@@ -26,3 +26,12 @@ Kullanıcı, sistem üzerinden rezervasyon yaparken kredi kartı ile ödeme ger�
 
 ## 9. Banka ile Ödeme Yapma  
 Kullanıcı, rezervasyon ödemesini banka havalesi/EFT ile yapabilmelidir. Bu yöntem seçildiğinde, kullanıcıya ödeme yapılacak banka bilgileri gösterilecektir.
+
+## 10. Ödeme  
+Bu kısım, kullanıcıların kredi kartı veya banka kartı gibi ödeme yöntemlerini seçebileceği genel ödeme ekranıdır. Kullanıcılar rezervasyon sırasında hangi ödeme yöntemini kullanmak istediklerini belirleyebilir ve güvenli bir şekilde işlemi tamamlayabilirler.
+
+## 11. İlan Detay  
+Bu kısım, ev sahibinin gerekli düzenlemeleri yapabilmesi için bir ilana tıkladığında etkileşimde bulunacağı bölümdür. Kullanıcı ilan detaylarını görebilir, açıklamalar ekleyebilir veya düzenleme yapabilir.
+
+## 12. Filtreli İlan Görünümü  
+Bu kısım, uygulamaya ilk giriş yapıldığında görüntülenen bütün ilanlardan sonra, yapılan filtreleme işleminin ardından gösterilecek filtrelenmiş ilanların listelendiği ekrandır. Kullanıcı belirli kriterlere göre arama yaparak sadece ilgilendiği ilanları görebilir.
