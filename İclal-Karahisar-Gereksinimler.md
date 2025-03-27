@@ -24,7 +24,7 @@ Kullanıcılar, **belirli bir kişi sayısına uygun** kiralık evleri görünt�
 ## 8. Tarih Filtreleme
 Kullanıcılara **belirli tarih aralıklarında arama yapma** imkanı tanır. Bu özellik, özellikle **kiralama tarihleri, rezervasyon sistemleri veya tarih bazlı içerikler** için kritik öneme sahiptir. Kullanıcılar, **başlangıç ve bitiş tarihlerini** belirleyerek aradıkları verilere ulaşabilirler.
 
-## 9. Yer Filtreleme
+## 9. Konum Filtreleme
 Kullanıcılara **belirli bir konum veya coğrafi bölgeye göre arama yapma** imkanı sunar. Kullanıcılar, belirli bir **şehir, mahalle veya coğrafi koordinat aralığında** sonuçları daraltabilirler. Bu özellik, **konum bazlı hizmetler** için önemlidir ve kullanıcının ihtiyaçlarına en uygun konaklama yerlerini bulmasını sağlar.
 
 ## 10. Genel Filtreleme
