@@ -3,4 +3,4 @@ Gereksinim analizi sayfasında olduğu gibi herkes kendi ismiyle aşağıya numa
 1. [... Durum Senaryosu](AliAtabakDurumSenaryosu.pdf)
 2. [... Durum Senaryosu](AliAtabakDurumSenaryosu.pdf)
 3. [... Durum Senaryosu](AliAtabakDurumSenaryosu.pdf)
-4. [Ahmet Koca Durum Senaryosu](AhmetKoca-DurumSenaryosu.pdf)
+4. [Ahmet Koca Durum Senaryosu](Ahmet-Koca-DurumSenaryosu.pdf)
