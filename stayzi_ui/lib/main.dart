@@ -11,9 +11,12 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: OnboardScreen(), // firebase kurulumndan sonra değişecek
-      theme: ThemeData(),
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(),
+
+      initialRoute: '/onboard',
+
+      routes: {'/onboard': (context) => const OnboardScreen()},
     );
   }
 }
