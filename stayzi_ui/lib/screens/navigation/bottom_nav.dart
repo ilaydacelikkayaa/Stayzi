@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stayzi_ui/screens/advertisement/advertisement_screen.dart';
+import 'package:stayzi_ui/screens/myHomes/my_homes_screen.dart';
 import 'package:stayzi_ui/screens/favorite/favorite_screen.dart';
 import 'package:stayzi_ui/screens/profile/profile_screen.dart';
 import 'package:stayzi_ui/screens/search/search_screen.dart';
@@ -23,7 +23,7 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget> {
   static const List<Widget> _pages = <Widget>[
     SearchScreen(),
     FavoriteScreen(),
-    AdvertisementScreen(),
+    MyHomesScreen(),
     ProfileScreen(),
   ];
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stayzi_ui/screens/myHomes/add_home_screen.dart';
 import 'package:stayzi_ui/screens/onboard/onboard_screen.dart';
 
 void main() {
@@ -16,7 +17,10 @@ class MainApp extends StatelessWidget {
 
       initialRoute: '/onboard',
 
-      routes: {'/onboard': (context) => const OnboardScreen()},
+      routes: {
+        '/add_home': (context) => const AddHomeScreen(),
+        '/onboard': (context) => const OnboardScreen(),
+      },
     );
   }
 }
