@@ -32,7 +32,7 @@ class HomeDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Image.network(
-              ilan['foto']!,
+              ilan['foto']!.trim(),
               height: 200,
               width: double.infinity,
               fit: BoxFit.cover,
