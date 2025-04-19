@@ -31,12 +31,14 @@ class HomeDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset(
-              ilan['foto']!,
+            Image.network(
+              ilan['foto']!.trim(),
               height: 200,
               width: double.infinity,
               fit: BoxFit.cover,
-            ),
+              errorBuilder:
+                  (context, error, stackTrace) => const Icon(Icons.error),
+),
             const SizedBox(height: 16),
             Text(
               ilan['baslik'] ?? '',
