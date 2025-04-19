@@ -15,6 +15,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
 
   String? selectedImage; // geçici olarak string
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,7 +83,10 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                     Navigator.pop(context);
                   }
                 },
-                child: const Text('Kaydet'),
+                child: const Text(
+                  'Kaydet',
+                  style: TextStyle(color: Colors.black),
+                ),
               ),
             ],
           ),
