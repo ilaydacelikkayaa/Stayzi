@@ -132,6 +132,98 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text("Çıkış Yap"),
+                        content: const Text(
+                          "Çıkış yapmak istediğinize emin misiniz?",
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text("İptal"),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.pushReplacementNamed(
+                                context,
+                                '/onboard',
+                              );
+                            },
+                            child: const Text("Evet"),
+                          ),
+                        ],
+                      ),
+                );
+              },
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 4,
+                color: Colors.white,
+                child: const ListTile(
+                  leading: Icon(Icons.logout, color: Colors.red),
+                  title: Text('Çıkış Yap'),
+                  textColor: Colors.red,
+                  trailing: Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.red,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text("Hesabı Devre Dışı Bırak"),
+                        content: const Text(
+                          "Hesabınızı devre dışı bırakmak istediğinize emin misiniz? Bu işlem geri alınamaz.",
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text("Vazgeç"),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.pushReplacementNamed(
+                                context,
+                                '/onboard',
+                              );
+                            },
+                            child: const Text("Devre Dışı Bırak"),
+                          ),
+                        ],
+                      ),
+                );
+              },
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 4,
+                color: Colors.white,
+                child: const ListTile(
+                  leading: Icon(Icons.block, color: Colors.black),
+                  title: Text('Hesabı Devre Dışı Bırak'),
+                  textColor: Colors.black,
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                ),
+              ),
+            ),
           ],
         ),
       ),
