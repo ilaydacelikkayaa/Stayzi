@@ -81,7 +81,6 @@ class ProfileDetailScreen extends StatelessWidget {
               'Telefon: +90 555 555 55 55',
               style: TextStyle(fontSize: 18),
             ),
-            // Diğer bilgiler...
           ],
         ),
       ),

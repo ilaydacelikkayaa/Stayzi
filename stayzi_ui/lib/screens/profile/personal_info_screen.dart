@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stayzi_ui/screens/onboard/widgets/editable_text_field.dart';
 
 class PersonalInfoScreen extends StatefulWidget {
   const PersonalInfoScreen({super.key});
@@ -51,7 +52,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                 child: ListView(
                   children: [
                     const SizedBox(height: 20),
-                    _buildEditableTextField(
+                    EditableTextField(
                       label: 'Yasal Ad',
                       controller: _fullNameController,
                       hint: 'Ahmet Koca',
@@ -65,7 +66,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                     const Divider(color: Colors.grey),
                     const SizedBox(height: 15),
 
-                    _buildEditableTextField(
+                    EditableTextField(
                       label: 'Tercih Edilen Ad',
                       controller: _preferredNameController,
                       hint: 'Ahmet',
@@ -79,7 +80,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                     const Divider(color: Colors.grey),
                     const SizedBox(height: 15),
 
-                    _buildEditableTextField(
+                    EditableTextField(
                       label: 'Telefon Numarası',
                       controller: _phoneNumberController,
                       hint: '+90 555 123 45 67',
@@ -93,7 +94,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                     const Divider(color: Colors.grey),
                     const SizedBox(height: 15),
 
-                    _buildEditableTextField(
+                    EditableTextField(
                       label: 'E-posta',
                       controller: _emailController,
                       hint: 'ahmet.koca@example.com',
@@ -107,7 +108,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                     const Divider(color: Colors.grey),
                     const SizedBox(height: 15),
 
-                    _buildEditableTextField(
+                    EditableTextField(
                       label: 'Adres',
                       controller: _addressController,
                       hint: 'Isparta, Türkiye',
@@ -129,53 +130,4 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     );
   }
 
-  Widget _buildEditableTextField({
-    required String label,
-    required TextEditingController controller,
-    required String hint,
-    required bool isEditable,
-    required VoidCallback onEditPressed,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Color.fromARGB(255, 0, 0, 0),
-                ),
-              ),
-              GestureDetector(
-                onTap: onEditPressed,
-                child: Text(
-                  isEditable ? 'Kaydet' : 'Düzenle',
-                  style: const TextStyle(
-                    color: Color.fromARGB(255, 0, 0, 0),
-                    fontSize: 16,
-                    decoration: TextDecoration.underline,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: controller,
-            enabled: isEditable,
-            decoration: InputDecoration(
-              hintText: hint,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
