@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'notifications_screen.dart';
 import 'personal_info_screen.dart';
 import 'profile_detail_screen.dart';
 
@@ -14,9 +15,25 @@ class ProfileScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Profiil',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Profil',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.notifications_none),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 32),
             GestureDetector(
@@ -45,7 +62,7 @@ class ProfileScreen extends StatelessWidget {
                         radius: 28,
                         backgroundColor: Colors.black,
                         child: Text(
-                          'A',
+                          'A', // Bu kısım veritabanınaan gelen isim bilgisine göre dinamik değişecek
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 24,
@@ -87,7 +104,6 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            // Kişisel Bilgiler
             GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -95,7 +111,7 @@ class ProfileScreen extends StatelessWidget {
                   MaterialPageRoute(
                     builder:
                         (context) =>
-                            const PersonalInfoScreen(), // Kişisel Bilgiler Sayfasına yönlendirme
+                            const PersonalInfoScreen(), 
                   ),
                 );
               },
