@@ -10,6 +10,7 @@ class ElevatedButtonWidget extends StatelessWidget {
     required this.textColor,
     required this.onPressed,
     this.elevation,
+    this.side,
   });
 
   final String buttonText;
@@ -18,6 +19,7 @@ class ElevatedButtonWidget extends StatelessWidget {
   final Icon? icon;
   final void Function()? onPressed;
   final double? elevation;
+  final BorderSide? side;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +35,7 @@ class ElevatedButtonWidget extends StatelessWidget {
       icon: icon,
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
+        side: side,
         padding: const EdgeInsets.only(top: 15, bottom: 15),
         backgroundColor: buttonColor,
         foregroundColor: Colors.black,
