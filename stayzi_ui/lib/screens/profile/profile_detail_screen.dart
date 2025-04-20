@@ -1,17 +1,46 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-class ProfileDetailScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+
+class ProfileDetailScreen extends StatefulWidget {
   const ProfileDetailScreen({super.key});
 
   @override
+  State<ProfileDetailScreen> createState() => _ProfileDetailScreenState();
+}
+
+class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
+  final String name = "Ahmet Koca";
+  final String email = "ahmet@example.com";
+  final String phone = "+90 555 555 55 55";
+
+  File? _imageFile;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+    if (pickedImage != null) {
+      setState(() {
+        _imageFile = File(pickedImage.path);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    String initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -21,9 +50,9 @@ class ProfileDetailScreen extends StatelessWidget {
               width: double.infinity,
               height: 230,
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 255, 255, 255),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
                     color: Colors.black26,
                     offset: Offset(0, 4),
@@ -36,22 +65,31 @@ class ProfileDetailScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.black,
-                      child: const Text(
-                        'A',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child:
+                          _imageFile != null
+                              ? CircleAvatar(
+                                radius: 45,
+                                backgroundImage: FileImage(_imageFile!),
+                              )
+                              : CircleAvatar(
+                                radius: 45,
+                                backgroundColor: Colors.black,
+                                child: Text(
+                                  initial,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 40,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Ahmet',
-                      style: TextStyle(
+                    Text(
+                      name,
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
@@ -70,17 +108,11 @@ class ProfileDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text('Ad Soyad: Ahmet Koca', style: TextStyle(fontSize: 18)),
+            Text('Ad Soyad: $name', style: const TextStyle(fontSize: 18)),
             const SizedBox(height: 10),
-            const Text(
-              'Email: ahmet@example.com',
-              style: TextStyle(fontSize: 18),
-            ),
+            Text('Email: $email', style: const TextStyle(fontSize: 18)),
             const SizedBox(height: 10),
-            const Text(
-              'Telefon: +90 555 555 55 55',
-              style: TextStyle(fontSize: 18),
-            ),
+            Text('Telefon: $phone', style: const TextStyle(fontSize: 18)),
           ],
         ),
       ),

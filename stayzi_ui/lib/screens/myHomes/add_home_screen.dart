@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AddHomeScreen extends StatefulWidget {
   const AddHomeScreen({super.key});
@@ -13,8 +16,18 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 
-  String? selectedImage; // geçici olarak string
+  File? _selectedImage;
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,28 +40,22 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
           child: ListView(
             children: [
               GestureDetector(
-                onTap: () {
-                  // ileride image picker burada eklenecek
-                  setState(() {
-                    selectedImage =
-                        'https://tekce.net/files/emlaklar/ic/650x450/ist-0784-spacious-apartment-with-sea-view-in-istanbul-asian-side-ih-8.jpeg';
-                  });
-                },
+                onTap: _pickImage,
                 child: Container(
                   height: 150,
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(10),
                     image:
-                        selectedImage != null
+                        _selectedImage != null
                             ? DecorationImage(
-                              image: NetworkImage(selectedImage!),
+                              image: FileImage(_selectedImage!),
                               fit: BoxFit.cover,
                             )
                             : null,
                   ),
                   child:
-                      selectedImage == null
+                      _selectedImage == null
                           ? const Center(child: Text("Fotoğraf Ekle"))
                           : null,
                 ),
@@ -76,7 +83,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    // burada backend'e kayıt işlemi yapılacak
+                    // Resim kontrolü opsiyonel, istersen zorunlu yapabilirsin
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('İlan eklendi')),
                     );
