@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stayzi_ui/screens/favorite/favorite_home_detail.screen.dart';
 
-class FavoriteListDetailScreen extends StatelessWidget {
+class FavoriteListDetailScreen extends StatefulWidget {
   final String listeAdi;
   final List<Map<String, dynamic>> ilanlar;
 
@@ -12,14 +12,68 @@ class FavoriteListDetailScreen extends StatelessWidget {
   });
 
   @override
+  _FavoriteListDetailScreenState createState() =>
+      _FavoriteListDetailScreenState();
+}
+
+class _FavoriteListDetailScreenState extends State<FavoriteListDetailScreen> {
+  bool isEditing = false;
+
+  void _showDeleteConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Listeyi Sil'),
+          content: const Text('Bu listeyi silmek istediğinizden emin misiniz?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Hayır'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Evet'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(listeAdi)),
+      appBar: AppBar(
+        title: Text(widget.listeAdi),
+        actions: [
+          if (!isEditing)
+            TextButton.icon(
+              onPressed: _showDeleteConfirmation,
+              icon: const Icon(Icons.delete),
+              label: const Text('Listeyi Sil'),
+              style: TextButton.styleFrom(foregroundColor: Colors.black),
+            ),
+          if (isEditing)
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  isEditing = false;
+                });
+              },
+              child: const Text('Bitti'),
+            ),
+        ],
+      ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: ilanlar.length,
+        itemCount: widget.ilanlar.length,
         itemBuilder: (context, index) {
-          final ilan = ilanlar[index];
+          final ilan = widget.ilanlar[index];
           return Card(
             margin: const EdgeInsets.only(bottom: 16),
             shape: RoundedRectangleBorder(
@@ -50,7 +104,6 @@ class FavoriteListDetailScreen extends StatelessWidget {
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
-                    // Tıklandığında HomeDetailScreen'e yönlendiriliyor
                     Navigator.push(
                       context,
                       MaterialPageRoute(

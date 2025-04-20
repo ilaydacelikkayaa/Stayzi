@@ -14,7 +14,7 @@ class FavoriteHomeDetailScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.favorite),
             onPressed: () {
-              // Favorilerden çıkarma işlemi için bir fonksiyon ekleyebilirsiniz
+              // Favorilerden çıkarma işlemi için bir fonksiyon eklenicek
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text("${ilan['baslik']} favorilerden çıkarıldı"),
@@ -29,7 +29,6 @@ class FavoriteHomeDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Ev fotoğrafı
             Image.network(
               ilan['foto']!.trim(),
               height: 200,
@@ -39,25 +38,21 @@ class FavoriteHomeDetailScreen extends StatelessWidget {
                   (context, error, stackTrace) => const Icon(Icons.error),
             ),
             const SizedBox(height: 16),
-            // Ev başlığı
             Text(
               ilan['baslik'] ?? '',
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            // Ev konumu
             Text(
               ilan['konum'] ?? '',
               style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 8),
-            // Ev fiyatı
             Text(
               ilan['fiyat'] ?? '',
               style: const TextStyle(fontSize: 18, color: Colors.green),
             ),
             const SizedBox(height: 16),
-            // Ev açıklaması
             const Text(
               'Favori ev hakkında daha fazla açıklama burada yer alabilir.',
               style: TextStyle(fontSize: 16),

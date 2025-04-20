@@ -24,6 +24,13 @@ class HomeDetailScreen extends StatelessWidget {
               );
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () {
+              // Silme işlemi burada gerçekleştirilecek
+              _showDeleteConfirmation(context);
+            },
+          ),
         ],
       ),
       body: Padding(
@@ -38,7 +45,7 @@ class HomeDetailScreen extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder:
                   (context, error, stackTrace) => const Icon(Icons.error),
-),
+            ),
             const SizedBox(height: 16),
             Text(
               ilan['baslik'] ?? '',
@@ -62,6 +69,37 @@ class HomeDetailScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+
+  void _showDeleteConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('İlanı Sil'),
+          content: const Text('Bu ilanı silmek istediğinizden emin misiniz?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Hayır'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Evet'),
+              onPressed: () {
+                // Silme işlemi yapılabilir
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Liste silindi.')));
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

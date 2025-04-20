@@ -53,7 +53,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // Backend'e kaydetme işlemi yapılabilir
+                // Backend'e kaydetme işlemi yapılacak
                 Navigator.pop(context);
               },
               child: const Text("Kaydet"),

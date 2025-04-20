@@ -61,7 +61,7 @@ class FavoriteScreen extends StatelessWidget {
         ],
       },
       {
-        'listeAdi': 'Can Ispartamdakiler',
+        'listeAdi': 'Ispartadaki Evler',
         'ilanlar': [
           {
             'baslik': 'Merkezde',
