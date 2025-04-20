@@ -1,36 +1,6 @@
-<section class="hero-video">
-  <video autoplay muted loop playsinline class="video-bg">
-    <source src="/videos/tanitim.mp4" type="video/mp4">
-    Tarayıcınız video etiketini desteklemiyor.
-  </video>
-  <div class="hero-content">
-    <h1>Hayalindeki Evi Kolayca Bul</h1>
-    <p>Ev arama, ilan verme ve daha fazlası bir tık uzağında.</p>
-  </div>
-</section>
-.hero-video {
-  position: relative;
-  height: 100vh;
-  overflow: hidden;
-}
+## Tanıtım Videosu
 
-.video-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  min-width: 100%;
-  min-height: 100%;
-  object-fit: cover;
-  z-index: -1;
-}
-
-.hero-content {
-  position: relative;
-  z-index: 1;
-  color: white;
-  text-align: center;
-  padding-top: 20vh;
-}
+[📹 Tanıtım Videosunu İzle](/Frontend-Tanıtım-Video.mp4)
 
 
 # Ahmet Koca Frontend #
