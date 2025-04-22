@@ -1,6 +1,6 @@
 ## Tanıtım Videosu
 
-[![Tanıtım Videosu](https://img.youtube.com/vi/yvRi37HhSd4/0.jpg)](https://www.youtube.com/watch?v=yvRi37HhSd4)
+[![Tanıtım Videosu](https://img.youtube.com/vi/seK44pH85z0/0.jpg)](https://youtu.be/seK44pH85z0)
 
 
 # Ahmet Koca Frontend #
