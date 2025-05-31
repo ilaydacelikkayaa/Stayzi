@@ -64,7 +64,7 @@ class MyHomesScreen extends StatelessWidget {
                   ),
                   child: Image.network(
                     ilan['foto']!.trim(),
-                    height: 180,
+                    height: 200,
                     width: double.infinity,
                     fit: BoxFit.cover,
                   ),
@@ -74,8 +74,7 @@ class MyHomesScreen extends StatelessWidget {
                     ilan['baslik']!,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text("${ilan['konum']} • ${ilan['fiyat']}"),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  subtitle: Text("${ilan['konum']}  \n${ilan['fiyat']}"),
                   onTap: () {
                     Navigator.push(
                       context,
