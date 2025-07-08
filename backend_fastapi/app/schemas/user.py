@@ -2,8 +2,9 @@ from pydantic import BaseModel, EmailStr
 from datetime import date, datetime
 from typing import Optional
 
+
 class UserBase(BaseModel):
-    email: EmailStr
+    email: Optional[EmailStr]=None
     name: str
     surname: str
     birthdate: date
@@ -33,3 +34,12 @@ class UserOut(UserBase):
     class Config:
         orm_mode = True
 
+    profile_image: Optional[str] = None
+
+
+class PhoneRegister(BaseModel):
+    name: str
+    surname: str
+    birthdate: date
+    phone: str
+    password: str
