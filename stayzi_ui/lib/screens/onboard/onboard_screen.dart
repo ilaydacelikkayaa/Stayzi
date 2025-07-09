@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:stayzi_ui/screens/onboard/get_info_screen.dart';
 import 'package:stayzi_ui/screens/onboard/mail_login_sheet.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
@@ -75,6 +76,12 @@ class _OnboardScreenState extends State<OnboardScreen> {
                     hintText: 'Phone Number',
                     textInputAction: TextInputAction.done,
                     keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(
+                        10,
+                      ), // 10 haneli telefon numarası
+                    ],
                   ),
                   SizedBox(height: 20),
                   Text(

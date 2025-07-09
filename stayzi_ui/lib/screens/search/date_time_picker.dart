@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class DateRangePickerWidget extends StatefulWidget {
-  const DateRangePickerWidget({super.key});
+  final DateTimeRange? initialDateRange;
+  final Function(DateTimeRange?) onDateRangeChanged;
+
+  const DateRangePickerWidget({
+    super.key,
+    this.initialDateRange,
+    required this.onDateRangeChanged,
+  });
 
   @override
   _DateRangePickerWidgetState createState() => _DateRangePickerWidgetState();
@@ -14,6 +21,24 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
 
   final CalendarFormat _calendarFormat = CalendarFormat.month;
   final RangeSelectionMode _rangeSelectionMode = RangeSelectionMode.toggledOn;
+
+  @override
+  void initState() {
+    super.initState();
+    _startDate = widget.initialDateRange?.start;
+    _endDate = widget.initialDateRange?.end;
+  }
+
+  @override
+  void didUpdateWidget(covariant DateRangePickerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialDateRange != widget.initialDateRange) {
+      setState(() {
+        _startDate = widget.initialDateRange?.start;
+        _endDate = widget.initialDateRange?.end;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +55,10 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
           _startDate = start;
           _endDate = end;
         });
+
+        if (start != null && end != null) {
+          widget.onDateRangeChanged(DateTimeRange(start: start, end: end));
+        }
       },
       headerStyle: HeaderStyle(
         formatButtonVisible: false,
@@ -38,7 +67,6 @@ class _DateRangePickerWidgetState extends State<DateRangePickerWidget> {
       ),
       calendarStyle: CalendarStyle(
         rangeHighlightColor: Colors.grey.withOpacity(0.3),
-
         todayDecoration: BoxDecoration(
           color: Colors.black,
           shape: BoxShape.circle,
