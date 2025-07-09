@@ -3,7 +3,7 @@ from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 from app.utils.security import hash_password
 from app.schemas.user import PhoneRegister
-from datetime import datetime
+from datetime import datetime, date
 import uuid
 
 # 🔍 Tüm kullanıcıları getir (admin için kullanılabilir)
@@ -24,9 +24,10 @@ def get_user_by_phone(db: Session, phone: str):
 
 # ✅ Yeni kullanıcı oluştur (şifreyi hashleyerek)
 def create_user(db: Session, user: UserCreate):
-    hashed_pw = hash_password(user.password_hash)
+    hashed_pw = hash_password(user.password)
     db_user = User(
         email=user.email,
+        password_hash=hashed_pw,
         name=user.name,
         surname=user.surname,
         birthdate=user.birthdate,
@@ -34,7 +35,7 @@ def create_user(db: Session, user: UserCreate):
         country=user.country,
         profile_image=user.profile_image,
         is_active=user.is_active,
-        password_hash=hashed_pw
+        created_at=user.created_at or date.today()
     )
     db.add(db_user)
     db.commit()

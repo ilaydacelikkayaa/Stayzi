@@ -13,8 +13,17 @@ class UserBase(BaseModel):
     profile_image: Optional[str] = None
     is_active: Optional[bool] = True
 
-class UserCreate(UserBase):
-    password_hash: str
+class UserCreate(BaseModel):
+    email: str
+    name: str
+    surname: str
+    birthdate: date
+    phone: str
+    country: str
+    profile_image: str
+    is_active: bool
+    password: str
+    created_at: Optional[date] = None
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None

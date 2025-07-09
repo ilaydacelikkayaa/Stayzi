@@ -230,7 +230,7 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.asset(
-                          'assets/images/harita.png', // geçici harita görseli
+                          'assets/images/harita.jpg', // geçici harita görseli
                           fit: BoxFit.cover,
                         ),
                       ),

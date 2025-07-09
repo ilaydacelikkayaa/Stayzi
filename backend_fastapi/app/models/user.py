@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Date, Boolean
+from sqlalchemy import Column, Integer, String, Date, Boolean, func
 from app.db.session import Base
+from datetime import date
 
 class User(Base):
     __tablename__ = "users"
@@ -14,4 +15,4 @@ class User(Base):
     country = Column(String, nullable=True)
     profile_image = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
-    created_at = Column(Date, nullable=False)
+    created_at = Column(Date, nullable=False, default=date.today)
