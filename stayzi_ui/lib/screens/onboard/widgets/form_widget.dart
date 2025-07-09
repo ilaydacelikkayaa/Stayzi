@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class FormWidget extends StatelessWidget {
   const FormWidget({
@@ -10,6 +11,12 @@ class FormWidget extends StatelessWidget {
     this.helperText,
     this.controller,
     this.obscureText,
+    this.inputFormatters,
+    this.validator,
+    this.readOnly,
+    this.autovalidateMode,
+    this.focusNode,
+    this.labelStyle,
   });
 
   final String? labelText;
@@ -19,6 +26,12 @@ class FormWidget extends StatelessWidget {
   final String? helperText;
   final TextEditingController? controller;
   final bool? obscureText;
+  final List<TextInputFormatter>? inputFormatters;
+  final String? Function(String?)? validator;
+  final bool? readOnly;
+  final AutovalidateMode? autovalidateMode;
+  final FocusNode? focusNode;
+  final TextStyle? labelStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +39,11 @@ class FormWidget extends StatelessWidget {
       obscureText: obscureText ?? false,
       controller: controller,
       keyboardType: keyboardType,
+      focusNode: focusNode,
+      inputFormatters: inputFormatters,
+      autovalidateMode: autovalidateMode ?? AutovalidateMode.disabled,
+      validator: validator,
+      readOnly: readOnly ?? false,
       cursorColor: Colors.black,
       textInputAction: textInputAction,
       decoration: InputDecoration(
@@ -38,6 +56,9 @@ class FormWidget extends StatelessWidget {
         helperText: helperText,
         helperMaxLines: 4,
         labelText: labelText,
+        labelStyle:
+            labelStyle ??
+            const TextStyle(color: Colors.black, fontWeight: FontWeight.normal),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: Colors.black, width: 1),

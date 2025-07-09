@@ -12,6 +12,7 @@ class GetInfoScreen extends StatefulWidget {
 }
 
 class _GetInfoScreenState extends State<GetInfoScreen> {
+  final _formKey = GlobalKey<FormState>();
   bool _isButtonEnabled = false;
 
   final Map<String, TextEditingController> _controllers = {
@@ -46,153 +47,199 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              //mainAxisAlignment: MainAxisAlignment.center, // yapi korunmak istenmezse dahil edilebilir.
-              children: [
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => OnboardScreen(),
-                          ),
-                        );
-                      },
-                      icon: Icon(Icons.cancel),
-                      padding: EdgeInsets.only(left: 12),
-                    ),
-                    SizedBox(width: 50),
-                    Text(
-                      'Finish signing up',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-                Divider(),
-                SizedBox(height: 30),
-                SizedBox(
-                  width: 342,
-                  //height: 120,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                //mainAxisAlignment: MainAxisAlignment.center, // yapi korunmak istenmezse dahil edilebilir.
+                children: [
+                  Row(
                     children: [
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 12),
-                        child: Text(
-                          'Legal Name',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
+                      IconButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OnboardScreen(),
+                            ),
+                          );
+                        },
+                        icon: Icon(Icons.cancel),
+                        padding: EdgeInsets.only(left: 12),
                       ),
-                      FormWidget(
-                        controller: _controllers['firstName'],
-                        hintText: 'First Name',
-                        keyboardType: TextInputType.name,
-                        textInputAction: TextInputAction.next,
-                      ),
-                      SizedBox(height: 0.3),
-                      FormWidget(
-                        controller: _controllers['lastName'],
-                        helperText:
-                            'Make sure this matches the name on your goverment ID.',
-                        hintText: 'Last Name',
-                        keyboardType: TextInputType.name,
-                        textInputAction: TextInputAction.next,
-                      ),
-                      SizedBox(height: 12),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 12),
-                        child: Text(
-                          'Date of Birth',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      FormWidget(
-                        controller: _controllers['birthday'],
-                        helperText:
-                            'To sign up, you need to be at least 18. Your birthday wont be shared with other people who use Stayzi.',
-                        hintText: 'Birthday (mm/dd/yyyy)',
-                        keyboardType: TextInputType.datetime,
-                        textInputAction: TextInputAction.next,
-                      ),
-                      SizedBox(height: 12),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 12),
-                        child: Text(
-                          'Email',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      FormWidget(
-                        controller: _controllers['email'],
-                        helperText:
-                            'We will email you trip confirmations and receipts.',
-                        hintText: 'Email',
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                      ),
-                      SizedBox(height: 12),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 12),
-                        child: Text(
-                          'Password',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      FormWidget(
-                        obscureText: true,
-                        controller: _controllers['password'],
-                        hintText: 'Password',
-                        keyboardType: TextInputType.visiblePassword,
-                        textInputAction: TextInputAction.done,
-                      ),
-                      SizedBox(height: 40),
-                      SizedBox(
-                        width: 350,
-                        child: ElevatedButtonWidget(
-                          onPressed:
-                              _isButtonEnabled
-                                  ? () {
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder:
-                                            (context) => NotificationScreen(),
-                                      ),
-                                    );
-                                  }
-                                  : null,
-                          buttonText: 'Agree and Continue',
-                          buttonColor: Colors.black,
-                          textColor: Colors.white,
-                          elevation: 10,
+                      SizedBox(width: 50),
+                      Text(
+                        'Finish signing up',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  Divider(),
+                  SizedBox(height: 30),
+                  SizedBox(
+                    width: 342,
+                    //height: 120,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            'Legal Name',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        FormWidget(
+                          controller: _controllers['firstName'],
+                          hintText: 'First Name',
+                          keyboardType: TextInputType.name,
+                          textInputAction: TextInputAction.next,
+                        ),
+                        SizedBox(height: 0.3),
+                        FormWidget(
+                          controller: _controllers['lastName'],
+                          helperText:
+                              'Make sure this matches the name on your goverment ID.',
+                          hintText: 'Last Name',
+                          keyboardType: TextInputType.name,
+                          textInputAction: TextInputAction.next,
+                        ),
+                        SizedBox(height: 12),
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            'Date of Birth',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime(2000),
+                              firstDate: DateTime(1900),
+                              lastDate: DateTime.now().subtract(
+                                Duration(days: 365 * 18),
+                              ),
+                            );
+                            if (picked != null) {
+                              _controllers['birthday']!.text =
+                                  "${picked.month}/${picked.day}/${picked.year}";
+                            }
+                          },
+                          child: AbsorbPointer(
+                            child: FormWidget(
+                              readOnly: true,
+                              controller: _controllers['birthday'],
+                              helperText:
+                                  'To sign up, you need to be at least 18. Your birthday wont be shared with other people who use Stayzi.',
+                              hintText: 'Birthday (mm/dd/yyyy)',
+                              keyboardType: TextInputType.datetime,
+                              textInputAction: TextInputAction.next,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            'Email',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        FormWidget(
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          controller: _controllers['email'],
+                          helperText:
+                              'We will email you trip confirmations and receipts.',
+                          hintText: 'Email',
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Email is required';
+                            }
+                            final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+                            if (!emailRegex.hasMatch(value)) {
+                              return 'Enter a valid email';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 12),
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            'Password',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        FormWidget(
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          obscureText: true,
+                          controller: _controllers['password'],
+                          hintText: 'Password',
+                          keyboardType: TextInputType.visiblePassword,
+                          textInputAction: TextInputAction.done,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Password is required';
+                            }
+                            if (value.length < 8) {
+                              return 'Password must be at least 8 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 40),
+                        SizedBox(
+                          width: 350,
+                          child: ElevatedButtonWidget(
+                            onPressed:
+                                _isButtonEnabled
+                                    ? () {
+                                      if (_formKey.currentState!.validate()) {
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) =>
+                                                    NotificationScreen(),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                    : null,
+                            buttonText: 'Agree and Continue',
+                            buttonColor: Colors.black,
+                            textColor: Colors.white,
+                            elevation: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
