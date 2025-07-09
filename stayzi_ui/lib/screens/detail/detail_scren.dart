@@ -63,7 +63,9 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                   endIndent: 20,
                   indent: 20,
                 ),
+
                 KonumBilgisi(),
+
                 Divider(
                   thickness: 1,
                   color: Colors.grey,

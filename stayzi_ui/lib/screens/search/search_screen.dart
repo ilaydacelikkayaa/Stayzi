@@ -41,7 +41,9 @@ class _TinyHomeCardState extends State<TinyHomeCard> {
       onTap: () {
         Navigator.push(
           context,
+
           MaterialPageRoute(builder: (context) => const ListingDetailPage()),
+
         );
       },
       child: Card(
@@ -62,7 +64,9 @@ class _TinyHomeCardState extends State<TinyHomeCard> {
                   ),
                   child: Image.network(
                     // şuanlık network daha sonra db'den gelmesi lazım güncellencek burası
+
                     'https://plus.unsplash.com/premium_photo-1661964402307-02267d1423f5?q=80&w=1673&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+
                     height: 200,
                     width: double.infinity,
                     fit: BoxFit.cover, // tam olarak doldursun boşluk bırakmasın
