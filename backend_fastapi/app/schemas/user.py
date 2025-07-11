@@ -43,7 +43,7 @@ class UserOut(UserBase):
     created_at: Optional[date]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class PhoneRegister(BaseModel):
