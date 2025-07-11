@@ -1,0 +1,20 @@
+# Python cache dosyaları
+__pycache__/
+*.py[cod]
+
+# Sanal ortam klasörleri
+venv/
+.env/
+.env.*  # Örn: .env.dev, .env.prod
+
+# IDE dosyaları
+.vscode/
+.idea/
+
+# Migration & DB
+*.sqlite3
+*.db
+alembic/versions/
+
+# Diğer
+*.log

@@ -1,20 +1,23 @@
 from pydantic import BaseModel, EmailStr
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
 
 
 class UserBase(BaseModel):
-    email: Optional[EmailStr]=None
-    name: str
-    surname: str
-    birthdate: date
+    email: Optional[EmailStr] = None
+    name: Optional[str] = None
+    surname: Optional[str] = None
+    birthdate: Optional[date] = None
     phone: Optional[str] = None
     country: Optional[str] = None
     profile_image: Optional[str] = None
     is_active: Optional[bool] = True
 
+
 class UserCreate(BaseModel):
-    email: str
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    password: str
     name: str
     surname: str
     birthdate: date
@@ -39,12 +42,10 @@ class UserUpdate(BaseModel):
 
 class UserOut(UserBase):
     id: int
-    created_at: Optional[date]  # ✅ null olabilir
+    created_at: Optional[date]
 
     class Config:
-        orm_mode = True
-
-    profile_image: Optional[str] = None
+        from_attributes = True
 
 
 class PhoneRegister(BaseModel):

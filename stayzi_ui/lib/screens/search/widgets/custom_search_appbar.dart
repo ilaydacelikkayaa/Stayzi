@@ -13,46 +13,43 @@ class CustomSearchAppbar extends StatelessWidget
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      //backgroundColor: Colors.blue,
-      flexibleSpace: Padding(
-        padding: EdgeInsets.only(left: 30, right: 30),
-        child: Material(
-          borderRadius: BorderRadius.circular(30),
-          elevation: 4,
-          child: InkWell(
-            onTap: () {
-              Navigator.of(context).push(
-                PageRouteBuilder(
-                  pageBuilder:
-                      (context, animation, secondaryAnimation) =>
-                          SearchFilterScreen(),
-                  transitionsBuilder: (
-                    context,
-                    animation,
-                    secondaryAnimation,
-                    child,
-                  ) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                ),
-              );
-            },
-            borderRadius: BorderRadius.circular(30),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                //color: Colors.red,
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: Colors.black),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.search, color: Colors.black),
-                  SizedBox(width: 12),
-                  Expanded(child: Text('Start your search')),
-                ],
-              ),
+      //backgroundColor: Colors.white,
+      elevation: 0,
+      title: GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            PageRouteBuilder(
+              pageBuilder:
+                  (context, animation, secondaryAnimation) =>
+                      SearchFilterScreen(),
+              transitionsBuilder: (
+                context,
+                animation,
+                secondaryAnimation,
+                child,
+              ) {
+                return FadeTransition(opacity: animation, child: child);
+              },
             ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.black),
+          ),
+          child: Row(
+            children: const [
+              Icon(Icons.search, color: Colors.black),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Start your search',
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -15,4 +15,6 @@ class Favorite(FavoriteBase):
     created_at: datetime
 
     class Config:
+
         from_attributes = True
+
