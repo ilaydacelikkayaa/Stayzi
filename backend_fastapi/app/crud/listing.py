@@ -4,7 +4,7 @@ from app.schemas.listing import ListingCreate
 
 
 def create_listing(db: Session, listing: ListingCreate):
-    db_listing = Listing(**listing.dict())
+    db_listing = Listing(**listing.model_dump())
     db.add(db_listing)
     db.commit()
     db.refresh(db_listing)

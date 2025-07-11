@@ -217,16 +217,18 @@ class ApiService {
     }
   }
 
-  // Deactivate account
-  Future<Map<String, dynamic>> deactivateAccount() async {
+  // Deactivate (disable) current user account
+  Future<void> deactivateAccount() async {
     try {
       final response = await http.delete(
         Uri.parse('${ApiConstants.baseUrl}${ApiConstants.deactivateAccount}'),
         headers: _getHeaders(requiresAuth: true),
       );
-      return _handleResponse(response);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('Hesap devre dışı bırakılamadı: ${response.body}');
+      }
     } catch (e) {
-      throw Exception('Failed to deactivate account: $e');
+      throw Exception('Hesap devre dışı bırakılırken hata: $e');
     }
   }
 
@@ -280,38 +282,80 @@ class ApiService {
   }
 
   // Update listing
-  Future<Listing> updateListing(
-    int listingId,
-    ListingCreate listingData,
-  ) async {
+  Future<void> updateListing({
+    required int id,
+    required String title,
+    required String location,
+    required String price,
+    File? image,
+  }) async {
     try {
-      final response = await http.put(
-        Uri.parse(
-          '${ApiConstants.baseUrl}${ApiConstants.updateListing}$listingId',
-        ),
-        headers: _getHeaders(requiresAuth: true),
-        body: json.encode(listingData.toJson()),
+      var request = http.MultipartRequest(
+        'PUT',
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.updateListing}$id'),
       );
-      final data = _handleResponse(response);
-      return Listing.fromJson(data);
+      request.headers.addAll(_getHeaders(requiresAuth: true));
+      request.fields['title'] = title;
+      request.fields['location'] = location;
+      request.fields['price'] = price;
+      if (image != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('file', image.path),
+        );
+      }
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('İlan güncellenemedi: ${response.body}');
+      }
     } catch (e) {
-      throw Exception('Failed to update listing: $e');
+      throw Exception('İlan güncellenirken hata: $e');
     }
   }
 
   // Delete listing
-  Future<Listing> deleteListing(int listingId) async {
+  Future<void> deleteListing(int id) async {
     try {
       final response = await http.delete(
-        Uri.parse(
-          '${ApiConstants.baseUrl}${ApiConstants.deleteListing}$listingId',
-        ),
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.deleteListing}$id'),
         headers: _getHeaders(requiresAuth: true),
       );
-      final data = _handleResponse(response);
-      return Listing.fromJson(data);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('İlan silinemedi: ${response.body}');
+      }
     } catch (e) {
-      throw Exception('Failed to delete listing: $e');
+      throw Exception('İlan silinirken hata: $e');
+    }
+  }
+
+  // Add new listing
+  Future<void> addListing({
+    required String title,
+    required String location,
+    required String price,
+    File? image,
+  }) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.createListing}'),
+      );
+      request.headers.addAll(_getHeaders(requiresAuth: true));
+      request.fields['title'] = title;
+      request.fields['location'] = location;
+      request.fields['price'] = price;
+      if (image != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('file', image.path),
+        );
+      }
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('İlan eklenemedi: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('İlan eklenirken hata: $e');
     }
   }
 

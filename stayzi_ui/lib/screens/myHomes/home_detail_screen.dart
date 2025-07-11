@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../services/api_service.dart';
 import 'edit_home_screen.dart';
 
 class HomeDetailScreen extends StatelessWidget {
@@ -89,12 +90,23 @@ class HomeDetailScreen extends StatelessWidget {
             ),
             TextButton(
               child: const Text('Evet'),
-              onPressed: () {
-                // Silme işlemi yapılabilir
+              onPressed: () async {
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Liste silindi.')));
+                try {
+                  await ApiService().deleteListing(int.parse(ilan['id']!));
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('İlan başarıyla silindi.')),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Silme başarısız: $e')),
+                    );
+                  }
+                }
               },
             ),
           ],

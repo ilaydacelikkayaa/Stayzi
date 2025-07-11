@@ -17,7 +17,7 @@ class FavoriteHomeDetailScreen extends StatelessWidget {
               // Favorilerden çıkarma işlemi için bir fonksiyon eklenicek
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text("${ilan['baslik']} favorilerden çıkarıldı"),
+                  content: Text(" {ilan['baslik']} favorilerden çıkarıldı"),
                 ),
               );
             },

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../services/api_service.dart';
+
 class AddHomeScreen extends StatefulWidget {
   const AddHomeScreen({super.key});
 
@@ -17,6 +19,9 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   final TextEditingController _priceController = TextEditingController();
 
   File? _selectedImage;
+  bool _isLoading = false;
+  String? _error;
+  String? _success;
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -25,6 +30,36 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _submitForm() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+      _success = null;
+    });
+    try {
+      await ApiService().addListing(
+        title: _titleController.text.trim(),
+        location: _locationController.text.trim(),
+        price: _priceController.text.trim(),
+        image: _selectedImage,
+      );
+      setState(() {
+        _success = 'İlan başarıyla eklendi!';
+      });
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'İlan eklenemedi: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
       });
     }
   }
@@ -81,20 +116,42 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    // Resim kontrolü opsiyonel, istersen zorunlu yapabilirsin
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('İlan eklendi')),
-                    );
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text(
-                  'Kaydet',
-                  style: TextStyle(color: Colors.black),
-                ),
+                onPressed:
+                    _isLoading
+                        ? null
+                        : () {
+                          if (_formKey.currentState!.validate()) {
+                            _submitForm();
+                          }
+                        },
+                child:
+                    _isLoading
+                        ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                        : const Text(
+                          'Kaydet',
+                          style: TextStyle(color: Colors.black),
+                        ),
               ),
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    _error!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
+              if (_success != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    _success!,
+                    style: const TextStyle(color: Colors.green),
+                  ),
+                ),
             ],
           ),
         ),
