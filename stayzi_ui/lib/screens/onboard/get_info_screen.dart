@@ -1,11 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:stayzi_ui/screens/onboard/notification_screen.dart';
 import 'package:stayzi_ui/screens/onboard/onboard_screen.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/form_widget.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
 
 class GetInfoScreen extends StatefulWidget {
-  const GetInfoScreen({super.key});
+  final String? phone;
+  final String? country;
+  final String? email;
+
+  const GetInfoScreen({super.key, this.phone, this.country, this.email});
 
   @override
   State<GetInfoScreen> createState() => _GetInfoScreenState();
@@ -23,6 +31,35 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
     'password': TextEditingController(),
   };
 
+  Future<void> registerUser() async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}/users/register-phone'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "name": _controllers['firstName']!.text.trim(),
+        "surname": _controllers['lastName']!.text.trim(),
+        "birthdate": _controllers['birthday']!.text.trim(),
+        "phone": widget.phone,
+        "email": _controllers['email']!.text.trim(),
+        "password": _controllers['password']!.text.trim(),
+        "country": widget.country,
+      }),
+    );
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      print("✅ Kullanıcı başarıyla kaydedildi.");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => NotificationScreen()),
+      );
+    } else {
+      print("❌ Kayıt başarısız: ${response.body}");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Kayıt sırasında hata oluştu.")));
+    }
+  }
+
   void _checkFormValid() {
     setState(() {
       _isButtonEnabled = _controllers.values.every(
@@ -37,6 +74,14 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
     for (var controller in _controllers.values) {
       controller.addListener(_checkFormValid);
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    print(
+      "Phone: ${widget.phone}, Country: ${widget.country}, Email: ${widget.email}",
+    );
   }
 
   @override
@@ -135,7 +180,7 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
                             );
                             if (picked != null) {
                               _controllers['birthday']!.text =
-                                  "${picked.month}/${picked.day}/${picked.year}";
+                                  "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
                             }
                           },
                           child: AbsorbPointer(
@@ -216,16 +261,9 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
                           child: ElevatedButtonWidget(
                             onPressed:
                                 _isButtonEnabled
-                                    ? () {
+                                    ? () async {
                                       if (_formKey.currentState!.validate()) {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder:
-                                                (context) =>
-                                                    NotificationScreen(),
-                                          ),
-                                        );
+                                        await registerUser();
                                       }
                                     }
                                     : null,
