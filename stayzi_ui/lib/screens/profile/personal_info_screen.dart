@@ -129,5 +129,4 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
       ),
     );
   }
-
 }
