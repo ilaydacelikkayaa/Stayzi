@@ -41,7 +41,7 @@ class UserOut(UserBase):
     created_at: Optional[date]  # ✅ null olabilir
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
     profile_image: Optional[str] = None
 
