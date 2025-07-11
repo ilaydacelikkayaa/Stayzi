@@ -16,8 +16,8 @@ services:
     image: postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: airbnb_db
+      POSTGRES_PASSWORD: 243a243a243
+      POSTGRES_DB: stayzi_db
     ports:
       - "5432:5432"
 
