@@ -21,9 +21,11 @@ class UserCreate(BaseModel):
     name: str
     surname: str
     birthdate: date
-    country: Optional[str] = None
-    profile_image: Optional[str] = None
-    is_active: Optional[bool] = True
+    phone: str
+    country: str
+    profile_image: Optional[str]
+    is_active: Optional[bool]
+    password: str
     created_at: Optional[date] = None
 
 
