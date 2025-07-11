@@ -1,29 +1,39 @@
+import logging
 from fastapi import FastAPI
-from app.routers import user, auth
-from app.routers import listing
-from app.routers import favorite
-from app.db.session import engine
-from sqlalchemy import text
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 import os
 from dotenv import load_dotenv
 
+# Routers
+from app.routers import user, auth, listing, favorite, amenity, listing_amenity
+
+# DB
+from app.db.session import engine
+
+# 🌐 Logger ayarı
+logging.basicConfig(level=logging.DEBUG)
+
+# 🌐 Ortam değişkenlerini yükle
 load_dotenv()
 
+# ✅ FastAPI uygulaması
 app = FastAPI()
 
-# 🌐 API rotaları
+# ✅ Router'ları dahil et
 app.include_router(user.router)
 app.include_router(auth.router)
 app.include_router(listing.router)
 app.include_router(favorite.router)
+app.include_router(amenity.router)
+app.include_router(listing_amenity.router)
 
 # ✅ Root endpoint
 @app.get("/")
 def read_root():
     return {"message": "Airbnb clone API is working!"}
 
-# ✅ Veritabanı testi
+# ✅ Veritabanı bağlantı testi
 @app.get("/test-db")
 def test_db():
     try:
@@ -34,7 +44,7 @@ def test_db():
     except Exception as e:
         return {"success": False, "error": str(e)}
 
-# ✅ uploads klasörü static olarak sunuluyor
+# ✅ uploads klasörünü statik olarak sun
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
 

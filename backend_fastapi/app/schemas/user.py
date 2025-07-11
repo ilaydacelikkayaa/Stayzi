@@ -20,10 +20,11 @@ class UserCreate(BaseModel):
     birthdate: date
     phone: str
     country: str
-    profile_image: str
-    is_active: bool
+    profile_image: Optional[str]
+    is_active: Optional[bool]
     password: str
     created_at: Optional[date] = None
+
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
