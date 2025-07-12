@@ -79,6 +79,7 @@ def create_user_from_phone(db: Session, user: PhoneRegister):
         birthdate=user.birthdate,
         phone=user.phone,
         password_hash=hashed_pw,
+        country=user.country,  # ✨ bunu ekle
         is_active=True,
         created_at=datetime.utcnow().date()
     )

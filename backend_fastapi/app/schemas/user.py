@@ -54,3 +54,4 @@ class PhoneRegister(BaseModel):
     birthdate: date
     phone: str
     password: str
+    country: Optional[str]
