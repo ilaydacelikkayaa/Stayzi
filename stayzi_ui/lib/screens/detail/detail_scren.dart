@@ -12,7 +12,8 @@ import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
 import 'package:stayzi_ui/screens/payment/payment_screen.dart';
 
 class ListingDetailPage extends StatefulWidget {
-  const ListingDetailPage({super.key});
+  final Map<String, dynamic> listing;
+  const ListingDetailPage({super.key, required this.listing});
 
   @override
   State<ListingDetailPage> createState() => _ListingDetailPageState();
@@ -20,15 +21,14 @@ class ListingDetailPage extends StatefulWidget {
 
 class _ListingDetailPageState extends State<ListingDetailPage> {
   bool isFavorite = false;
+  DateTimeRange? selectedRange;
 
   @override
   Widget build(BuildContext context) {
-    //şimdilik burası bu sekilde api baglantisiyla burası degisecek..
-    final List<String> imageList = [
-      'assets/images/ilan2.jpg',
-      'assets/images/ilan2.jpg',
-      'assets/images/ilan2.jpg',
-    ];
+    final listing = widget.listing;
+    final List<String> imageList = List<String>.from(
+      listing['image_urls'] ?? [],
+    );
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -38,8 +38,21 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
               children: [
                 // Fotoğraf Galerisi
                 ListingImageGallery(imageList: imageList),
+                if (imageList.isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text(
+                        'Bu ilana ait fotoğraf bulunmamaktadır.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
                 //İlan basligi
-                IlanBaslik(),
+                IlanBaslik(listing: listing),
                 // İçerik
                 Divider(
                   thickness: 1,
@@ -47,7 +60,7 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                   endIndent: 20,
                   indent: 20,
                 ),
-                EvSahibiBilgisi(),
+                EvSahibiBilgisi(listing: listing),
                 Divider(
                   thickness: 1,
                   color: Colors.grey,
@@ -56,7 +69,7 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                 ),
 
                 // "Bu mekan hakkında" kısmı ve açıklama
-                MekanAciklamasi(),
+                MekanAciklamasi(description: listing['description']),
                 Divider(
                   thickness: 1,
                   color: Colors.grey,
@@ -64,7 +77,10 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                   indent: 20,
                 ),
 
-                KonumBilgisi(),
+                KonumBilgisi(
+                  latitude: (listing['latitude'] as num?)?.toDouble() ?? 0.0,
+                  longitude: (listing['longitude'] as num?)?.toDouble() ?? 0.0,
+                ),
 
                 Divider(
                   thickness: 1,
@@ -72,7 +88,13 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                   endIndent: 20,
                   indent: 20,
                 ),
-                TakvimBilgisi(),
+                TakvimBilgisi(
+                  onDateRangeChanged: (range) {
+                    setState(() {
+                      selectedRange = range;
+                    });
+                  },
+                ),
                 Divider(
                   thickness: 1,
                   color: Colors.grey,
@@ -87,12 +109,12 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                 ),
-                Yorumlar(),
+                Padding(padding: EdgeInsets.all(20), child: Yorumlar()),
                 SizedBox(
                   width: 250,
                   height: 60,
                   child: ElevatedButtonWidget(
-                    side: BorderSide(color: Colors.black, width: 1),
+                    side: BorderSide(color: Colors.black, width: 2),
                     elevation: 0,
                     buttonText: 'Yorumların hepsini göster',
                     buttonColor: Colors.transparent,
@@ -104,7 +126,7 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                     },
                   ),
                 ),
-                SizedBox(height: 15),
+                SizedBox(height: 20),
                 Divider(
                   thickness: 1,
                   color: Colors.grey,
@@ -112,22 +134,6 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                   indent: 20,
                 ),
                 OlanaklarVeKurallar(),
-                SizedBox(
-                  width: 120,
-                  child: ElevatedButtonWidget(
-                    buttonText: 'Rezerve Et',
-                    buttonColor: Colors.black,
-                    textColor: Colors.white,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PaymentScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
                 SizedBox(height: 100),
               ],
             ),
@@ -142,31 +148,31 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CircleAvatar(
-                  backgroundColor: Colors.white,
+                  backgroundColor: Colors.black.withOpacity(0.5),
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
                 Row(
                   children: [
                     CircleAvatar(
-                      backgroundColor: Colors.white.withOpacity(0.9),
+                      backgroundColor: Colors.black.withOpacity(0.5),
                       child: IconButton(
-                        icon: const Icon(Icons.ios_share, color: Colors.black),
+                        icon: const Icon(Icons.ios_share, color: Colors.white),
                         onPressed: () {},
                       ),
                     ),
                     const SizedBox(width: 8),
                     CircleAvatar(
-                      backgroundColor: Colors.white.withOpacity(0.9),
+                      backgroundColor: Colors.black.withOpacity(0.5),
                       child: IconButton(
                         icon:
                             isFavorite
                                 ? const Icon(Icons.favorite, color: Colors.red)
                                 : const Icon(
                                   Icons.favorite_border,
-                                  color: Colors.black,
+                                  color: Colors.white,
                                 ),
                         onPressed: () {
                           setState(() {
@@ -181,6 +187,79 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
             ),
           ),
         ],
+      ),
+
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.symmetric(horizontal: 35, vertical: 35),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 12,
+              offset: Offset(0, -3),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Builder(
+                  builder: (context) {
+                    final double nightlyPrice =
+                        (listing['price'] ?? 0).toDouble();
+                    double? dayCount =
+                        selectedRange?.duration.inDays.toDouble();
+                    double totalPrice =
+                        dayCount != null
+                            ? nightlyPrice * dayCount
+                            : nightlyPrice;
+                    return Text(
+                      '\$${totalPrice.toInt()}',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Total before taxes',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+            SizedBox(width: 60),
+            Expanded(
+              child: SizedBox(
+                height: 55,
+                child: ElevatedButtonWidget(
+                  buttonText: 'Rezerve Et',
+                  buttonColor: Colors.pinkAccent,
+                  textColor: Colors.white,
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PaymentScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

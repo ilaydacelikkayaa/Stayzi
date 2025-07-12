@@ -1,61 +1,76 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class KonumBilgisi extends StatelessWidget {
-  const KonumBilgisi({super.key});
+  final double? latitude;
+  final double? longitude;
+
+  const KonumBilgisi({super.key, this.latitude, this.longitude});
 
   @override
   Widget build(BuildContext context) {
+    if (latitude == null ||
+        longitude == null ||
+        latitude!.isNaN ||
+        longitude!.isNaN ||
+        latitude!.isInfinite ||
+        longitude!.isInfinite) {
+      debugPrint('Geçersiz konum: latitude=$latitude, longitude=$longitude');
+      return const SizedBox.shrink();
+    }
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Nerede Olacaksınız ?",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "Berkeley Springs, West Virginia, United States",
-            style: TextStyle(fontSize: 16),
-          ),
-          const SizedBox(height: 16),
-
-          // Harita yerine geçici görsel
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
-              'assets/images/harita.jpg', // geçici harita görseli
-              fit: BoxFit.cover,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Container(
+        height: 200,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: Offset(0, 4),
             ),
+          ],
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: FlutterMap(
+          options: MapOptions(
+            initialCenter: LatLng(latitude!, longitude!),
+            initialZoom: 15,
           ),
-
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.verified, color: Colors.green, size: 20),
-              const SizedBox(width: 6),
-              const Text(
-                "Verified listing",
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "We verified that this listing’s location is accurate.",
-            style: TextStyle(color: Colors.black87),
-          ),
-          TextButton(
-            onPressed: () {},
-
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              foregroundColor: Colors.black,
+          children: [
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.example.stayzi_ui',
             ),
-            child: const Text("Learn more"),
-          ),
-        ],
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: LatLng(latitude!, longitude!),
+                  width: 40,
+                  height: 40,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(blurRadius: 4, color: Colors.black26),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.location_on,
+                      color: Colors.red,
+                      size: 30,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
