@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:stayzi_ui/screens/detail/host_detail_screen.dart';
 
 class EvSahibiBilgisi extends StatelessWidget {
-  const EvSahibiBilgisi({super.key});
+  final Map<String, dynamic> listing;
+
+  const EvSahibiBilgisi({super.key, required this.listing});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,9 @@ class EvSahibiBilgisi extends StatelessWidget {
                   ),
                 ),
               ),
-              child: Text("Ev Sahibi : Mehmet Çelikkaya"),
+              child: Text(
+                'Ev Sahibi : ${listing['host_name'] ?? 'Bilinmiyor'}',
+              ),
             ),
             Text("5 yıldır ev sahibi"),
           ],

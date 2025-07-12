@@ -7,20 +7,21 @@ class ListingImageGallery extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> imageList = [
-      'assets/images/ilan2.jpg',
-      'assets/images/ilan2.jpg',
-      'assets/images/ilan2.jpg',
-    ];
+    if (imageList.isEmpty) {
+      return const Center(child: Text("Fotoğraf bulunamadı"));
+    }
 
     return SizedBox(
       width: double.infinity,
       height: MediaQuery.of(context).size.height * 0.35,
       child: PageView.builder(
         itemCount: imageList.length,
-        itemBuilder:
-            (context, index) =>
-                Image.asset(imageList[index], fit: BoxFit.cover),
+        itemBuilder: (context, index) {
+          final imageUrl = imageList[index];
+          return imageUrl.startsWith('http')
+              ? Image.network(imageUrl, fit: BoxFit.cover)
+              : Image.asset(imageUrl, fit: BoxFit.cover);
+        },
       ),
     );
   }

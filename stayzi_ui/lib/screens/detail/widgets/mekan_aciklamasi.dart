@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class MekanAciklamasi extends StatelessWidget {
-  const MekanAciklamasi({super.key});
+  final String description;
+
+  const MekanAciklamasi({super.key, required this.description});
 
   @override
   Widget build(BuildContext context) {
@@ -16,9 +18,7 @@ class MekanAciklamasi extends StatelessWidget {
           ),
           SizedBox(height: 10),
           Text(
-            "Virginia Hotel & Spa, doğayla iç içe huzurlu bir konaklama deneyimi sunar. "
-            "Modern dekorasyonu, spa olanakları ve güler yüzlü hizmetiyle konuklarına eşsiz bir tatil atmosferi sağlar. "
-            "Plaja ve yerel restoranlara sadece birkaç dakika mesafededir. Çiftler, aileler ve iş seyahati yapanlar için mükemmel bir tercihtir.",
+            description,
             style: TextStyle(fontSize: 16, color: Colors.black87, height: 1.5),
           ),
           SizedBox(height: 20),
