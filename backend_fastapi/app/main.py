@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 from app.routers import booking
 # Routers
+from app.routers import review
 from app.routers import user, auth, listing, favorite, amenity, listing_amenity
 
 # DB
@@ -53,3 +54,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 
 app.include_router(booking.router)
+
+app.include_router(review.router)
+from app.routers import availability
+app.include_router(availability.router)
