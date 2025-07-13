@@ -19,6 +19,7 @@ class ApiService {
   // Set authentication token
   void setAuthToken(String token) {
     _authToken = token;
+    print("🔐 Token kaydedildi: $_authToken");
   }
 
   // Clear authentication token
@@ -29,6 +30,7 @@ class ApiService {
   // Get headers with or without authentication
   Map<String, String> _getHeaders({bool requiresAuth = false}) {
     if (requiresAuth && _authToken != null) {
+      print("📤 Giden header'lar: ${ApiConstants.authHeaders(_authToken!)}");
       return ApiConstants.authHeaders(_authToken!);
     }
     return ApiConstants.defaultHeaders;
@@ -97,6 +99,7 @@ class ApiService {
 
       final data = _handleResponse(response);
       final token = Token.fromJson(data);
+      setAuthToken(token.accessToken);
 
       print("📲 Giriş yapan kullanıcının token'ı: ${token.accessToken}");
 
