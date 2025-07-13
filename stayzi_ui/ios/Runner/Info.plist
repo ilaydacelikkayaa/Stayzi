@@ -51,5 +51,12 @@
 	<array>
     <string>remote-notification</string>
 </array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app requires access to your location to show the listing location on the map.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

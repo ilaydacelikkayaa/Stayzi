@@ -139,3 +139,14 @@ def deactivate_my_account(
     current_user.is_active = False
     db.commit()
     return {"message": "Hesabınız devre dışı bırakıldı."}
+
+@router.get("/phone-exists/{phone}")
+def check_phone_exists(phone: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.phone == phone).first()
+    return {"exists": user is not None}
+
+
+@router.get("/email-exists/{email}")
+def check_email_exists(email: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == email).first()
+    return {"exists": user is not None}

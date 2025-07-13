@@ -1,3 +1,5 @@
+from app.dependencies import get_current_user 
+from app.models.user import User 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
@@ -11,8 +13,12 @@ router = APIRouter(
 )
 
 @router.post("/", response_model=Listing)
-def create(listing: ListingCreate, db: Session = Depends(get_db)):
-    return create_listing(db, listing)
+def create_listing_route(
+    listing: ListingCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return create_listing(db=db, listing=listing, user_id=current_user.id)
 
 @router.get("/", response_model=List[Listing])
 def read_listings(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):

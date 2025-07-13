@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:stayzi_ui/screens/myHomes/my_homes_screen.dart';
 import 'package:stayzi_ui/screens/favorite/favorite_screen.dart';
+import 'package:stayzi_ui/screens/myHomes/my_homes_screen.dart';
 import 'package:stayzi_ui/screens/profile/profile_screen.dart';
 import 'package:stayzi_ui/screens/search/search_screen.dart';
 
@@ -30,8 +30,8 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      body: Center(child: _pages.elementAt(_selectedIndex)),
+      appBar: null,
+      body: SafeArea(child: _pages.elementAt(_selectedIndex)),
       bottomNavigationBar: BottomNavigationBar(
         onTap: _onItemTapped,
         currentIndex: _selectedIndex,

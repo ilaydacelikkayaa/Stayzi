@@ -391,4 +391,32 @@ class ApiService {
       throw Exception('Failed to create favorite: $e');
     }
   }
+
+  Future<bool> checkPhoneExists(String phone) async {
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/users/phone-exists/$phone'),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['exists'] == true;
+    } else {
+      throw Exception("Telefon kontrolü başarısız");
+    }
+  }
+
+  Future<bool> checkEmailExists(String email) async {
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/users/email-exists/$email'),
+      headers: {"Content-Type": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['exists'] == true;
+    } else {
+      throw Exception("Email kontrolü başarısız");
+    }
+  }
 }

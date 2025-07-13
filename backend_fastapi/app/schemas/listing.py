@@ -3,7 +3,7 @@ from typing import Optional, List
 from datetime import datetime
 
 class ListingBase(BaseModel):
-    user_id: Optional[int]
+   
     title: str
     description: Optional[str] = None
     price: float
