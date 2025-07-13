@@ -43,11 +43,26 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     });
     try {
       final user = await ApiService().getCurrentUser();
+      print('🟢 Backendden gelen kullanıcı:');
+      print(
+        'name: \'${user.name}\', surname: \'${user.surname}\', phone: \'${user.phone}\', email: \'${user.email}\', country: \'${user.country}\'',
+      );
       _fullNameController.text = '${user.name} ${user.surname}';
       _preferredNameController.text = user.name;
       _phoneNumberController.text = user.phone ?? '';
       _emailController.text = user.email ?? '';
       _addressController.text = user.country ?? '';
+      // Eğer veri eksikse kullanıcıya uyarı göster
+      if ((user.name.isEmpty && user.surname.isEmpty) &&
+          (user.email == null || user.email!.isEmpty)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Uyarı: Kullanıcı verisi eksik veya boş geldi!'),
+            ),
+          );
+        }
+      }
     } catch (e) {
       _error = 'Kullanıcı bilgileri alınamadı: $e';
     } finally {

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 
 class ProfileDetailScreen extends StatefulWidget {
@@ -13,14 +14,40 @@ class ProfileDetailScreen extends StatefulWidget {
 }
 
 class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
-  final String name = "Ahmet Koca";
-  final String email = "ahmet@example.com";
-  final String phone = "+90 555 555 55 55";
-
   File? _imageFile;
   bool _isUploading = false;
   String? _uploadError;
   String? _uploadSuccess;
+  User? _user;
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUser();
+  }
+
+  Future<void> _fetchUser() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final user = await ApiService().getCurrentUser();
+      setState(() {
+        _user = user;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Kullanıcı bilgisi alınamadı: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -47,6 +74,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       setState(() {
         _uploadSuccess = 'Profil fotoğrafı başarıyla yüklendi!';
       });
+      await _fetchUser(); // Fotoğrafı güncellemek için tekrar çek
     } catch (e) {
       setState(() {
         _uploadError = 'Yükleme başarısız: $e';
@@ -60,8 +88,22 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    String initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
-
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          elevation: 0,
+        ),
+        body: Center(child: Text(_error!)),
+      );
+    }
+    final user = _user;
+    String initial =
+        user != null && user.name.isNotEmpty ? user.name[0].toUpperCase() : '?';
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -100,6 +142,15 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                               ? CircleAvatar(
                                 radius: 45,
                                 backgroundImage: FileImage(_imageFile!),
+                              )
+                              : (user != null &&
+                                  user.profileImage != null &&
+                                  user.profileImage!.isNotEmpty)
+                              ? CircleAvatar(
+                                radius: 45,
+                                backgroundImage: NetworkImage(
+                                  user.profileImage!,
+                                ),
                               )
                               : CircleAvatar(
                                 radius: 45,
@@ -142,7 +193,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                       ),
                     const SizedBox(height: 8),
                     Text(
-                      name,
+                      user != null ? '${user.name} ${user.surname}' : '',
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -162,11 +213,20 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            Text('Ad Soyad: $name', style: const TextStyle(fontSize: 18)),
+            Text(
+              'Ad Soyad: ${user != null ? '${user.name} ${user.surname}' : ''}',
+              style: const TextStyle(fontSize: 18),
+            ),
             const SizedBox(height: 10),
-            Text('Email: $email', style: const TextStyle(fontSize: 18)),
+            Text(
+              'Email: ${user != null ? user.email ?? '' : ''}',
+              style: const TextStyle(fontSize: 18),
+            ),
             const SizedBox(height: 10),
-            Text('Telefon: $phone', style: const TextStyle(fontSize: 18)),
+            Text(
+              'Telefon: ${user != null ? user.phone ?? '' : ''}',
+              style: const TextStyle(fontSize: 18),
+            ),
           ],
         ),
       ),
