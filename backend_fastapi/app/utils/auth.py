@@ -6,7 +6,9 @@ from app.db.session import get_db
 from app.crud.user import get_user_by_email, get_user_by_phone
 from app.models.user import User
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 
@@ -14,6 +16,8 @@ ALGORITHM = "HS256"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/email")
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    print("🔑 Gelen Token:", token)  # Token terminalde görünür
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

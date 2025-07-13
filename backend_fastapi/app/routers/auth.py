@@ -9,8 +9,9 @@ from app.crud.user import (
     create_user_from_phone
 )
 from app.utils.security import verify_password, create_access_token, hash_password
-from app.schemas.user import UserCreate, UserOut, PhoneRegister
+from app.schemas.user import UserCreate, UserOut, PhoneRegister , PhoneLogin
 from app.schemas.token import Token
+
 
 router = APIRouter(prefix="/auth", tags=["Auth"])  # 🔥 TEK ROUTER TANIMI
 
@@ -29,17 +30,18 @@ def login_with_email(
 
 
 # ✅ Telefonla login
+
 @router.post("/login/phone", response_model=Token)
 def login_with_phone(
-    username: str = Form(...),
-    password: str = Form(...),
+    login_data: PhoneLogin,
     db: Session = Depends(get_db)
 ):
-    user = get_user_by_phone(db, username)
-    if not user or not verify_password(password, user.password_hash):
+    user = get_user_by_phone(db, login_data.phone)
+    if not user or not verify_password(login_data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Telefon veya şifre hatalı")
 
-    access_token = create_access_token(data={"sub": user.email or user.phone})
+    access_token = create_access_token(data={"sub": user.phone})
+    print("🔐 Oluşturulan JWT Token:", access_token)
     return {"access_token": access_token, "token_type": "bearer"}
 
 

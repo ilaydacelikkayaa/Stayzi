@@ -1,7 +1,11 @@
 from datetime import datetime, timedelta
 from jose import jwt
+import os
+from dotenv import load_dotenv
 
-SECRET_KEY = "supersecret"  # GÜVENLİ bir şeyle değiştir!
+load_dotenv()  # .env dosyasını yükle
+
+SECRET_KEY = os.getenv("SECRET_KEY")  # GÜVENLİ bir şeyle değiştir!
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

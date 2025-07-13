@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stayzi_ui/screens/onboard/get_info_screen.dart';
 import 'package:stayzi_ui/screens/onboard/mail_login_sheet.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/divider_widget.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/form_widget.dart';
 import 'package:stayzi_ui/services/api_constants.dart';
+import 'package:stayzi_ui/services/api_service.dart';
 
 class OnboardScreen extends StatefulWidget {
   const OnboardScreen({super.key});
@@ -131,6 +133,31 @@ class _OnboardScreenState extends State<OnboardScreen> {
                                     _textEditingController1.text.trim();
                                 final exists = await checkPhoneExists(phone);
                                 if (exists) {
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  final savedPassword = prefs.getString(
+                                    'user_password',
+                                  );
+
+                                  if (savedPassword == null) {
+                                    print("❌ Kayıtlı şifre bulunamadı.");
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "Kayıtlı şifre bulunamadı.",
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  final token = await ApiService()
+                                      .loginWithPhone(phone, savedPassword);
+
+                                  print(
+                                    '🪪 Kullanıcının tokenı: ${token.accessToken}',
+                                  );
+
                                   Navigator.pushReplacementNamed(
                                     context,
                                     '/home',
