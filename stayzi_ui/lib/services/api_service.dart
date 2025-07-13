@@ -444,4 +444,46 @@ class ApiService {
       throw Exception('Filtrelenmiş ilanlar alınamadı');
     }
   }
+
+  // ========== UTILITY FUNCTIONS ==========
+
+  /// Standardizes phone number format by combining country code and phone number
+  /// Example: country="+90", phone="5551234567" -> "+905551234567"
+  static String standardizePhoneNumber(String country, String phone) {
+    // Remove any non-digit characters from phone number
+    String cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
+
+    // Remove any non-digit characters from country code
+    String cleanCountry = country.replaceAll(RegExp(r'[^\d]'), '');
+
+    // If country code doesn't start with +, add it
+    if (!country.startsWith('+')) {
+      cleanCountry = '+$cleanCountry';
+    } else {
+      cleanCountry = country;
+    }
+
+    // Combine country code and phone number
+    return '$cleanCountry$cleanPhone';
+  }
+
+  /// Extracts country code and phone number from a standardized phone number
+  /// Example: "+905551234567" -> {"country": "+90", "phone": "5551234567"}
+  static Map<String, String> extractPhoneComponents(String standardizedPhone) {
+    // Remove any non-digit characters except +
+    String cleanPhone = standardizedPhone.replaceAll(RegExp(r'[^\d+]'), '');
+
+    // Find the country code (assume it starts with + and has 1-4 digits)
+    RegExp countryCodeRegex = RegExp(r'^\+(\d{1,4})');
+    Match? match = countryCodeRegex.firstMatch(cleanPhone);
+
+    if (match != null) {
+      String countryCode = '+${match.group(1)}';
+      String phoneNumber = cleanPhone.substring(match.end);
+      return {'country': countryCode, 'phone': phoneNumber};
+    }
+
+    // Fallback: assume no country code
+    return {'country': '', 'phone': cleanPhone};
+  }
 }

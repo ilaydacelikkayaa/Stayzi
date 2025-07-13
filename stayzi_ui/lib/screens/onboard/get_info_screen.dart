@@ -34,6 +34,10 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
   };
 
   Future<void> registerUser() async {
+    // Ensure phone is in standardized format
+    final standardizedPhone = widget.phone ?? '';
+    print("📱 Registering with phone: $standardizedPhone");
+    
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}/users/register-phone'),
       headers: {'Content-Type': 'application/json'},
@@ -41,7 +45,7 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
         "name": _controllers['firstName']!.text.trim(),
         "surname": _controllers['lastName']!.text.trim(),
         "birthdate": _controllers['birthday']!.text.trim(),
-        "phone": widget.phone,
+        "phone": standardizedPhone,
         "email": _controllers['email']!.text.trim(),
         "password": _controllers['password']!.text.trim(),
         "country": widget.country,
@@ -53,7 +57,7 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
 
       // Giriş yap ve token al
       final token = await ApiService().loginWithPhone(
-        widget.phone!,
+        standardizedPhone,
         _controllers['password']!.text.trim(),
       );
 
@@ -65,6 +69,9 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
 
       // ✅ Şifreyi de kaydet
       await prefs.setString('user_password', _controllers['password']!.text.trim());
+      
+      // ✅ Standardized phone'u da kaydet
+      await prefs.setString('user_phone', standardizedPhone);
 
       Navigator.pushReplacement(
         context,
@@ -72,9 +79,33 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
       );
     } else {
       print("❌ Kayıt başarısız: ${response.body}");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Kayıt sırasında hata oluştu.")));
+      
+      // Check for specific error messages
+      try {
+        final errorData = jsonDecode(response.body);
+        if (errorData['detail'] == "Phone already registered") {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "Bu telefon numarası zaten kayıtlı. Lütfen giriş yapın.",
+              ),
+              duration: Duration(seconds: 4),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "Kayıt sırasında hata oluştu: ${errorData['detail'] ?? 'Bilinmeyen hata'}",
+              ),
+            ),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Kayıt sırasında hata oluştu.")));
+      }
     }
   }
 

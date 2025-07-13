@@ -98,19 +98,23 @@ class _OnboardScreenState extends State<OnboardScreen> {
                 children: [
                   FormWidget(
                     controller: _textEditingController1,
-                    hintText: 'Country/Region',
+                    hintText: 'Country Code (e.g., +90)',
                     textInputAction: TextInputAction.next,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[+\d]')),
+                    ],
                   ),
                   FormWidget(
                     controller: _textEditingController2,
-                    hintText: 'Phone Number',
+                    hintText: 'Phone Number (e.g., 5551234567)',
                     textInputAction: TextInputAction.done,
                     keyboardType: TextInputType.phone,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(
-                        10,
-                      ), // 10 haneli telefon numarası
+                        15,
+                      ), // Allow longer numbers for international format
                     ],
                   ),
                   SizedBox(height: 20),
@@ -131,7 +135,20 @@ class _OnboardScreenState extends State<OnboardScreen> {
                                     _textEditingController2.text.trim();
                                 final country =
                                     _textEditingController1.text.trim();
-                                final exists = await checkPhoneExists(phone);
+                                
+                                // Standardize phone number format
+                                final standardizedPhone =
+                                    ApiService.standardizePhoneNumber(
+                                      country,
+                                      phone,
+                                    );
+                                print(
+                                  "📱 Standardized phone: $standardizedPhone",
+                                );
+
+                                final exists = await checkPhoneExists(
+                                  standardizedPhone,
+                                );
                                 if (exists) {
                                   final prefs =
                                       await SharedPreferences.getInstance();
@@ -144,18 +161,28 @@ class _OnboardScreenState extends State<OnboardScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          "Kayıtlı şifre bulunamadı.",
+                                          "Bu telefon numarası ile kayıtlı şifre bulunamadı. Lütfen önce kayıt olun veya farklı bir numara deneyin.",
                                         ),
+                                        duration: Duration(seconds: 4),
                                       ),
                                     );
                                     return;
                                   }
 
                                   final token = await ApiService()
-                                      .loginWithPhone(phone, savedPassword);
+                                      .loginWithPhone(
+                                        standardizedPhone,
+                                        savedPassword,
+                                      );
 
                                   print(
                                     '🪪 Kullanıcının tokenı: ${token.accessToken}',
+                                  );
+                                  
+                                  // Save standardized phone for future reference
+                                  await prefs.setString(
+                                    'user_phone',
+                                    standardizedPhone,
                                   );
 
                                   Navigator.pushReplacementNamed(
@@ -168,7 +195,7 @@ class _OnboardScreenState extends State<OnboardScreen> {
                                     MaterialPageRoute(
                                       builder:
                                           (context) => GetInfoScreen(
-                                            phone: phone,
+                                            phone: standardizedPhone,
                                             country: country,
                                           ),
                                     ),
