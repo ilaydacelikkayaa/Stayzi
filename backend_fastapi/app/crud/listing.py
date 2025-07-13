@@ -3,13 +3,12 @@ from app.models.listing import Listing
 from app.schemas.listing import ListingCreate
 
 
-def create_listing(db: Session, listing: ListingCreate):
-    db_listing = Listing(**listing.dict())
+def create_listing(db: Session, listing: ListingCreate, user_id: int):
+    db_listing = Listing(**listing.dict(), user_id=user_id)
     db.add(db_listing)
     db.commit()
     db.refresh(db_listing)
     return db_listing
-
 
 def get_listing(db: Session, listing_id: int):
     return db.query(Listing).filter(Listing.id == listing_id).first()
@@ -35,3 +34,6 @@ def update_listing(db: Session, listing_id: int, listing: ListingCreate):
         db.commit()
         db.refresh(db_listing)
     return db_listing 
+
+
+
