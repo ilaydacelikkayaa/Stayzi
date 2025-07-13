@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 import os
 from dotenv import load_dotenv
-
+from app.routers import booking
 # Routers
 from app.routers import user, auth, listing, favorite, amenity, listing_amenity
 
@@ -49,3 +49,7 @@ if not os.path.exists("uploads"):
     os.makedirs("uploads")
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+
+
+app.include_router(booking.router)
