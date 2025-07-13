@@ -3,7 +3,9 @@ import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
 import 'package:stayzi_ui/screens/search/filtered_screen.dart';
 
 class GeneralFilteredSheet extends StatefulWidget {
-  const GeneralFilteredSheet({super.key});
+  final Map<String, dynamic> filters;
+
+  const GeneralFilteredSheet({super.key, required this.filters});
 
   @override
   State<GeneralFilteredSheet> createState() => _GeneralFilteredSheetState();
@@ -197,7 +199,11 @@ class _GeneralFilteredSheetState extends State<GeneralFilteredSheet> {
                   textColor: Colors.white,
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => FilteredScreen()),
+                      MaterialPageRoute(
+                        builder:
+                            (context) =>
+                                FilteredScreen(filters: widget.filters),
+                      ),
                     );
                   },
                 ),

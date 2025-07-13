@@ -2,11 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:stayzi_ui/models/listing_model.dart'; // Eğer Listing modeli farklı bir yerdeyse, path'i düzelt
 import 'package:stayzi_ui/screens/search/general_filtered_sheet.dart';
 import 'package:stayzi_ui/screens/search/search_screen.dart';
 
 class FilteredScreen extends StatefulWidget {
-  const FilteredScreen({super.key});
+  final Map<String, dynamic> filters;
+  const FilteredScreen({super.key, required this.filters});
 
   @override
   State<FilteredScreen> createState() => _FilteredScreenState();
@@ -15,14 +17,18 @@ class FilteredScreen extends StatefulWidget {
 class _FilteredScreenState extends State<FilteredScreen> {
   final double _mapHeightFraction = 0.6;
 
-  Future<List<dynamic>> fetchListings() async {
-    final response = await http.get(
-      Uri.parse('http://localhost:8000/listings/'),
+  Future<List<Listing>> fetchFilteredListings() async {
+    final response = await http.post(
+      Uri.parse('http://localhost:8000/listings/filter'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(widget.filters),
     );
+
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      List data = jsonDecode(response.body);
+      return data.map((json) => Listing.fromJson(json)).toList();
     } else {
-      throw Exception('Failed to load listings');
+      throw Exception('Failed to load filtered listings');
     }
   }
 
@@ -39,7 +45,9 @@ class _FilteredScreenState extends State<FilteredScreen> {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => GeneralFilteredSheet(),
+                    builder:
+                        (context) =>
+                            GeneralFilteredSheet(filters: widget.filters),
                   ),
                 );
               },
@@ -74,8 +82,8 @@ class _FilteredScreenState extends State<FilteredScreen> {
                 minChildSize: 0.2,
                 maxChildSize: 0.8,
                 builder: (context, scrollController) {
-                  return FutureBuilder<List<dynamic>>(
-                    future: fetchListings(),
+                  return FutureBuilder<List<Listing>>(
+                    future: fetchFilteredListings(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
@@ -85,6 +93,7 @@ class _FilteredScreenState extends State<FilteredScreen> {
                         return const Center(child: Text('No listings found'));
                       }
 
+                      final listings = snapshot.data!;
                       return Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -97,9 +106,11 @@ class _FilteredScreenState extends State<FilteredScreen> {
                         ),
                         child: ListView.builder(
                           controller: scrollController,
-                          itemCount: snapshot.data!.length,
+                          itemCount: listings.length,
                           itemBuilder: (context, index) {
-                            return TinyHomeCard(listing: snapshot.data![index]);
+                            return TinyHomeCard(
+                              listing: listings[index].toJson(),
+                            );
                           },
                         ),
                       );

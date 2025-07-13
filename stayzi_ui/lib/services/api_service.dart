@@ -19,6 +19,7 @@ class ApiService {
   // Set authentication token
   void setAuthToken(String token) {
     _authToken = token;
+    print("🔐 Token kaydedildi: $_authToken");
   }
 
   // Clear authentication token
@@ -29,6 +30,7 @@ class ApiService {
   // Get headers with or without authentication
   Map<String, String> _getHeaders({bool requiresAuth = false}) {
     if (requiresAuth && _authToken != null) {
+      print("📤 Giden header'lar: ${ApiConstants.authHeaders(_authToken!)}");
       return ApiConstants.authHeaders(_authToken!);
     }
     return ApiConstants.defaultHeaders;
@@ -91,10 +93,16 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}${ApiConstants.loginPhone}'),
-        headers: _getHeaders(),
-        body: {'username': phone, 'password': password},
+        headers: {'Content-Type': 'application/json'}, // direkt sabit yaz
+        body: jsonEncode({'phone': phone, 'password': password}),
       );
+
       final data = _handleResponse(response);
+      final token = Token.fromJson(data);
+      setAuthToken(token.accessToken);
+
+      print("📲 Giriş yapan kullanıcının token'ı: ${token.accessToken}");
+
       return Token.fromJson(data);
     } catch (e) {
       throw Exception('Phone login failed: $e');
@@ -373,6 +381,23 @@ class ApiService {
       return data['exists'] == true;
     } else {
       throw Exception("Email kontrolü başarısız");
+    }
+  }
+
+  Future<List<Listing>> fetchFilteredListings(
+    Map<String, dynamic> filters,
+  ) async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}/filter'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(filters),
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => Listing.fromJson(json)).toList();
+    } else {
+      throw Exception('Filtrelenmiş ilanlar alınamadı');
     }
   }
 }
