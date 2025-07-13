@@ -59,15 +59,26 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
       FocusScope.of(context).requestFocus(_destinationFocusNode);
       return;
     }
+
     if (!_hasGuestsSelected) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please select at least one guest')),
       );
       return;
     }
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => FilteredScreen()));
+
+    final filters = {
+      "location": _destinationController.text.trim(),
+      "guests": _adults + _children + _infants + _pets,
+      "start_date": _selectedDateRange?.start.toIso8601String(),
+      "end_date": _selectedDateRange?.end.toIso8601String(),
+    };
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => FilteredScreen(filters: filters),
+      ),
+    );
   }
 
   void _onDateRangeChanged(DateTimeRange? newRange) {
@@ -191,7 +202,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                         child: ElevatedButtonWidget(
                           elevation: 8,
                           buttonText: 'Search',
-                          buttonColor: Color.fromRGBO(213, 56, 88, 1),
+                          buttonColor: Color.fromRGBO(213, 56, 61, 1),
                           textColor: Colors.white,
                           onPressed: _onSearch,
                         ),

@@ -2,11 +2,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stayzi_ui/screens/onboard/notification_screen.dart';
 import 'package:stayzi_ui/screens/onboard/onboard_screen.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/form_widget.dart';
 import 'package:stayzi_ui/services/api_constants.dart';
+import 'package:stayzi_ui/services/api_service.dart';
 
 class GetInfoScreen extends StatefulWidget {
   final String? phone;
@@ -48,6 +50,22 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
 
     if (response.statusCode == 201 || response.statusCode == 200) {
       print("✅ Kullanıcı başarıyla kaydedildi.");
+
+      // Giriş yap ve token al
+      final token = await ApiService().loginWithPhone(
+        widget.phone!,
+        _controllers['password']!.text.trim(),
+      );
+
+      ApiService().setAuthToken(token.accessToken);
+
+      // Token'ı yerel olarak kaydet
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', token.accessToken);
+
+      // ✅ Şifreyi de kaydet
+      await prefs.setString('user_password', _controllers['password']!.text.trim());
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => NotificationScreen()),

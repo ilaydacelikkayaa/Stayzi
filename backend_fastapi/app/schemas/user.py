@@ -55,3 +55,7 @@ class PhoneRegister(BaseModel):
     phone: str
     password: str
     country: Optional[str]
+
+class PhoneLogin(BaseModel):
+    phone: str
+    password: str

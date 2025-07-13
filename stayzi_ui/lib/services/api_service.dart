@@ -91,10 +91,15 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}${ApiConstants.loginPhone}'),
-        headers: _getHeaders(),
-        body: {'username': phone, 'password': password},
+        headers: {'Content-Type': 'application/json'}, // direkt sabit yaz
+        body: jsonEncode({'phone': phone, 'password': password}),
       );
+
       final data = _handleResponse(response);
+      final token = Token.fromJson(data);
+
+      print("📲 Giriş yapan kullanıcının token'ı: ${token.accessToken}");
+
       return Token.fromJson(data);
     } catch (e) {
       throw Exception('Phone login failed: $e');
@@ -373,6 +378,23 @@ class ApiService {
       return data['exists'] == true;
     } else {
       throw Exception("Email kontrolü başarısız");
+    }
+  }
+
+  Future<List<Listing>> fetchFilteredListings(
+    Map<String, dynamic> filters,
+  ) async {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}/filter'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(filters),
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => Listing.fromJson(json)).toList();
+    } else {
+      throw Exception('Filtrelenmiş ilanlar alınamadı');
     }
   }
 }
