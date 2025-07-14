@@ -20,6 +20,8 @@ class Listing(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     average_rating = Column(Numeric, server_default="0")
     home_rules = Column(Text)
+    capacity = Column(Integer)
+    amenities = Column(ARRAY(Text))
 
     # ✅ İlişki satırı sınıfın içinde olmalı
     bookings = relationship("Booking", back_populates="listing")

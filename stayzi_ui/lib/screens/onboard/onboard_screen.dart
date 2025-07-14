@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stayzi_ui/screens/navigation/bottom_nav.dart';
 import 'package:stayzi_ui/screens/onboard/get_info_screen.dart';
 import 'package:stayzi_ui/screens/onboard/mail_login_sheet.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
@@ -11,6 +12,7 @@ import 'package:stayzi_ui/screens/onboard/widgets/divider_widget.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/form_widget.dart';
 import 'package:stayzi_ui/services/api_constants.dart';
 import 'package:stayzi_ui/services/api_service.dart';
+import 'package:stayzi_ui/services/storage_service.dart';
 
 class OnboardScreen extends StatefulWidget {
   const OnboardScreen({super.key});
@@ -98,19 +100,23 @@ class _OnboardScreenState extends State<OnboardScreen> {
                 children: [
                   FormWidget(
                     controller: _textEditingController1,
-                    hintText: 'Country/Region',
+                    hintText: 'Country Code (e.g., +90)',
                     textInputAction: TextInputAction.next,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[+\d]')),
+                    ],
                   ),
                   FormWidget(
                     controller: _textEditingController2,
-                    hintText: 'Phone Number',
+                    hintText: 'Phone Number (e.g., 5551234567)',
                     textInputAction: TextInputAction.done,
                     keyboardType: TextInputType.phone,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       LengthLimitingTextInputFormatter(
-                        10,
-                      ), // 10 haneli telefon numarası
+                        15,
+                      ), // Allow longer numbers for international format
                     ],
                   ),
                   SizedBox(height: 20),
@@ -131,7 +137,20 @@ class _OnboardScreenState extends State<OnboardScreen> {
                                     _textEditingController2.text.trim();
                                 final country =
                                     _textEditingController1.text.trim();
-                                final exists = await checkPhoneExists(phone);
+                                
+                                // Standardize phone number format
+                                final standardizedPhone =
+                                    ApiService.standardizePhoneNumber(
+                                      country,
+                                      phone,
+                                    );
+                                print(
+                                  "📱 Standardized phone: $standardizedPhone",
+                                );
+
+                                final exists = await checkPhoneExists(
+                                  standardizedPhone,
+                                );
                                 if (exists) {
                                   final prefs =
                                       await SharedPreferences.getInstance();
@@ -144,23 +163,43 @@ class _OnboardScreenState extends State<OnboardScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          "Kayıtlı şifre bulunamadı.",
+                                          "Bu telefon numarası ile kayıtlı şifre bulunamadı. Lütfen önce kayıt olun veya farklı bir numara deneyin.",
                                         ),
+                                        duration: Duration(seconds: 4),
                                       ),
                                     );
                                     return;
                                   }
 
                                   final token = await ApiService()
-                                      .loginWithPhone(phone, savedPassword);
+                                      .loginWithPhone(
+                                        standardizedPhone,
+                                        savedPassword,
+                                      );
 
                                   print(
                                     '🪪 Kullanıcının tokenı: ${token.accessToken}',
                                   );
+                                  
+                                  // Token'ı API service'e set et
+                                  ApiService().setAuthToken(token.accessToken);
 
-                                  Navigator.pushReplacementNamed(
+                                  // Token'ı StorageService ile kaydet
+                                  await StorageService().saveToken(token);
+                                  
+                                  // Save standardized phone for future reference
+                                  await prefs.setString(
+                                    'user_phone',
+                                    standardizedPhone,
+                                  );
+
+                                  Navigator.pushReplacement(
                                     context,
-                                    '/home',
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) =>
+                                              const BottomNavigationWidget(),
+                                    ),
                                   );
                                 } else {
                                   Navigator.pushReplacement(
@@ -168,7 +207,7 @@ class _OnboardScreenState extends State<OnboardScreen> {
                                     MaterialPageRoute(
                                       builder:
                                           (context) => GetInfoScreen(
-                                            phone: phone,
+                                            phone: standardizedPhone,
                                             country: country,
                                           ),
                                     ),

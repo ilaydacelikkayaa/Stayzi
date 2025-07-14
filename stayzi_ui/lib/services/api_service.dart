@@ -30,19 +30,40 @@ class ApiService {
   // Get headers with or without authentication
   Map<String, String> _getHeaders({bool requiresAuth = false}) {
     if (requiresAuth && _authToken != null) {
+      print("🔐 Token mevcut: ${_authToken!.substring(0, 20)}...");
       print("📤 Giden header'lar: ${ApiConstants.authHeaders(_authToken!)}");
       return ApiConstants.authHeaders(_authToken!);
+    } else if (requiresAuth && _authToken == null) {
+      print("❌ Token gerekli ama mevcut değil!");
+      throw Exception('Authentication token required but not available');
     }
+    print("📤 Giden header'lar (auth olmadan): ${ApiConstants.defaultHeaders}");
     return ApiConstants.defaultHeaders;
   }
 
-  // Handle HTTP response
-  Map<String, dynamic> _handleResponse(http.Response response) {
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('HTTP ${response.statusCode}: ${response.body}');
+  // Debug method to check token status
+  void debugTokenStatus() {
+    print("🔍 Token durumu:");
+    print("   Token var mı: ${_authToken != null}");
+    if (_authToken != null) {
+      print("   Token uzunluğu: ${_authToken!.length}");
+      print("   Token başlangıcı: ${_authToken!.substring(0, 20)}...");
     }
+  }
+
+  // Handle HTTP response
+  dynamic _handleResponse(http.Response response) {
+    print("DEBUG: _handleResponse çağrıldı, body: " + response.body);
+    final data = json.decode(response.body);
+    if (data is Map && data['detail'] != null) {
+      throw Exception(data['detail']);
+    }
+    if (data is Map || data is List) {
+      return data;
+    }
+    throw Exception(
+      'Beklenmeyen response tipi: ' + data.runtimeType.toString(),
+    );
   }
 
   // Test connection
@@ -225,16 +246,18 @@ class ApiService {
     }
   }
 
-  // Deactivate account
-  Future<Map<String, dynamic>> deactivateAccount() async {
+  // Deactivate (disable) current user account
+  Future<void> deactivateAccount() async {
     try {
       final response = await http.delete(
         Uri.parse('${ApiConstants.baseUrl}${ApiConstants.deactivateAccount}'),
         headers: _getHeaders(requiresAuth: true),
       );
-      return _handleResponse(response);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('Hesap devre dışı bırakılamadı: ${response.body}');
+      }
     } catch (e) {
-      throw Exception('Failed to deactivate account: $e');
+      throw Exception('Hesap devre dışı bırakılırken hata: $e');
     }
   }
 
@@ -272,54 +295,53 @@ class ApiService {
     }
   }
 
-  // Create new listing
-  Future<Listing> createListing(ListingCreate listingData) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.createListing}'),
-        headers: _getHeaders(requiresAuth: true),
-        body: json.encode(listingData.toJson()),
-      );
-      final data = _handleResponse(response);
-      return Listing.fromJson(data);
-    } catch (e) {
-      throw Exception('Failed to create listing: $e');
-    }
-  }
 
-  // Update listing
-  Future<Listing> updateListing(
-    int listingId,
-    ListingCreate listingData,
-  ) async {
-    try {
-      final response = await http.put(
-        Uri.parse(
-          '${ApiConstants.baseUrl}${ApiConstants.updateListing}$listingId',
-        ),
-        headers: _getHeaders(requiresAuth: true),
-        body: json.encode(listingData.toJson()),
-      );
-      final data = _handleResponse(response);
-      return Listing.fromJson(data);
-    } catch (e) {
-      throw Exception('Failed to update listing: $e');
-    }
-  }
+
+
 
   // Delete listing
-  Future<Listing> deleteListing(int listingId) async {
+  Future<void> deleteListing(int id) async {
     try {
       final response = await http.delete(
-        Uri.parse(
-          '${ApiConstants.baseUrl}${ApiConstants.deleteListing}$listingId',
-        ),
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.deleteListing}$id'),
         headers: _getHeaders(requiresAuth: true),
       );
-      final data = _handleResponse(response);
-      return Listing.fromJson(data);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('İlan silinemedi: ${response.body}');
+      }
     } catch (e) {
-      throw Exception('Failed to delete listing: $e');
+      throw Exception('İlan silinirken hata: $e');
+    }
+  }
+
+  // Add new listing
+  Future<void> addListing({
+    required String title,
+    required String location,
+    required String price,
+    File? image,
+  }) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.createListing}'),
+      );
+      request.headers.addAll(_getHeaders(requiresAuth: true));
+      request.fields['title'] = title;
+      request.fields['location'] = location;
+      request.fields['price'] = price;
+      if (image != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('file', image.path),
+        );
+      }
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('İlan eklenemedi: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('İlan eklenirken hata: $e');
     }
   }
 
@@ -356,6 +378,330 @@ class ApiService {
     }
   }
 
+  // Delete favorite
+  Future<void> deleteFavorite(int favoriteId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.deleteFavorite}$favoriteId',
+        ),
+        headers: _getHeaders(requiresAuth: true),
+      );
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('Favori silinemedi: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Favori silinirken hata: $e');
+    }
+  }
+
+  // Check if listing is in favorites
+  Future<bool> isFavorite(int listingId) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.checkFavorite}$listingId',
+        ),
+        headers: _getHeaders(requiresAuth: true),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['is_favorite'] ?? false;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Toggle favorite (add/remove)
+  Future<bool> toggleFavorite(int listingId) async {
+    try {
+      final isCurrentlyFavorite = await isFavorite(listingId);
+
+      if (isCurrentlyFavorite) {
+        // Remove from favorites
+        final response = await http.delete(
+          Uri.parse(
+            '${ApiConstants.baseUrl}${ApiConstants.deleteFavorite}$listingId',
+          ),
+          headers: _getHeaders(requiresAuth: true),
+        );
+        return response.statusCode >= 200 && response.statusCode < 300;
+      } else {
+        // Add to favorites
+        final favoriteData = FavoriteCreate(listingId: listingId);
+        await createFavorite(favoriteData);
+        return true;
+      }
+    } catch (e) {
+      throw Exception('Favori işlemi başarısız: $e');
+    }
+  }
+
+  // ========== USER LISTINGS ENDPOINTS ==========
+
+  // Get user's own listings
+  Future<List<Listing>> getMyListings({int skip = 0, int limit = 100}) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.myListings}?skip=$skip&limit=$limit',
+        ),
+        headers: _getHeaders(requiresAuth: true),
+      );
+      final data = _handleResponse(response);
+      print("DEBUG: Gelen veri: $data");
+      if (data is List) {
+        if (data.isNotEmpty && data[0] is! Map) {
+          throw Exception(
+            'Beklenmeyen liste elemanı tipi: ${data[0].runtimeType}',
+          );
+        }
+        return (data as List)
+            .map((json) => Listing.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else if (data is Map && data['data'] is List) {
+        final list = data['data'] as List;
+        if (list.isNotEmpty && list[0] is! Map) {
+          throw Exception(
+            'Beklenmeyen liste elemanı tipi: ${list[0].runtimeType}',
+          );
+        }
+        return list
+            .map((json) => Listing.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Beklenmeyen veri formatı: $data');
+      }
+    } catch (e) {
+      print("DEBUG: Hata oluştu: $e");
+      throw Exception('Kullanıcının ilanları alınamadı: $e');
+    }
+  }
+
+  // Get user's listings by user ID
+  Future<List<Listing>> getUserListings(
+    int userId, {
+    int skip = 0,
+    int limit = 100,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.userListings}?user_id=$userId&skip=$skip&limit=$limit',
+        ),
+        headers: _getHeaders(requiresAuth: true),
+      );
+      final data = _handleResponse(response);
+      return (data as List).map((json) => Listing.fromJson(json)).toList();
+    } catch (e) {
+      throw Exception('Kullanıcı ilanları alınamadı: $e');
+    }
+  }
+
+  // ========== LISTING IMAGES ENDPOINTS ==========
+
+  // Upload listing image
+  Future<String> uploadListingImage(int listingId, File image) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.listingImages}$listingId/images',
+        ),
+      );
+
+      request.headers.addAll(_getHeaders(requiresAuth: true));
+      request.files.add(await http.MultipartFile.fromPath('file', image.path));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      final data = _handleResponse(response);
+      return data['image_url'] ?? '';
+    } catch (e) {
+      throw Exception('İlan fotoğrafı yüklenemedi: $e');
+    }
+  }
+
+  // Delete listing image
+  Future<void> deleteListingImage(int listingId, String imageUrl) async {
+    try {
+      final response = await http.delete(
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.listingImages}$listingId/images',
+        ),
+        headers: _getHeaders(requiresAuth: true),
+        body: json.encode({'image_url': imageUrl}),
+      );
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('İlan fotoğrafı silinemedi: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('İlan fotoğrafı silinirken hata: $e');
+    }
+  }
+
+  // ========== ENHANCED LISTING ENDPOINTS ==========
+
+  // Create listing with photo
+  Future<Listing> createListing({
+    required String title,
+    String? description,
+    String? location,
+    double? lat,
+    double? lng,
+    required double price,
+    String? homeType,
+    List<String>? hostLanguages,
+    String? homeRules,
+    int? capacity,
+    List<String>? amenities,
+    File? photo,
+  }) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.createListing}'),
+      );
+
+      request.headers.addAll(_getHeaders(requiresAuth: true));
+      request.fields['title'] = title;
+      if (description != null) request.fields['description'] = description;
+      if (location != null) request.fields['location'] = location;
+      if (lat != null) request.fields['lat'] = lat.toString();
+      if (lng != null) request.fields['lng'] = lng.toString();
+      request.fields['price'] = price.toString();
+      if (homeType != null) request.fields['home_type'] = homeType;
+      if (homeRules != null) request.fields['home_rules'] = homeRules;
+      if (capacity != null) request.fields['capacity'] = capacity.toString();
+
+      if (hostLanguages != null) {
+        request.fields['host_languages'] = json.encode(hostLanguages);
+      }
+
+      if (amenities != null) {
+        request.fields['amenities'] = json.encode(amenities);
+      }
+
+      if (photo != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('photo', photo.path),
+        );
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      final data = _handleResponse(response);
+      return Listing.fromJson(data);
+    } catch (e) {
+      throw Exception('İlan oluşturulamadı: $e');
+    }
+  }
+
+  // Update listing with photo
+  Future<Listing> updateListing({
+    required int listingId,
+    String? title,
+    String? description,
+    String? location,
+    double? lat,
+    double? lng,
+    double? price,
+    String? homeType,
+    List<String>? hostLanguages,
+    String? homeRules,
+    int? capacity,
+    List<String>? amenities,
+    File? photo,
+  }) async {
+    try {
+      var request = http.MultipartRequest(
+        'PUT',
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.updateListing}$listingId',
+        ),
+      );
+
+      request.headers.addAll(_getHeaders(requiresAuth: true));
+      if (title != null) request.fields['title'] = title;
+      if (description != null) request.fields['description'] = description;
+      if (location != null) request.fields['location'] = location;
+      if (lat != null) request.fields['lat'] = lat.toString();
+      if (lng != null) request.fields['lng'] = lng.toString();
+      if (price != null) request.fields['price'] = price.toString();
+      if (homeType != null) request.fields['home_type'] = homeType;
+      if (homeRules != null) request.fields['home_rules'] = homeRules;
+      if (capacity != null) request.fields['capacity'] = capacity.toString();
+
+      if (hostLanguages != null) {
+        request.fields['host_languages'] = json.encode(hostLanguages);
+      }
+
+      if (amenities != null) {
+        request.fields['amenities'] = json.encode(amenities);
+      }
+
+      if (photo != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('photo', photo.path),
+        );
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      final data = _handleResponse(response);
+      return Listing.fromJson(data);
+    } catch (e) {
+      throw Exception('İlan güncellenemedi: $e');
+    }
+  }
+
+  // ========== SEARCH AND FILTER ENDPOINTS ==========
+
+  // Search listings by query
+  Future<List<Listing>> searchListings(
+    String query, {
+    int skip = 0,
+    int limit = 100,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.listings}search?q=${Uri.encodeComponent(query)}&skip=$skip&limit=$limit',
+        ),
+        headers: _getHeaders(),
+      );
+      final data = _handleResponse(response);
+      return (data as List).map((json) => Listing.fromJson(json)).toList();
+    } catch (e) {
+      throw Exception('Arama sonuçları alınamadı: $e');
+    }
+  }
+
+  // Get listings by location
+  Future<List<Listing>> getListingsByLocation(
+    String location, {
+    int skip = 0,
+    int limit = 100,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.listings}location/${Uri.encodeComponent(location)}?skip=$skip&limit=$limit',
+        ),
+        headers: _getHeaders(),
+      );
+      final data = _handleResponse(response);
+      return (data as List).map((json) => Listing.fromJson(json)).toList();
+    } catch (e) {
+      throw Exception('Konum bazlı ilanlar alınamadı: $e');
+    }
+  }
+
+  // ========== UTILITY FUNCTIONS ==========
+
+  // Check if phone number exists
   Future<bool> checkPhoneExists(String phone) async {
     final response = await http.get(
       Uri.parse('${ApiConstants.baseUrl}/users/phone-exists/$phone'),
@@ -370,6 +716,7 @@ class ApiService {
     }
   }
 
+  // Check if email exists
   Future<bool> checkEmailExists(String email) async {
     final response = await http.get(
       Uri.parse('${ApiConstants.baseUrl}/users/email-exists/$email'),
@@ -384,6 +731,7 @@ class ApiService {
     }
   }
 
+  // Fetch filtered listings
   Future<List<Listing>> fetchFilteredListings(
     Map<String, dynamic> filters,
   ) async {
@@ -399,5 +747,45 @@ class ApiService {
     } else {
       throw Exception('Filtrelenmiş ilanlar alınamadı');
     }
+  }
+
+  /// Standardizes phone number format by combining country code and phone number
+  /// Example: country="+90", phone="5551234567" -> "+905551234567"
+  static String standardizePhoneNumber(String country, String phone) {
+    // Remove any non-digit characters from phone number
+    String cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
+
+    // Remove any non-digit characters from country code
+    String cleanCountry = country.replaceAll(RegExp(r'[^\d]'), '');
+
+    // If country code doesn't start with +, add it
+    if (!country.startsWith('+')) {
+      cleanCountry = '+$cleanCountry';
+    } else {
+      cleanCountry = country;
+    }
+
+    // Combine country code and phone number
+    return '$cleanCountry$cleanPhone';
+  }
+
+  /// Extracts country code and phone number from a standardized phone number
+  /// Example: "+905551234567" -> {"country": "+90", "phone": "5551234567"}
+  static Map<String, String> extractPhoneComponents(String standardizedPhone) {
+    // Remove any non-digit characters except +
+    String cleanPhone = standardizedPhone.replaceAll(RegExp(r'[^\d+]'), '');
+
+    // Find the country code (assume it starts with + and has 1-4 digits)
+    RegExp countryCodeRegex = RegExp(r'^\+(\d{1,4})');
+    Match? match = countryCodeRegex.firstMatch(cleanPhone);
+
+    if (match != null) {
+      String countryCode = '+${match.group(1)}';
+      String phoneNumber = cleanPhone.substring(match.end);
+      return {'country': countryCode, 'phone': phoneNumber};
+    }
+
+    // Fallback: assume no country code
+    return {'country': '', 'phone': cleanPhone};
   }
 }

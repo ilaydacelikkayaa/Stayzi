@@ -27,12 +27,16 @@ class StorageService {
 
   Future<void> saveToken(Token token) async {
     await _initPrefs();
-    await _prefs!.setString(_tokenKey, json.encode(token.toJson()));
-    await _prefs!.setBool(_isLoggedInKey, true);
+    if (_prefs != null) {
+      await _prefs!.setString(_tokenKey, json.encode(token.toJson()));
+      await _prefs!.setBool(_isLoggedInKey, true);
+    }
   }
 
   Future<Token?> getToken() async {
     await _initPrefs();
+    if (_prefs == null) return null;
+    
     final tokenString = _prefs!.getString(_tokenKey);
     if (tokenString != null) {
       try {
@@ -53,19 +57,25 @@ class StorageService {
 
   Future<void> clearToken() async {
     await _initPrefs();
-    await _prefs!.remove(_tokenKey);
-    await _prefs!.setBool(_isLoggedInKey, false);
+    if (_prefs != null) {
+      await _prefs!.remove(_tokenKey);
+      await _prefs!.setBool(_isLoggedInKey, false);
+    }
   }
 
   // ========== USER MANAGEMENT ==========
 
   Future<void> saveUser(User user) async {
     await _initPrefs();
-    await _prefs!.setString(_userKey, json.encode(user.toJson()));
+    if (_prefs != null) {
+      await _prefs!.setString(_userKey, json.encode(user.toJson()));
+    }
   }
 
   Future<User?> getUser() async {
     await _initPrefs();
+    if (_prefs == null) return null;
+    
     final userString = _prefs!.getString(_userKey);
     if (userString != null) {
       try {
@@ -81,30 +91,38 @@ class StorageService {
 
   Future<void> clearUser() async {
     await _initPrefs();
-    await _prefs!.remove(_userKey);
+    if (_prefs != null) {
+      await _prefs!.remove(_userKey);
+    }
   }
 
   // ========== LOGIN STATUS ==========
 
   Future<bool> isLoggedIn() async {
     await _initPrefs();
+    if (_prefs == null) return false;
     return _prefs!.getBool(_isLoggedInKey) ?? false;
   }
 
   Future<void> setLoggedIn(bool value) async {
     await _initPrefs();
-    await _prefs!.setBool(_isLoggedInKey, value);
+    if (_prefs != null) {
+      await _prefs!.setBool(_isLoggedInKey, value);
+    }
   }
 
   // ========== API BASE URL ==========
 
   Future<void> saveBaseUrl(String baseUrl) async {
     await _initPrefs();
-    await _prefs!.setString(_baseUrlKey, baseUrl);
+    if (_prefs != null) {
+      await _prefs!.setString(_baseUrlKey, baseUrl);
+    }
   }
 
   Future<String?> getBaseUrl() async {
     await _initPrefs();
+    if (_prefs == null) return null;
     return _prefs!.getString(_baseUrlKey);
   }
 
@@ -112,7 +130,9 @@ class StorageService {
 
   Future<void> clearAllData() async {
     await _initPrefs();
-    await _prefs!.clear();
+    if (_prefs != null) {
+      await _prefs!.clear();
+    }
   }
 
   // ========== LOGOUT ==========

@@ -113,7 +113,17 @@ class ExampleUsage {
         homeRules: 'No smoking, No pets',
       );
 
-      final listing = await _apiService.createListing(listingData);
+      final listing = await _apiService.createListing(
+        title: listingData.title,
+        description: listingData.description,
+        price: listingData.price,
+        location: listingData.location,
+        lat: listingData.lat,
+        lng: listingData.lng,
+        homeType: listingData.homeType,
+        hostLanguages: listingData.hostLanguages,
+        homeRules: listingData.homeRules,
+      );
       print('Listing created: ${listing.title}');
     } catch (e) {
       print('Failed to create listing: $e');
@@ -207,7 +217,7 @@ class ExampleUsage {
   Future<void> createFavoriteExample() async {
     try {
       // Create new favorite
-      final favoriteData = FavoriteCreate(userId: 1);
+      final favoriteData = FavoriteCreate(userId: 1, listingId: 1);
       final favorite = await _apiService.createFavorite(favoriteData);
       print('Favori oluşturuldu: ID ${favorite.id}');
     } catch (e) {
