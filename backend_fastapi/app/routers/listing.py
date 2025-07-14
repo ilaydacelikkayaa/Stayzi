@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from app.schemas.listing import Listing, ListingCreate
-from app.crud.listing import create_listing, get_listing, get_listings, delete_listing, update_listing
+from app.crud.listing import create_listing, get_listing, get_listings, delete_listing, update_listing, get_listings_by_user
 from app.db.dependency import get_db
 
 router = APIRouter(
@@ -23,6 +23,15 @@ def create_listing_route(
 @router.get("/", response_model=List[Listing])
 def read_listings(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return get_listings(db, skip=skip, limit=limit)
+
+@router.get("/my-listings", response_model=List[Listing])
+def read_my_listings(
+    skip: int = 0, 
+    limit: int = 100, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return get_listings_by_user(db, current_user.id, skip=skip, limit=limit)
 
 @router.get("/{listing_id}", response_model=Listing)
 def read_listing(listing_id: int, db: Session = Depends(get_db)):

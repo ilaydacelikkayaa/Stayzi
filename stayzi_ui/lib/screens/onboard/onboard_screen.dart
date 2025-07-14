@@ -11,6 +11,7 @@ import 'package:stayzi_ui/screens/onboard/widgets/divider_widget.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/form_widget.dart';
 import 'package:stayzi_ui/services/api_constants.dart';
 import 'package:stayzi_ui/services/api_service.dart';
+import 'package:stayzi_ui/services/storage_service.dart';
 
 class OnboardScreen extends StatefulWidget {
   const OnboardScreen({super.key});
@@ -178,6 +179,12 @@ class _OnboardScreenState extends State<OnboardScreen> {
                                   print(
                                     '🪪 Kullanıcının tokenı: ${token.accessToken}',
                                   );
+                                  
+                                  // Token'ı API service'e set et
+                                  ApiService().setAuthToken(token.accessToken);
+
+                                  // Token'ı StorageService ile kaydet
+                                  await StorageService().saveToken(token);
                                   
                                   // Save standardized phone for future reference
                                   await prefs.setString(

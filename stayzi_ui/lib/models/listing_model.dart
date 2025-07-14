@@ -12,7 +12,10 @@ class Listing {
   final List<String>? imageUrls;
   final double averageRating;
   final String? homeRules;
+  final int? capacity;
+  final List<String>? amenities;
   final DateTime createdAt;
+  final DateTime? updatedAt;
 
   Listing({
     required this.id,
@@ -28,7 +31,10 @@ class Listing {
     this.imageUrls,
     this.averageRating = 0.0,
     this.homeRules,
+    this.capacity,
+    this.amenities,
     required this.createdAt,
+    this.updatedAt,
   });
 
   factory Listing.fromJson(Map<String, dynamic> json) {
@@ -52,7 +58,16 @@ class Listing {
               : null,
       averageRating: json['average_rating']?.toDouble() ?? 0.0,
       homeRules: json['home_rules'],
+      capacity: json['capacity'],
+      amenities:
+          json['amenities'] != null
+              ? List<String>.from(json['amenities'])
+              : null,
       createdAt: DateTime.parse(json['created_at']),
+      updatedAt:
+          json['updated_at'] != null
+              ? DateTime.parse(json['updated_at'])
+              : null,
     );
   }
 
@@ -71,7 +86,10 @@ class Listing {
       'image_urls': imageUrls,
       'average_rating': averageRating,
       'home_rules': homeRules,
+      'capacity': capacity,
+      'amenities': amenities,
       'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
     };
   }
 }
@@ -89,6 +107,8 @@ class ListingCreate {
   final List<String>? imageUrls;
   final double averageRating;
   final String? homeRules;
+  final int? capacity;
+  final List<String>? amenities;
 
   ListingCreate({
     this.userId,
@@ -103,6 +123,8 @@ class ListingCreate {
     this.imageUrls,
     this.averageRating = 0.0,
     this.homeRules,
+    this.capacity,
+    this.amenities,
   });
 
   Map<String, dynamic> toJson() {
@@ -119,6 +141,52 @@ class ListingCreate {
       'image_urls': imageUrls,
       'average_rating': averageRating,
       'home_rules': homeRules,
+      'capacity': capacity,
+      'amenities': amenities,
     };
+  }
+}
+
+class ListingUpdate {
+  final String? title;
+  final String? description;
+  final double? price;
+  final String? location;
+  final double? lat;
+  final double? lng;
+  final String? homeType;
+  final List<String>? hostLanguages;
+  final String? homeRules;
+  final int? capacity;
+  final List<String>? amenities;
+
+  ListingUpdate({
+    this.title,
+    this.description,
+    this.price,
+    this.location,
+    this.lat,
+    this.lng,
+    this.homeType,
+    this.hostLanguages,
+    this.homeRules,
+    this.capacity,
+    this.amenities,
+  });
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{};
+    if (title != null) data['title'] = title;
+    if (description != null) data['description'] = description;
+    if (price != null) data['price'] = price;
+    if (location != null) data['location'] = location;
+    if (lat != null) data['lat'] = lat;
+    if (lng != null) data['lng'] = lng;
+    if (homeType != null) data['home_type'] = homeType;
+    if (hostLanguages != null) data['host_languages'] = hostLanguages;
+    if (homeRules != null) data['home_rules'] = homeRules;
+    if (capacity != null) data['capacity'] = capacity;
+    if (amenities != null) data['amenities'] = amenities;
+    return data;
   }
 }

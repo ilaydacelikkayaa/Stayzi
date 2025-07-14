@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:stayzi_ui/screens/onboard/get_info_screen.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/form_widget.dart';
+import 'package:stayzi_ui/services/api_service.dart';
+import 'package:stayzi_ui/services/storage_service.dart';
 
 // kullanıcı eğer maille giriş yapmak isterse alttan açılan bu sheet ile giris yapacak..
 //Yeni bir sayfa değil mevcut sayfada alttan açılan bir bar şeklinde olacak.
@@ -18,6 +19,7 @@ class _MailLogInSheetState extends State<MailLogInSheet> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isButtonEnabled = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -39,6 +41,45 @@ class _MailLogInSheetState extends State<MailLogInSheet> {
     super.initState();
     _emailController.addListener(_checkFormValid);
     _passwordController.addListener(_checkFormValid);
+  }
+
+  Future<void> _loginWithEmail() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final token = await ApiService().loginWithEmail(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+
+      // Token'ı API service'e set et
+      ApiService().setAuthToken(token.accessToken);
+
+      // Token'ı StorageService ile kaydet
+      await StorageService().saveToken(token);
+
+      if (mounted) {
+        Navigator.pop(context); // Sheet'i kapat
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Giriş başarısız: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -69,21 +110,11 @@ class _MailLogInSheetState extends State<MailLogInSheet> {
             SizedBox(
               width: 250,
               child: ElevatedButtonWidget(
-                buttonText: 'Log in',
+                buttonText: _isLoading ? 'Giriş yapılıyor...' : 'Log in',
                 buttonColor: Color.fromRGBO(213, 56, 88, 1),
                 textColor: Colors.white,
                 onPressed:
-                    _isButtonEnabled
-                        ? () {
-                          Navigator.pop(context); //shetti kapatmak icin
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => GetInfoScreen(),
-                            ),
-                          );
-                        }
-                        : null,
+                    _isButtonEnabled && !_isLoading ? _loginWithEmail : null,
               ),
             ),
           ],

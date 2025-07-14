@@ -22,6 +22,10 @@ class ApiConstants {
   static const String registerUser = '/users/register';
   static const String registerWithPhone = '/users/register-phone';
   static const String deactivateAccount = '/users/me';
+  static const String userListings =
+      '/users/me/listings'; // Kullanıcının ilanları
+  static const String userFavorites =
+      '/users/me/favorites'; // Kullanıcının favorileri
 
   // Listing endpoints
   static const String listings = '/listings/';
@@ -29,13 +33,22 @@ class ApiConstants {
   static const String createListing = '/listings/';
   static const String updateListing = '/listings/';
   static const String deleteListing = '/listings/';
+  static const String myListings =
+      '/listings/my-listings'; // Kullanıcının kendi ilanları
+  static const String listingImages = '/listings/'; // İlan fotoğrafları için
 
   // Favorite endpoints
   static const String createFavorite = '/favorites/';
   static const String myFavorites = '/favorites/my-favorites';
+  static const String deleteFavorite = '/favorites/'; // Favori silme
+  static const String checkFavorite = '/favorites/check/'; // Favori kontrolü
 
   // Upload endpoints
   static const String uploads = '/uploads/';
+  static const String uploadProfileImage =
+      '/uploads/profile-image'; // Profil fotoğrafı yükleme
+  static const String uploadListingImage =
+      '/uploads/listing-image'; // İlan fotoğrafı yükleme
 
   // Test endpoints
   static const String testRoot = '/';

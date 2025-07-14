@@ -207,7 +207,7 @@ class ExampleUsage {
   Future<void> createFavoriteExample() async {
     try {
       // Create new favorite
-      final favoriteData = FavoriteCreate(userId: 1);
+      final favoriteData = FavoriteCreate(userId: 1, listingId: 1);
       final favorite = await _apiService.createFavorite(favoriteData);
       print('Favori oluşturuldu: ID ${favorite.id}');
     } catch (e) {

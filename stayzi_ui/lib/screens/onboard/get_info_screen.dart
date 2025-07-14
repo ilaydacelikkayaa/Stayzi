@@ -9,6 +9,7 @@ import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/form_widget.dart';
 import 'package:stayzi_ui/services/api_constants.dart';
 import 'package:stayzi_ui/services/api_service.dart';
+import 'package:stayzi_ui/services/storage_service.dart';
 
 class GetInfoScreen extends StatefulWidget {
   final String? phone;
@@ -61,13 +62,14 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
         _controllers['password']!.text.trim(),
       );
 
+      // Token'ı API service'e set et
       ApiService().setAuthToken(token.accessToken);
 
-      // Token'ı yerel olarak kaydet
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', token.accessToken);
+      // Token'ı StorageService ile kaydet
+      await StorageService().saveToken(token);
 
       // ✅ Şifreyi de kaydet
+      final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user_password', _controllers['password']!.text.trim());
       
       // ✅ Standardized phone'u da kaydet
