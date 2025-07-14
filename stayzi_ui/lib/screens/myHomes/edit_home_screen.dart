@@ -24,6 +24,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
   late TextEditingController homeRulesController;
 
   List<File> _selectedImages = [];
+  File? _selectedImage;
   bool _isLoading = false;
   String? _error;
   String? _success;
@@ -105,7 +106,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
         throw Exception('Geçerli bir fiyat giriniz');
       }
 
-      await ApiService().updateListingWithImages(
+      await ApiService().updateListing(
         listingId: widget.listing.id,
         title: titleController.text.trim(),
         description:
@@ -122,7 +123,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
             homeRulesController.text.trim().isEmpty
                 ? null
                 : homeRulesController.text.trim(),
-        newImages: _selectedImages.isNotEmpty ? _selectedImages : null,
+        photo: _selectedImage,
       );
 
       setState(() {
@@ -146,24 +147,25 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1A1A1A),
+        foregroundColor: Colors.black,
         elevation: 0,
         title: const Text(
           'İlanı Düzenle',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.black,
+          ),
         ),
         centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        ),
       ),
       body:
           _isLoading
               ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF1E88E5)),
+                child: CircularProgressIndicator(color: Colors.black),
               )
               : SafeArea(
                 child: SingleChildScrollView(
@@ -175,15 +177,11 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
-                          ),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF1E88E5).withOpacity(0.3),
+                              color: Colors.black.withOpacity(0.08),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -194,12 +192,12 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.grey[100],
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
                                 Icons.edit,
-                                color: Colors.white,
+                                color: Colors.black,
                                 size: 24,
                               ),
                             ),
@@ -213,7 +211,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                                     style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      color: Colors.black,
                                     ),
                                   ),
                                   SizedBox(height: 4),
@@ -221,7 +219,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                                     'Bilgilerinizi güncelleyin',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.white70,
+                                      color: Colors.grey,
                                     ),
                                   ),
                                 ],
@@ -318,7 +316,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1A1A1A),
+                                  color: Colors.black,
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -331,7 +329,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFF1A1A1A),
+                                    color: Colors.black,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -369,7 +367,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFF1A1A1A),
+                                    color: Colors.black,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -429,13 +427,17 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                               // Add images button
                               OutlinedButton.icon(
                                 onPressed: _pickImages,
-                                icon: const Icon(Icons.add_photo_alternate),
-                                label: const Text('Fotoğraf Ekle'),
+                                icon: const Icon(
+                                  Icons.add_photo_alternate,
+                                  color: Colors.black,
+                                ),
+                                label: const Text(
+                                  'Fotoğraf Ekle',
+                                  style: TextStyle(color: Colors.black),
+                                ),
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFF1E88E5),
-                                  side: const BorderSide(
-                                    color: Color(0xFF1E88E5),
-                                  ),
+                                  foregroundColor: Colors.black,
+                                  side: const BorderSide(color: Colors.black),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -499,7 +501,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                                 child: ElevatedButton(
                                   onPressed: _submitForm,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF1E88E5),
+                                    backgroundColor: Colors.black,
                                     foregroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
@@ -540,7 +542,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF1A1A1A),
+            color: Colors.black,
           ),
         ),
         const SizedBox(height: 8),
@@ -560,7 +562,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF1E88E5)),
+              borderSide: const BorderSide(color: Colors.black),
             ),
             filled: true,
             fillColor: const Color(0xFFF8F9FA),

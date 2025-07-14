@@ -6,8 +6,27 @@ class NotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Bildirimler')),
-      body: const Center(child: Text('Henüz bir bildirim yok')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        title: const Text(
+          'Bildirimler',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.black,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: const Center(
+        child: Text(
+          'Henüz bir bildirim yok',
+          style: TextStyle(color: Colors.grey),
+        ),
+      ),
     );
   }
 }

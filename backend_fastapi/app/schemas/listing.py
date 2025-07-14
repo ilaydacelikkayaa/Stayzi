@@ -15,6 +15,8 @@ class ListingBase(BaseModel):
     image_urls: Optional[List[str]] = None
     average_rating: Optional[float] = 0
     home_rules: Optional[str] = None
+    capacity: Optional[int] = None
+    amenities: Optional[List[str]] = None
 
 class ListingCreate(ListingBase):
     pass

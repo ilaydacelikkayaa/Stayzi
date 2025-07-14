@@ -103,25 +103,25 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1A1A1A),
+        foregroundColor: Colors.black,
         elevation: 0,
         title: const Text(
           'Kişisel Bilgiler',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.black,
           ),
         ),
         centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        ),
       ),
       body:
           _isLoading
               ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF1E88E5)),
+                child: CircularProgressIndicator(color: Colors.black),
               )
               : SafeArea(
                 child: Padding(
@@ -133,15 +133,11 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
-                          ),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF1E88E5).withOpacity(0.3),
+                              color: Colors.black.withOpacity(0.08),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -157,7 +153,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                               ),
                               child: const Icon(
                                 Icons.person,
-                                color: Colors.white,
+                                color: Colors.black,
                                 size: 24,
                               ),
                             ),
@@ -171,7 +167,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                                     style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      color: Colors.black,
                                     ),
                                   ),
                                   SizedBox(height: 4),
@@ -179,7 +175,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                                     'Bilgilerinizi güncelleyin',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.white70,
+                                      color: Colors.grey,
                                     ),
                                   ),
                                 ],
@@ -360,18 +356,11 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                                   width: double.infinity,
                                   height: 56,
                                   decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFF1E88E5),
-                                        Color(0xFF1565C0),
-                                      ],
-                                    ),
+                                    color: Colors.black,
                                     borderRadius: BorderRadius.circular(16),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(
-                                          0xFF1E88E5,
-                                        ).withOpacity(0.3),
+                                        color: Colors.black.withOpacity(0.2),
                                         blurRadius: 8,
                                         offset: const Offset(0, 4),
                                       ),
@@ -421,10 +410,10 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E88E5).withOpacity(0.1),
+                color: Colors.black.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: const Color(0xFF1E88E5), size: 20),
+              child: Icon(icon, color: Colors.black, size: 20),
             ),
             const SizedBox(width: 12),
             Text(
@@ -432,7 +421,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1A1A),
+                color: Colors.black,
               ),
             ),
           ],
@@ -453,12 +442,12 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
+        color: Colors.grey[50],
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color:
               isEditable
-                  ? const Color(0xFF1E88E5).withOpacity(0.3)
+                  ? Colors.black.withOpacity(0.3)
                   : Colors.grey.withOpacity(0.2),
         ),
       ),
@@ -480,7 +469,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                 onPressed: onEditPressed,
                 icon: Icon(
                   isEditable ? Icons.check : Icons.edit,
-                  color: isEditable ? Colors.green : const Color(0xFF1E88E5),
+                  color: isEditable ? Colors.green : Colors.black,
                   size: 20,
                 ),
                 padding: EdgeInsets.zero,

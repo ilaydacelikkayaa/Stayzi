@@ -30,19 +30,40 @@ class ApiService {
   // Get headers with or without authentication
   Map<String, String> _getHeaders({bool requiresAuth = false}) {
     if (requiresAuth && _authToken != null) {
+      print("🔐 Token mevcut: ${_authToken!.substring(0, 20)}...");
       print("📤 Giden header'lar: ${ApiConstants.authHeaders(_authToken!)}");
       return ApiConstants.authHeaders(_authToken!);
+    } else if (requiresAuth && _authToken == null) {
+      print("❌ Token gerekli ama mevcut değil!");
+      throw Exception('Authentication token required but not available');
     }
+    print("📤 Giden header'lar (auth olmadan): ${ApiConstants.defaultHeaders}");
     return ApiConstants.defaultHeaders;
   }
 
-  // Handle HTTP response
-  Map<String, dynamic> _handleResponse(http.Response response) {
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('HTTP ${response.statusCode}: ${response.body}');
+  // Debug method to check token status
+  void debugTokenStatus() {
+    print("🔍 Token durumu:");
+    print("   Token var mı: ${_authToken != null}");
+    if (_authToken != null) {
+      print("   Token uzunluğu: ${_authToken!.length}");
+      print("   Token başlangıcı: ${_authToken!.substring(0, 20)}...");
     }
+  }
+
+  // Handle HTTP response
+  dynamic _handleResponse(http.Response response) {
+    print("DEBUG: _handleResponse çağrıldı, body: " + response.body);
+    final data = json.decode(response.body);
+    if (data is Map && data['detail'] != null) {
+      throw Exception(data['detail']);
+    }
+    if (data is Map || data is List) {
+      return data;
+    }
+    throw Exception(
+      'Beklenmeyen response tipi: ' + data.runtimeType.toString(),
+    );
   }
 
   // Test connection
@@ -274,52 +295,9 @@ class ApiService {
     }
   }
 
-  // Create new listing
-  Future<Listing> createListing(ListingCreate listingData) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.createListing}'),
-        headers: _getHeaders(requiresAuth: true),
-        body: json.encode(listingData.toJson()),
-      );
-      final data = _handleResponse(response);
-      return Listing.fromJson(data);
-    } catch (e) {
-      throw Exception('Failed to create listing: $e');
-    }
-  }
 
-  // Update listing
-  Future<void> updateListing({
-    required int id,
-    required String title,
-    required String location,
-    required String price,
-    File? image,
-  }) async {
-    try {
-      var request = http.MultipartRequest(
-        'PUT',
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.updateListing}$id'),
-      );
-      request.headers.addAll(_getHeaders(requiresAuth: true));
-      request.fields['title'] = title;
-      request.fields['location'] = location;
-      request.fields['price'] = price;
-      if (image != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath('file', image.path),
-        );
-      }
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        throw Exception('İlan güncellenemedi: ${response.body}');
-      }
-    } catch (e) {
-      throw Exception('İlan güncellenirken hata: $e');
-    }
-  }
+
+
 
   // Delete listing
   Future<void> deleteListing(int id) async {
@@ -473,8 +451,31 @@ class ApiService {
         headers: _getHeaders(requiresAuth: true),
       );
       final data = _handleResponse(response);
-      return (data as List).map((json) => Listing.fromJson(json)).toList();
+      print("DEBUG: Gelen veri: $data");
+      if (data is List) {
+        if (data.isNotEmpty && data[0] is! Map) {
+          throw Exception(
+            'Beklenmeyen liste elemanı tipi: ${data[0].runtimeType}',
+          );
+        }
+        return (data as List)
+            .map((json) => Listing.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else if (data is Map && data['data'] is List) {
+        final list = data['data'] as List;
+        if (list.isNotEmpty && list[0] is! Map) {
+          throw Exception(
+            'Beklenmeyen liste elemanı tipi: ${list[0].runtimeType}',
+          );
+        }
+        return list
+            .map((json) => Listing.fromJson(json as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Beklenmeyen veri formatı: $data');
+      }
     } catch (e) {
+      print("DEBUG: Hata oluştu: $e");
       throw Exception('Kullanıcının ilanları alınamadı: $e');
     }
   }
@@ -543,15 +544,20 @@ class ApiService {
 
   // ========== ENHANCED LISTING ENDPOINTS ==========
 
-  // Create listing with multiple images
-  Future<Listing> createListingWithImages({
+  // Create listing with photo
+  Future<Listing> createListing({
     required String title,
     String? description,
     String? location,
+    double? lat,
+    double? lng,
     required double price,
+    String? homeType,
+    List<String>? hostLanguages,
+    String? homeRules,
     int? capacity,
-    List<File>? images,
     List<String>? amenities,
+    File? photo,
   }) async {
     try {
       var request = http.MultipartRequest(
@@ -563,19 +569,25 @@ class ApiService {
       request.fields['title'] = title;
       if (description != null) request.fields['description'] = description;
       if (location != null) request.fields['location'] = location;
+      if (lat != null) request.fields['lat'] = lat.toString();
+      if (lng != null) request.fields['lng'] = lng.toString();
       request.fields['price'] = price.toString();
+      if (homeType != null) request.fields['home_type'] = homeType;
+      if (homeRules != null) request.fields['home_rules'] = homeRules;
       if (capacity != null) request.fields['capacity'] = capacity.toString();
+
+      if (hostLanguages != null) {
+        request.fields['host_languages'] = json.encode(hostLanguages);
+      }
 
       if (amenities != null) {
         request.fields['amenities'] = json.encode(amenities);
       }
 
-      if (images != null) {
-        for (int i = 0; i < images.length; i++) {
-          request.files.add(
-            await http.MultipartFile.fromPath('images', images[i].path),
-          );
-        }
+      if (photo != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('photo', photo.path),
+        );
       }
 
       final streamedResponse = await request.send();
@@ -587,17 +599,21 @@ class ApiService {
     }
   }
 
-  // Update listing with images
-  Future<Listing> updateListingWithImages({
+  // Update listing with photo
+  Future<Listing> updateListing({
     required int listingId,
     String? title,
     String? description,
     String? location,
+    double? lat,
+    double? lng,
     double? price,
-    int? capacity,
-    List<File>? newImages,
-    List<String>? amenities,
+    String? homeType,
+    List<String>? hostLanguages,
     String? homeRules,
+    int? capacity,
+    List<String>? amenities,
+    File? photo,
   }) async {
     try {
       var request = http.MultipartRequest(
@@ -611,21 +627,25 @@ class ApiService {
       if (title != null) request.fields['title'] = title;
       if (description != null) request.fields['description'] = description;
       if (location != null) request.fields['location'] = location;
+      if (lat != null) request.fields['lat'] = lat.toString();
+      if (lng != null) request.fields['lng'] = lng.toString();
       if (price != null) request.fields['price'] = price.toString();
+      if (homeType != null) request.fields['home_type'] = homeType;
+      if (homeRules != null) request.fields['home_rules'] = homeRules;
       if (capacity != null) request.fields['capacity'] = capacity.toString();
+
+      if (hostLanguages != null) {
+        request.fields['host_languages'] = json.encode(hostLanguages);
+      }
+
       if (amenities != null) {
         request.fields['amenities'] = json.encode(amenities);
       }
-      if (homeRules != null) {
-        request.fields['home_rules'] = homeRules;
-      }
 
-      if (newImages != null) {
-        for (int i = 0; i < newImages.length; i++) {
-          request.files.add(
-            await http.MultipartFile.fromPath('new_images', newImages[i].path),
-          );
-        }
+      if (photo != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('photo', photo.path),
+        );
       }
 
       final streamedResponse = await request.send();

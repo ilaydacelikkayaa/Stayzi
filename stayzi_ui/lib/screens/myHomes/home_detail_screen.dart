@@ -12,22 +12,23 @@ class HomeDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1A1A1A),
+        foregroundColor: Colors.black,
         elevation: 0,
         title: Text(
           listing.title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.black,
+          ),
         ),
         centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit, color: Color(0xFF1E88E5)),
+            icon: const Icon(Icons.edit, color: Colors.black),
             onPressed: () {
               Navigator.push(
                 context,
@@ -122,7 +123,7 @@ class HomeDetailScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1A1A),
+                      color: Colors.black,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -156,7 +157,7 @@ class HomeDetailScreen extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E88E5),
+                          color: Colors.black,
                         ),
                       ),
                       Row(
@@ -202,7 +203,7 @@ class HomeDetailScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1A1A),
+                      color: Colors.black,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -274,8 +275,8 @@ class HomeDetailScreen extends StatelessWidget {
                     icon: const Icon(Icons.edit),
                     label: const Text('Düzenle'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF1E88E5),
-                      side: const BorderSide(color: Color(0xFF1E88E5)),
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.black),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -317,7 +318,7 @@ class HomeDetailScreen extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: const Color(0xFF1E88E5)),
+        Icon(icon, size: 20, color: Colors.black),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -334,7 +335,7 @@ class HomeDetailScreen extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(fontSize: 16, color: Color(0xFF1A1A1A)),
+                style: const TextStyle(fontSize: 16, color: Colors.black),
               ),
             ],
           ),

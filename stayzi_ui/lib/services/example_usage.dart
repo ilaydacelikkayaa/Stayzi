@@ -113,7 +113,17 @@ class ExampleUsage {
         homeRules: 'No smoking, No pets',
       );
 
-      final listing = await _apiService.createListing(listingData);
+      final listing = await _apiService.createListing(
+        title: listingData.title,
+        description: listingData.description,
+        price: listingData.price,
+        location: listingData.location,
+        lat: listingData.lat,
+        lng: listingData.lng,
+        homeType: listingData.homeType,
+        hostLanguages: listingData.hostLanguages,
+        homeRules: listingData.homeRules,
+      );
       print('Listing created: ${listing.title}');
     } catch (e) {
       print('Failed to create listing: $e');

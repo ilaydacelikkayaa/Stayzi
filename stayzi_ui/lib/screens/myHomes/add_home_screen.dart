@@ -22,6 +22,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   final TextEditingController _homeRulesController = TextEditingController();
   
   List<File> _selectedImages = [];
+  File? _selectedImage;
   List<String> _selectedAmenities = [];
   bool _isLoading = false;
   String? _error;
@@ -56,19 +57,19 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImages() async {
+  Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFiles = await picker.pickMultiImage();
-    if (pickedFiles.isNotEmpty) {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
       setState(() {
-        _selectedImages.addAll(pickedFiles.map((file) => File(file.path)));
+        _selectedImage = File(pickedFile.path);
       });
     }
   }
 
-  void _removeImage(int index) {
+  void _removeImage() {
     setState(() {
-      _selectedImages.removeAt(index);
+      _selectedImage = null;
     });
   }
 
@@ -87,12 +88,13 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
       return;
     }
 
-    if (_selectedImages.isEmpty) {
-      setState(() {
-        _error = 'En az bir fotoğraf eklemelisiniz';
-      });
-      return;
-    }
+    // Geçici olarak fotoğraf zorunluluğunu kaldır
+    // if (_selectedImages.isEmpty) {
+    //   setState(() {
+    //     _error = 'En az bir fotoğraf eklemelisiniz';
+    //   });
+    //   return;
+    // }
 
     setState(() {
       _isLoading = true;
@@ -104,7 +106,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
       final price = double.parse(_priceController.text.trim());
       final capacity = int.tryParse(_capacityController.text.trim());
 
-      await ApiService().createListingWithImages(
+      await ApiService().createListing(
         title: _titleController.text.trim(),
         description:
             _descriptionController.text.trim().isEmpty
@@ -116,8 +118,8 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                 : _locationController.text.trim(),
         price: price,
         capacity: capacity,
-        images: _selectedImages,
         amenities: _selectedAmenities.isNotEmpty ? _selectedAmenities : null,
+        photo: _selectedImage,
       );
 
       setState(() {
@@ -141,24 +143,25 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1A1A1A),
+        foregroundColor: Colors.black,
         elevation: 0,
         title: const Text(
           'Yeni İlan Ekle',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.black,
+          ),
         ),
         centerTitle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-        ),
       ),
       body:
           _isLoading
               ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF1E88E5)),
+                child: CircularProgressIndicator(color: Colors.black),
               )
               : SafeArea(
                 child: Form(
@@ -172,15 +175,11 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
-                            ),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF1E88E5).withOpacity(0.3),
+                                color: Colors.black.withOpacity(0.08),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -191,12 +190,12 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: Colors.grey[100],
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(
                                   Icons.add_home,
-                                  color: Colors.white,
+                                  color: Colors.black,
                                   size: 24,
                                 ),
                               ),
@@ -210,7 +209,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                        color: Colors.black,
                                       ),
                                     ),
                                     SizedBox(height: 4),
@@ -218,7 +217,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                       'Ev ilanınızı oluşturun',
                                       style: TextStyle(
                                         fontSize: 14,
-                                        color: Colors.white70,
+                                        color: Colors.grey,
                                       ),
                                     ),
                                   ],
@@ -314,80 +313,76 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                               children: [
                                 // Images Section
                                 const Text(
-                                  'Fotoğraflar *',
+                                  'Fotoğraf',
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1A1A1A),
+                                    color: Colors.black,
                                   ),
                                 ),
                                 const SizedBox(height: 12),
 
-                                if (_selectedImages.isNotEmpty) ...[
-                                  SizedBox(
-                                    height: 120,
-                                    child: ListView.builder(
-                                      scrollDirection: Axis.horizontal,
-                                      itemCount: _selectedImages.length,
-                                      itemBuilder: (context, index) {
-                                        return Stack(
-                                          children: [
-                                            Container(
-                                              margin: const EdgeInsets.only(
-                                                right: 8,
+                                if (_selectedImage != null) ...[
+                                  Container(
+                                    width: double.infinity,
+                                    height: 200,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.grey.withOpacity(0.3),
+                                      ),
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          child: Image.file(
+                                            _selectedImage!,
+                                            width: double.infinity,
+                                            height: 200,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 8,
+                                          right: 8,
+                                          child: GestureDetector(
+                                            onTap: _removeImage,
+                                            child: Container(
+                                              padding: const EdgeInsets.all(6),
+                                              decoration: const BoxDecoration(
+                                                color: Colors.red,
+                                                shape: BoxShape.circle,
                                               ),
-                                              width: 120,
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                image: DecorationImage(
-                                                  image: FileImage(
-                                                    _selectedImages[index],
-                                                  ),
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                              top: 4,
-                                              right: 12,
-                                              child: GestureDetector(
-                                                onTap:
-                                                    () => _removeImage(index),
-                                                child: Container(
-                                                  padding: const EdgeInsets.all(
-                                                    4,
-                                                  ),
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                        color: Colors.red,
-                                                        shape: BoxShape.circle,
-                                                      ),
-                                                  child: const Icon(
-                                                    Icons.close,
-                                                    color: Colors.white,
-                                                    size: 16,
-                                                  ),
-                                                ),
+                                              child: const Icon(
+                                                Icons.close,
+                                                color: Colors.white,
+                                                size: 18,
                                               ),
                                             ),
-                                          ],
-                                        );
-                                      },
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   const SizedBox(height: 16),
                                 ],
 
                                 OutlinedButton.icon(
-                                  onPressed: _pickImages,
-                                  icon: const Icon(Icons.add_photo_alternate),
-                                  label: const Text('Fotoğraf Ekle'),
+                                  onPressed: _pickImage,
+                                  icon: const Icon(
+                                    Icons.add_photo_alternate,
+                                    color: Colors.black,
+                                  ),
+                                  label: const Text(
+                                    'Fotoğraf Ekle',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: const Color(0xFF1E88E5),
-                                    side: const BorderSide(
-                                      color: Color(0xFF1E88E5),
-                                    ),
+                                    foregroundColor: Colors.black,
+                                    side: const BorderSide(color: Colors.black),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -402,7 +397,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1A1A1A),
+                                    color: Colors.black,
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -467,7 +462,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1A1A1A),
+                                    color: Colors.black,
                                   ),
                                 ),
                                 const SizedBox(height: 12),
@@ -480,21 +475,23 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                         final isSelected = _selectedAmenities
                                             .contains(amenity);
                                         return FilterChip(
-                                          label: Text(amenity),
+                                          label: Text(
+                                            amenity,
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                            ),
+                                          ),
                                           selected: isSelected,
                                           onSelected:
                                               (selected) =>
                                                   _toggleAmenity(amenity),
-                                          selectedColor: const Color(
-                                            0xFF1E88E5,
-                                          ).withOpacity(0.2),
-                                          checkmarkColor: const Color(
-                                            0xFF1E88E5,
-                                          ),
+                                          selectedColor: Colors.black
+                                              .withOpacity(0.1),
+                                          checkmarkColor: Colors.black,
                                           side: BorderSide(
                                             color:
                                                 isSelected
-                                                    ? const Color(0xFF1E88E5)
+                                                    ? Colors.black
                                                     : Colors.grey.withOpacity(
                                                       0.3,
                                                     ),
@@ -522,7 +519,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                   child: ElevatedButton(
                                     onPressed: _submitForm,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF1E88E5),
+                                      backgroundColor: Colors.black,
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(16),
@@ -565,7 +562,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF1A1A1A),
+            color: Colors.black,
           ),
         ),
         const SizedBox(height: 8),
@@ -586,7 +583,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF1E88E5)),
+              borderSide: const BorderSide(color: Colors.black),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

@@ -28,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -37,7 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF1E88E5)),
+                  child: CircularProgressIndicator(color: Colors.black),
                 );
               } else if (snapshot.hasError) {
                 return Center(
@@ -74,7 +74,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1A1A1A),
+                              color: Colors.black,
                             ),
                           ),
                           Container(
@@ -92,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: IconButton(
                               icon: const Icon(
                                 Icons.notifications_none,
-                                color: Color(0xFF1E88E5),
+                                color: Colors.black,
                               ),
                               onPressed: () {
                                 Navigator.push(
@@ -123,15 +123,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
-                          ),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF1E88E5).withOpacity(0.3),
+                              color: Colors.black.withOpacity(0.08),
                               blurRadius: 15,
                               offset: const Offset(0, 8),
                             ),
@@ -144,7 +140,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Container(
                                 decoration: BoxDecoration(
                                   border: Border.all(
-                                    color: Colors.white,
+                                    color: Colors.black,
                                     width: 3,
                                   ),
                                   borderRadius: BorderRadius.circular(50),
@@ -161,14 +157,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         )
                                         : CircleAvatar(
                                           radius: 35,
-                                          backgroundColor: Colors.white
-                                              .withOpacity(0.2),
+                                          backgroundColor: Colors.grey[100],
                                           child: Text(
                                             user.name.isNotEmpty
                                                 ? user.name[0].toUpperCase()
                                                 : '?',
                                             style: const TextStyle(
-                                              color: Colors.white,
+                                              color: Colors.black,
                                               fontSize: 28,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -185,7 +180,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                        color: Colors.black,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -193,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       'Profil Göster',
                                       style: TextStyle(
                                         fontSize: 14,
-                                        color: Colors.white70,
+                                        color: Colors.grey,
                                       ),
                                     ),
                                   ],
@@ -202,13 +197,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: Colors.grey[100],
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Icon(
                                   Icons.arrow_forward_ios,
                                   size: 16,
-                                  color: Colors.white,
+                                  color: Colors.black,
                                 ),
                               ),
                             ],
@@ -309,12 +304,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   color:
                       isDestructive
                           ? Colors.red.withOpacity(0.1)
-                          : const Color(0xFF1E88E5).withOpacity(0.1),
+                          : Colors.black.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   icon,
-                  color: isDestructive ? Colors.red : const Color(0xFF1E88E5),
+                  color: isDestructive ? Colors.red : Colors.black,
                   size: 24,
                 ),
               ),
@@ -331,13 +326,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color:
                             isDestructive
                                 ? Colors.red
-                                : const Color(0xFF1A1A1A),
+                                : Colors.black,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ],
                 ),
