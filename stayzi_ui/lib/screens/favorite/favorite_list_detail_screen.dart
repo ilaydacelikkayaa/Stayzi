@@ -70,53 +70,174 @@ class _FavoriteListDetailScreenState extends State<FavoriteListDetailScreen> {
         ],
       ),
       body: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: widget.ilanlar.length,
         itemBuilder: (context, index) {
           final ilan = widget.ilanlar[index];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+          final imageUrl = ilan['foto'] ?? 'https://via.placeholder.com/150';
+          // Favori durumu için local state
+          return _FavoriteCardWithHeart(ilan: ilan, imageUrl: imageUrl);
+        },
+      ),
+    );
+  }
+}
+
+// Ayrı bir stateful widget ile kalp ikonunu tıklanabilir yapıyoruz
+class _FavoriteCardWithHeart extends StatefulWidget {
+  final Map<String, dynamic> ilan;
+  final String imageUrl;
+  const _FavoriteCardWithHeart({required this.ilan, required this.imageUrl});
+
+  @override
+  State<_FavoriteCardWithHeart> createState() => _FavoriteCardWithHeartState();
+}
+
+class _FavoriteCardWithHeartState extends State<_FavoriteCardWithHeart> {
+  bool isFavorite = true;
+
+  void _toggleFavorite() {
+    setState(() {
+      isFavorite = !isFavorite;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isFavorite ? 'Favorilere eklendi' : 'Favorilerden çıkarıldı',
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ilan = widget.ilan;
+    final imageUrl = widget.imageUrl;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(13),
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder:
+                  (context) => DraggableScrollableSheet(
+                    initialChildSize: 0.92,
+                    minChildSize: 0.7,
+                    maxChildSize: 0.98,
+                    expand: false,
+                    builder:
+                        (context, scrollController) => Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(24),
+                            ),
+                          ),
+                          child: FavoriteHomeDetailScreen(
+                            ilan: ilan,
+                            scrollController: scrollController,
+                          ),
+                        ),
+                  ),
+            );
+          },
+          child: Card(
             elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(13),
+            ),
+            margin: EdgeInsets.zero,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                  child: Image.network(
-                    ilan['foto']!.trim(),
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                ListTile(
-                  title: Text(
-                    ilan['baslik'] ?? '',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    "${ilan['konum'] ?? ''} • ${ilan['fiyat'] ?? ''}",
-                  ),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => FavoriteHomeDetailScreen(ilan: ilan),
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(16),
                       ),
-                    );
-                  },
+                      child: Image.network(
+                        imageUrl.trim(),
+                        height: 200,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.broken_image,
+                            size: 100,
+                            color: Colors.grey,
+                          );
+                        },
+                      ),
+                    ),
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        child: IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: Colors.red,
+                          ),
+                          onPressed: _toggleFavorite,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        ilan['konum'] ?? 'Unknown Location',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(ilan['baslik'] ?? ''),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            ilan['fiyat'] ?? '',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                size: 16,
+                                color: Colors.black,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                ilan['puan'] != null
+                                    ? ilan['puan'].toString()
+                                    : '0.0',
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

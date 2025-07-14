@@ -442,41 +442,23 @@ class ApiService {
   // ========== USER LISTINGS ENDPOINTS ==========
 
   // Get user's own listings
-  Future<List<Listing>> getMyListings({int skip = 0, int limit = 100}) async {
-    try {
-      final response = await http.get(
-        Uri.parse(
-          '${ApiConstants.baseUrl}${ApiConstants.myListings}?skip=$skip&limit=$limit',
-        ),
-        headers: _getHeaders(requiresAuth: true),
-      );
-      final data = _handleResponse(response);
-      print("DEBUG: Gelen veri: $data");
-      if (data is List) {
-        if (data.isNotEmpty && data[0] is! Map) {
-          throw Exception(
-            'Beklenmeyen liste elemanı tipi: ${data[0].runtimeType}',
-          );
-        }
-        return (data as List)
-            .map((json) => Listing.fromJson(json as Map<String, dynamic>))
-            .toList();
-      } else if (data is Map && data['data'] is List) {
-        final list = data['data'] as List;
-        if (list.isNotEmpty && list[0] is! Map) {
-          throw Exception(
-            'Beklenmeyen liste elemanı tipi: ${list[0].runtimeType}',
-          );
-        }
-        return list
-            .map((json) => Listing.fromJson(json as Map<String, dynamic>))
-            .toList();
-      } else {
-        throw Exception('Beklenmeyen veri formatı: $data');
-      }
-    } catch (e) {
-      print("DEBUG: Hata oluştu: $e");
-      throw Exception('Kullanıcının ilanları alınamadı: $e');
+  Future<List<Listing>> getMyListings({String? token}) async {
+    print('getMyListings çağrıldı, token: ' + (token ?? 'YOK'));
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:8000/listings/my-listings'),
+      headers: {
+        if (token != null) 'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    print('getMyListings response status: ${response.statusCode}');
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      print('getMyListings tamamlandı, ilan sayısı: ${data.length}');
+      return data.map((json) => Listing.fromJson(json)).toList();
+    } else {
+      print('getMyListings hata: ${response.body}');
+      throw Exception('İlanlar yüklenemedi');
     }
   }
 

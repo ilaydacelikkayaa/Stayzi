@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../models/listing_model.dart';
 import '../../services/api_service.dart';
+import '../../services/storage_service.dart';
+import '../favorite/favorite_home_detail.screen.dart';
 import 'add_home_screen.dart';
 import 'edit_home_screen.dart';
-import 'home_detail_screen.dart';
 
 class MyHomesScreen extends StatefulWidget {
   const MyHomesScreen({super.key});
@@ -31,7 +32,9 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
     });
 
     try {
-      final listings = await ApiService().getMyListings();
+      // Token'ı storage'dan al
+      final token = await StorageService().getAccessToken();
+      final listings = await ApiService().getMyListings(token: token);
       setState(() {
         _listings = listings;
         _isLoading = false;
@@ -250,10 +253,29 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
     return Material(
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomeDetailScreen(listing: listing),
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder:
+                (context) => DraggableScrollableSheet(
+                  initialChildSize: 0.92,
+                  minChildSize: 0.7,
+                  maxChildSize: 0.98,
+                  expand: false,
+                  builder:
+                      (context, scrollController) => Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(24),
+                          ),
+                        ),
+                        child: FavoriteHomeDetailScreen(
+                          ilan: _listingToMap(listing),
+                          scrollController: scrollController,
+                        ),
+                      ),
             ),
           );
         },
@@ -468,12 +490,34 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) =>
-                                          HomeDetailScreen(listing: listing),
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder:
+                                    (context) => DraggableScrollableSheet(
+                                      initialChildSize: 0.92,
+                                      minChildSize: 0.7,
+                                      maxChildSize: 0.98,
+                                      expand: false,
+                                      builder:
+                                          (context, scrollController) =>
+                                              Container(
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.vertical(
+                                                        top: Radius.circular(
+                                                          24,
+                                                        ),
+                                                      ),
+                                                ),
+                                                child: FavoriteHomeDetailScreen(
+                                                  ilan: _listingToMap(listing),
+                                                  scrollController:
+                                                      scrollController,
+                                                ),
+                                              ),
                                 ),
                               );
                             },
@@ -502,4 +546,21 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
       ),
     );
   }
+}
+
+Map<String, dynamic> _listingToMap(Listing listing) {
+  return {
+    'title': listing.title,
+    'location': listing.location,
+    'price': listing.price,
+    'description': listing.description,
+    'image_urls': listing.imageUrls,
+    'average_rating': listing.averageRating,
+    'host_name': listing.userId?.toString() ?? '',
+    'latitude': listing.lat,
+    'longitude': listing.lng,
+    'capacity': listing.capacity,
+    'galeri': listing.imageUrls,
+    // Diğer gerekli alanlar eklenebilir
+  };
 }
