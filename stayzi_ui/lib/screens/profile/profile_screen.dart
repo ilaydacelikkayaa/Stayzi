@@ -4,6 +4,7 @@ import '../../models/user_model.dart';
 import '../../services/api_constants.dart';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
+import '../onboard/onboard_screen.dart';
 import 'notifications_screen.dart';
 import 'personal_info_screen.dart';
 import 'profile_detail_screen.dart';
@@ -375,7 +376,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onPressed: () async {
                   await StorageService().logout();
                   if (context.mounted) {
-                    Navigator.pushReplacementNamed(context, '/onboard');
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OnboardScreen(),
+                      ),
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -415,7 +421,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     await ApiService().deactivateAccount();
                     await StorageService().logout();
                     if (context.mounted) {
-                      Navigator.pushReplacementNamed(context, '/onboard');
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const OnboardScreen(),
+                        ),
+                      );
                     }
                   } catch (e) {
                     if (context.mounted) {

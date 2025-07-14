@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stayzi_ui/screens/navigation/bottom_nav.dart';
 import 'package:stayzi_ui/screens/onboard/get_info_screen.dart';
 import 'package:stayzi_ui/screens/onboard/mail_login_sheet.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
@@ -192,9 +193,13 @@ class _OnboardScreenState extends State<OnboardScreen> {
                                     standardizedPhone,
                                   );
 
-                                  Navigator.pushReplacementNamed(
+                                  Navigator.pushReplacement(
                                     context,
-                                    '/home',
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) =>
+                                              const BottomNavigationWidget(),
+                                    ),
                                   );
                                 } else {
                                   Navigator.pushReplacement(

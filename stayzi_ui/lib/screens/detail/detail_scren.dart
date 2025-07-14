@@ -26,9 +26,21 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
   @override
   Widget build(BuildContext context) {
     final listing = widget.listing;
-    final List<String> imageList = List<String>.from(
-      listing['image_urls'] ?? [],
-    );
+    
+    // Safe image list extraction
+    List<String> imageList = [];
+    try {
+      final imageUrls = listing['image_urls'] as List<dynamic>?;
+      if (imageUrls != null) {
+        imageList =
+            imageUrls
+                .where((url) => url != null)
+                .map((url) => url.toString())
+                .toList();
+      }
+    } catch (e) {
+      print('Error extracting image URLs: $e');
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -69,7 +81,9 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                 ),
 
                 // "Bu mekan hakkında" kısmı ve açıklama
-                MekanAciklamasi(description: listing['description']),
+                MekanAciklamasi(
+                  description: listing['description']?.toString() ?? '',
+                ),
                 Divider(
                   thickness: 1,
                   color: Colors.grey,
