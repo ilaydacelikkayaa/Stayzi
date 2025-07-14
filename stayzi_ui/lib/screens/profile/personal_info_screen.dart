@@ -59,6 +59,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Uyarı: Kullanıcı verisi eksik veya boş geldi!'),
+              backgroundColor: Colors.orange,
             ),
           );
         }
@@ -102,127 +103,400 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        foregroundColor: Colors.black,
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1A1A1A),
         elevation: 0,
+        title: const Text(
+          'Kişisel Bilgiler',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+        ),
       ),
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child:
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Column(
+      body:
+          _isLoading
+              ? const Center(
+                child: CircularProgressIndicator(color: Color(0xFF1E88E5)),
+              )
+              : SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Kişisel bilgiler',
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (_error != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(
-                          _error!,
-                          style: const TextStyle(color: Colors.red),
+                      // Header Section
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF1E88E5).withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ),
-                    if (_success != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(
-                          _success!,
-                          style: const TextStyle(color: Colors.green),
-                        ),
-                      ),
-                    Expanded(
-                      child: Form(
-                        key: _formKey,
-                        child: ListView(
+                        child: Row(
                           children: [
-                            const SizedBox(height: 20),
-                            EditableTextField(
-                              label: 'Yasal Ad',
-                              controller: _fullNameController,
-                              hint: 'Ad Soyad',
-                              isEditable: _isFullNameEditable,
-                              onEditPressed: () {
-                                setState(() {
-                                  _isFullNameEditable = !_isFullNameEditable;
-                                });
-                              },
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.person,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
-                            const Divider(color: Colors.grey),
-                            const SizedBox(height: 15),
-                            EditableTextField(
-                              label: 'Tercih Edilen Ad',
-                              controller: _preferredNameController,
-                              hint: 'Ad',
-                              isEditable: _isPreferredNameEditable,
-                              onEditPressed: () {
-                                setState(() {
-                                  _isPreferredNameEditable =
-                                      !_isPreferredNameEditable;
-                                });
-                              },
-                            ),
-                            const Divider(color: Colors.grey),
-                            const SizedBox(height: 15),
-                            EditableTextField(
-                              label: 'Telefon Numarası',
-                              controller: _phoneNumberController,
-                              hint: '+90 555 123 45 67',
-                              isEditable: _isPhoneNumberEditable,
-                              onEditPressed: () {
-                                setState(() {
-                                  _isPhoneNumberEditable =
-                                      !_isPhoneNumberEditable;
-                                });
-                              },
-                            ),
-                            const Divider(color: Colors.grey),
-                            const SizedBox(height: 15),
-                            EditableTextField(
-                              label: 'E-posta',
-                              controller: _emailController,
-                              hint: 'eposta@example.com',
-                              isEditable: _isEmailEditable,
-                              onEditPressed: () {
-                                setState(() {
-                                  _isEmailEditable = !_isEmailEditable;
-                                });
-                              },
-                            ),
-                            const Divider(color: Colors.grey),
-                            const SizedBox(height: 15),
-                            EditableTextField(
-                              label: 'Adres',
-                              controller: _addressController,
-                              hint: 'Şehir, Ülke',
-                              isEditable: _isAddressEditable,
-                              onEditPressed: () {
-                                setState(() {
-                                  _isAddressEditable = !_isAddressEditable;
-                                });
-                              },
-                            ),
-                            const SizedBox(height: 32),
-                            ElevatedButton(
-                              onPressed: _saveProfile,
-                              child: const Text('Kaydet'),
+                            const SizedBox(width: 16),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Kişisel Bilgiler',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'Bilgilerinizi güncelleyin',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 24),
+
+                      // Status Messages
+                    if (_error != null)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.red.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error_outline, color: Colors.red[600]),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _error!,
+                                  style: TextStyle(
+                                    color: Colors.red[700],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                        ),
+                      ),
+                    if (_success != null)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.green.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.check_circle_outline,
+                                color: Colors.green[600],
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _success!,
+                                  style: TextStyle(
+                                    color: Colors.green[700],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (_error != null || _success != null)
+                        const SizedBox(height: 20),
+
+                      // Form Section
+                    Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Form(
+                            key: _formKey,
+                            child: ListView(
+                              padding: const EdgeInsets.all(20),
+                              children: [
+                                _buildInfoSection(
+                                  title: 'Temel Bilgiler',
+                                  icon: Icons.person_outline,
+                                  children: [
+                                    _buildEditableField(
+                                      label: 'Yasal Ad',
+                                      controller: _fullNameController,
+                                      hint: 'Ad Soyad',
+                                      isEditable: _isFullNameEditable,
+                                      onEditPressed: () {
+                                        setState(() {
+                                          _isFullNameEditable =
+                                              !_isFullNameEditable;
+                                        });
+                                      },
+                                    ),
+                                    const SizedBox(height: 20),
+                                    _buildEditableField(
+                                      label: 'Tercih Edilen Ad',
+                                      controller: _preferredNameController,
+                                      hint: 'Ad',
+                                      isEditable: _isPreferredNameEditable,
+                                      onEditPressed: () {
+                                        setState(() {
+                                          _isPreferredNameEditable =
+                                              !_isPreferredNameEditable;
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+
+                                _buildInfoSection(
+                                  title: 'İletişim Bilgileri',
+                                  icon: Icons.contact_phone,
+                                  children: [
+                                    _buildEditableField(
+                                      label: 'Telefon Numarası',
+                                      controller: _phoneNumberController,
+                                      hint: '+90 555 123 45 67',
+                                      isEditable: _isPhoneNumberEditable,
+                                      onEditPressed: () {
+                                        setState(() {
+                                          _isPhoneNumberEditable =
+                                              !_isPhoneNumberEditable;
+                                        });
+                                      },
+                                    ),
+                                    const SizedBox(height: 20),
+                                    _buildEditableField(
+                                      label: 'E-posta',
+                                      controller: _emailController,
+                                      hint: 'eposta@example.com',
+                                      isEditable: _isEmailEditable,
+                                      onEditPressed: () {
+                                        setState(() {
+                                          _isEmailEditable = !_isEmailEditable;
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+
+                                _buildInfoSection(
+                                  title: 'Adres Bilgileri',
+                                  icon: Icons.location_on_outlined,
+                                  children: [
+                                    _buildEditableField(
+                                      label: 'Adres',
+                                      controller: _addressController,
+                                      hint: 'Şehir, Ülke',
+                                      isEditable: _isAddressEditable,
+                                      onEditPressed: () {
+                                        setState(() {
+                                          _isAddressEditable =
+                                              !_isAddressEditable;
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 32),
+                              
+                                // Save Button
+                                Container(
+                                  width: double.infinity,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Color(0xFF1E88E5),
+                                        Color(0xFF1565C0),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(
+                                          0xFF1E88E5,
+                                        ).withOpacity(0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ElevatedButton(
+                                    onPressed: _saveProfile,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      shadowColor: Colors.transparent,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Değişiklikleri Kaydet',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+              ),
+    );
+  }
+
+  Widget _buildInfoSection({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E88E5).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: const Color(0xFF1E88E5), size: 20),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1A1A1A),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        ...children,
+      ],
+    );
+  }
+
+  Widget _buildEditableField({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    required bool isEditable,
+    required VoidCallback onEditPressed,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F9FA),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color:
+              isEditable
+                  ? const Color(0xFF1E88E5).withOpacity(0.3)
+                  : Colors.grey.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+              IconButton(
+                onPressed: onEditPressed,
+                icon: Icon(
+                  isEditable ? Icons.check : Icons.edit,
+                  color: isEditable ? Colors.green : const Color(0xFF1E88E5),
+                  size: 20,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          EditableTextField(
+            label: '',
+            controller: controller,
+            hint: hint,
+            isEditable: isEditable,
+            onEditPressed: onEditPressed,
+          ),
+        ],
       ),
     );
   }
