@@ -28,6 +28,24 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
   bool _isLoading = false;
   String? _error;
   String? _success;
+  List<String> _selectedAmenities = [];
+  final List<String> _availableAmenities = [
+    'WiFi',
+    'Klima',
+    'Mutfak',
+    'Çamaşır Makinesi',
+    'Bulaşık Makinesi',
+    'TV',
+    'Parking',
+    'Balkon',
+    'Bahçe',
+    'Havuz',
+    'Spor Salonu',
+    'Güvenlik',
+    'Asansör',
+    'Sigara İçilmez',
+    'Evcil Hayvan Kabul',
+  ];
 
   @override
   void initState() {
@@ -48,6 +66,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
     homeRulesController = TextEditingController(
       text: widget.listing.homeRules ?? '',
     );
+    _selectedAmenities = List<String>.from(widget.listing.amenities ?? []);
   }
 
   @override
@@ -74,6 +93,16 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
   void _removeImage(int index) {
     setState(() {
       _selectedImages.removeAt(index);
+    });
+  }
+
+  void _toggleAmenity(String amenity) {
+    setState(() {
+      if (_selectedAmenities.contains(amenity)) {
+        _selectedAmenities.remove(amenity);
+      } else {
+        _selectedAmenities.add(amenity);
+      }
     });
   }
 
@@ -123,6 +152,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
             homeRulesController.text.trim().isEmpty
                 ? null
                 : homeRulesController.text.trim(),
+        amenities: _selectedAmenities.isNotEmpty ? _selectedAmenities : null,
         photo: _selectedImage,
       );
 
@@ -482,6 +512,51 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                                 label: 'Kapasite',
                                 hint: 'Misafir sayısı',
                                 keyboardType: TextInputType.number,
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Olanaklar (Amenities) Bölümü
+                              const Text(
+                                'Olanaklar',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children:
+                                    _availableAmenities.map((amenity) {
+                                      final isSelected = _selectedAmenities
+                                          .contains(amenity);
+                                      return FilterChip(
+                                        label: Text(
+                                          amenity,
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        selected: isSelected,
+                                        onSelected:
+                                            (selected) =>
+                                                _toggleAmenity(amenity),
+                                        selectedColor: Colors.black.withOpacity(
+                                          0.1,
+                                        ),
+                                        checkmarkColor: Colors.black,
+                                        side: BorderSide(
+                                          color:
+                                              isSelected
+                                                  ? Colors.black
+                                                  : Colors.grey.withOpacity(
+                                                    0.3,
+                                                  ),
+                                        ),
+                                      );
+                                    }).toList(),
                               ),
                               const SizedBox(height: 16),
 

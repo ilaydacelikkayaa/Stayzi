@@ -26,7 +26,6 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
   @override
   Widget build(BuildContext context) {
     final listing = widget.listing;
-    
     // Safe image list extraction
     List<String> imageList = [];
     try {
@@ -48,7 +47,6 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
           SingleChildScrollView(
             child: Column(
               children: [
-                // Fotoğraf Galerisi
                 ListingImageGallery(imageList: imageList),
                 if (imageList.isEmpty)
                   const Center(
@@ -63,9 +61,7 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                       ),
                     ),
                   ),
-                //İlan basligi
                 IlanBaslik(listing: listing),
-                // İçerik
                 Divider(
                   thickness: 1,
                   color: Colors.grey,
@@ -79,8 +75,6 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                   endIndent: 20,
                   indent: 20,
                 ),
-
-                // "Bu mekan hakkında" kısmı ve açıklama
                 MekanAciklamasi(
                   description: listing['description']?.toString() ?? '',
                 ),
@@ -90,12 +84,10 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                   endIndent: 20,
                   indent: 20,
                 ),
-
                 KonumBilgisi(
                   latitude: (listing['latitude'] as num?)?.toDouble() ?? 0.0,
                   longitude: (listing['longitude'] as num?)?.toDouble() ?? 0.0,
                 ),
-
                 Divider(
                   thickness: 1,
                   color: Colors.grey,
@@ -152,8 +144,6 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
               ],
             ),
           ),
-
-          // Üst Butonlar
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 16,
@@ -202,7 +192,6 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
           ),
         ],
       ),
-
       bottomNavigationBar: Container(
         padding: EdgeInsets.symmetric(horizontal: 35, vertical: 35),
         decoration: BoxDecoration(
@@ -238,7 +227,7 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                             ? nightlyPrice * dayCount
                             : nightlyPrice;
                     return Text(
-                      '\$${totalPrice.toInt()}',
+                      ' 24${totalPrice.toInt()}',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,

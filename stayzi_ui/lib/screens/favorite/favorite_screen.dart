@@ -130,47 +130,84 @@ class FavoriteScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     // Fotoğraf kolajı
-                    Expanded(
-                      child: GridView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: EdgeInsets.zero,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 1,
-                              crossAxisSpacing: 1,
+                    SizedBox(
+                      height: 120,
+                      width: double.infinity,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(22),
+                        ),
+                        child: Table(
+                          defaultColumnWidth: const FlexColumnWidth(1),
+                          children: [
+                            TableRow(
+                              children: [
+                                _buildCollageImage(
+                                  gosterilecekResimler,
+                                  0,
+                                  topLeft: true,
+                                ),
+                                _buildCollageImage(
+                                  gosterilecekResimler,
+                                  1,
+                                  topRight: true,
+                                ),
+                              ],
                             ),
-                        itemCount: 4,
-                        itemBuilder: (context, i) {
-                          if (i < gosterilecekResimler.length) {
-                            return ClipRRect(
-                              borderRadius:
-                                  i == 0
-                                      ? const BorderRadius.only(
-                                        topLeft: Radius.circular(16),
-                                      )
-                                      : i == 1
-                                      ? const BorderRadius.only(
-                                        topRight: Radius.circular(16),
-                                      )
-                                      : BorderRadius.zero,
-                              child: Image.network(
-                                gosterilecekResimler[i]['foto']!,
-                                fit: BoxFit.cover,
-                              ),
-                            );
-                          } else {
-                            return Container(color: Colors.grey[300]);
-                          }
-                        },
+                            TableRow(
+                              children: [
+                                _buildCollageImage(
+                                  gosterilecekResimler,
+                                  2,
+                                  bottomLeft: true,
+                                ),
+                                _buildCollageImage(
+                                  gosterilecekResimler,
+                                  3,
+                                  bottomRight: true,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        liste['listeAdi'],
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
+                      padding: const EdgeInsets.only(
+                        top: 10,
+                        left: 8,
+                        right: 8,
+                        bottom: 4,
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            liste['listeAdi'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 17,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '${ilanlar.length} ilan',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -181,5 +218,35 @@ class FavoriteScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+// Kolaj için yardımcı fonksiyon
+Widget _buildCollageImage(
+  List<Map<String, String>> resimler,
+  int index, {
+  bool topLeft = false,
+  bool topRight = false,
+  bool bottomLeft = false,
+  bool bottomRight = false,
+}) {
+  BorderRadius radius = BorderRadius.only(
+    topLeft: topLeft ? const Radius.circular(22) : Radius.zero,
+    topRight: topRight ? const Radius.circular(22) : Radius.zero,
+    bottomLeft: bottomLeft ? const Radius.circular(22) : Radius.zero,
+    bottomRight: bottomRight ? const Radius.circular(22) : Radius.zero,
+  );
+  if (index < resimler.length) {
+    return ClipRRect(
+      borderRadius: radius,
+      child: Image.network(
+        resimler[index]['foto']!,
+        fit: BoxFit.cover,
+        height: 60,
+        width: 60,
+      ),
+    );
+  } else {
+    return Container(color: Colors.grey[300]);
   }
 }
