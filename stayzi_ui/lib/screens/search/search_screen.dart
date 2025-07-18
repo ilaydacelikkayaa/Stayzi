@@ -83,15 +83,11 @@ class _TinyHomeCardState extends State<TinyHomeCard> {
     final rawUrl =
         (listing['image_urls'] as List<dynamic>).isNotEmpty
             ? listing['image_urls'][0]
-<<<<<<< Updated upstream
-            : 'assets/images/user.jpg';
-=======
             : null;
     final imageUrl =
         (rawUrl != null && rawUrl.startsWith('http'))
             ? rawUrl
             : 'http://localhost:8000$rawUrl';
->>>>>>> Stashed changes
 
     return Material(
       child: InkWell(
