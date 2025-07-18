@@ -248,7 +248,7 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
     final imageUrl =
         listing.imageUrls != null && listing.imageUrls!.isNotEmpty
             ? listing.imageUrls!.first
-            : 'https://via.placeholder.com/150';
+            : 'assets/images/user.jpg';
 
     return Material(
       child: InkWell(
@@ -294,24 +294,7 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(16),
                     ),
-                    child: Image.network(
-                      imageUrl,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          height: 200,
-                          width: double.infinity,
-                          color: Colors.grey[200],
-                          child: const Icon(
-                            Icons.home_outlined,
-                            size: 64,
-                            color: Colors.grey,
-                          ),
-                        );
-                      },
-                    ),
+                    child: buildListingImage(getListingImageUrl(imageUrl)),
                   ),
                   Positioned(
                     top: 12,
@@ -563,4 +546,42 @@ Map<String, dynamic> _listingToMap(Listing listing) {
     'galeri': listing.imageUrls,
     // Diğer gerekli alanlar eklenebilir
   };
+}
+
+// Android emülatörü için bilgisayarın localhost'una erişim:
+final String baseUrl =
+    "http://10.0.2.2:8000"; // Gerçek cihazda test için bilgisayarınızın IP adresini kullanın
+String getListingImageUrl(String? path) {
+  if (path == null || path.isEmpty) return '';
+  if (path.startsWith('/uploads')) {
+    return baseUrl + path;
+  }
+  return path;
+}
+
+Widget buildListingImage(String imageUrl) {
+  print('DEBUG: imageUrl = ' + imageUrl);
+  if (imageUrl.startsWith('assets/')) {
+    return Image.asset(
+      imageUrl,
+      height: 200,
+      width: double.infinity,
+      fit: BoxFit.cover,
+    );
+  } else {
+    return Image.network(
+      imageUrl,
+      height: 200,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          height: 200,
+          width: double.infinity,
+          color: Colors.grey[200],
+          child: const Icon(Icons.home_outlined, size: 64, color: Colors.grey),
+        );
+      },
+    );
+  }
 }

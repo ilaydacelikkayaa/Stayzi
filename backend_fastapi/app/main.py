@@ -8,6 +8,7 @@ from app.routers import booking
 # Routers
 from app.routers import review
 from app.routers import user, auth, listing, favorite, amenity, listing_amenity
+from fastapi.middleware.cors import CORSMiddleware
 
 # DB
 from app.db.session import engine
@@ -51,7 +52,13 @@ if not os.path.exists("uploads"):
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(booking.router)
 

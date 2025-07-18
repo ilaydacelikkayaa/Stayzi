@@ -205,7 +205,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                       ? CircleAvatar(
                                         radius: 56,
                                         backgroundImage: NetworkImage(
-                                          user.profileImage!,
+                                          getProfileImageUrl(user.profileImage),
                                         ),
                                       )
                                       : CircleAvatar(
@@ -528,4 +528,16 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       ),
     );
   }
+}
+
+// Kullanıcı profil fotoğrafı gösterimi
+// Android emülatörü için bilgisayarın localhost'una erişim:
+final String baseUrl =
+    "http://10.0.2.2:8000"; // Gerçek cihazda test için bilgisayarınızın IP adresini kullanın
+String getProfileImageUrl(String? path) {
+  if (path == null || path.isEmpty) return '';
+  if (path.startsWith('/uploads')) {
+    return baseUrl + path;
+  }
+  return path;
 }
