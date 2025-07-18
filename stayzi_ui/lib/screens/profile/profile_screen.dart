@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../models/user_model.dart';
-import '../../services/api_constants.dart';
 import '../../services/api_service.dart';
 import '../../services/storage_service.dart';
 import '../onboard/onboard_screen.dart';
@@ -151,8 +150,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ? CircleAvatar(
                                           radius: 35,
                                           backgroundImage: NetworkImage(
-                                            ApiConstants.baseUrl +
-                                                user.profileImage!,
+                                            getProfileImageUrl(
+                                              user.profileImage,
+                                            ),
                                           ),
                                         )
                                         : CircleAvatar(
@@ -444,4 +444,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
+}
+
+// Kullanıcı profil fotoğrafı gösterimi
+// Eski kod:
+// backgroundImage: NetworkImage(user.profileImage!),
+
+// Yeni kod:
+// Android emülatörü için bilgisayarın localhost'una erişim:
+final String baseUrl =
+    "http://10.0.2.2:8000"; // Gerçek cihazda test için bilgisayarınızın IP adresini kullanın
+String getProfileImageUrl(String? path) {
+  if (path == null || path.isEmpty) return '';
+  if (path.startsWith('/uploads')) {
+    return baseUrl + path;
+  }
+  return path;
 }

@@ -144,21 +144,15 @@ async def update(
     # Fotoğrafı kaydet
     image_urls = db_listing.image_urls or []
     if photo:
-        # Uploads klasörünü oluştur
         upload_dir = "uploads/listings"
         os.makedirs(upload_dir, exist_ok=True)
-        
-        # Benzersiz dosya adı oluştur
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_extension = os.path.splitext(photo.filename)[1] if photo.filename else ".jpg"
         filename = f"listing_{current_user.id}_{timestamp}{file_extension}"
         file_path = os.path.join(upload_dir, filename)
-        
-        # Dosyayı kaydet
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(photo.file, buffer)
-        
-        image_urls.append(f"/uploads/listings/{filename}")
+        image_urls = [f"/uploads/listings/{filename}"] + image_urls  # Yeni fotoğrafı başa ekle
     
     # JSON string'leri parse et
     host_languages_list = None
@@ -195,8 +189,8 @@ async def update(
         listing_data["home_type"] = home_type
     if host_languages_list is not None:
         listing_data["host_languages"] = host_languages_list
-    if image_urls:
-        listing_data["image_urls"] = image_urls
+    # image_urls her zaman güncellenmeli!
+    listing_data["image_urls"] = image_urls
     if home_rules is not None:
         listing_data["home_rules"] = home_rules
     if capacity is not None:

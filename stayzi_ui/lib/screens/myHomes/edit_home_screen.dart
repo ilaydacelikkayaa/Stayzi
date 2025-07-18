@@ -80,13 +80,20 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImages() async {
-    final picker = ImagePicker();
-    final pickedFiles = await picker.pickMultiImage();
-    if (pickedFiles.isNotEmpty) {
+  // 1. Fotoğraf seçme fonksiyonu
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
+    if (pickedFile != null) {
       setState(() {
-        _selectedImages.addAll(pickedFiles.map((file) => File(file.path)));
+        _selectedImage = File(pickedFile.path);
       });
+      print(
+        'DEBUG: Fotoğraf seçildi:  [32m [1m [4m${_selectedImage!.path} [0m',
+      );
+    } else {
+      print('DEBUG: Fotoğraf seçilmedi.');
     }
   }
 
@@ -135,6 +142,18 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
         throw Exception('Geçerli bir fiyat giriniz');
       }
 
+      // DEBUG: Seçilen fotoğrafı yazdır
+      print(
+        'Güncelleme için seçilen fotoğraf:  [32m [1m [4m${_selectedImage?.path} [0m',
+      );
+      if (_selectedImage == null) {
+        print(
+          'DEBUG: Fotoğraf seçilmedi, sadece metin alanları güncelleniyor.',
+        );
+      } else {
+        print('DEBUG: Fotoğraf updateListing fonksiyonuna gönderiliyor.');
+      }
+
       await ApiService().updateListing(
         listingId: widget.listing.id,
         title: titleController.text.trim(),
@@ -171,6 +190,44 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  // Android emülatörü için bilgisayarın localhost'una erişim:
+  final String baseUrl =
+      "http://10.0.2.2:8000"; // Gerçek cihazda test için bilgisayarınızın IP adresini kullanın
+  String getListingImageUrl(String? path) {
+    if (path == null || path.isEmpty) {
+      return "assets/images/user.jpg"; // assets klasörünüzdeki varsayılan görsel
+    }
+    if (path.startsWith('/uploads')) {
+      return baseUrl + path;
+    }
+    return path;
+  }
+
+  Widget buildListingImage(String imageUrl) {
+    if (imageUrl.startsWith('assets/')) {
+      return Image.asset(imageUrl, width: 100, height: 100, fit: BoxFit.cover);
+    } else {
+      return Image.network(
+        imageUrl,
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: 100,
+            height: 100,
+            color: Colors.grey[200],
+            child: const Icon(
+              Icons.home_outlined,
+              size: 40,
+              color: Colors.grey,
+            ),
+          );
+        },
+      );
     }
   }
 
@@ -372,15 +429,10 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                                       return Container(
                                         margin: const EdgeInsets.only(right: 8),
                                         width: 100,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          image: DecorationImage(
-                                            image: NetworkImage(
-                                              widget.listing.imageUrls![index],
-                                            ),
-                                            fit: BoxFit.cover,
+                                        height: 100,
+                                        child: buildListingImage(
+                                          getListingImageUrl(
+                                            widget.listing.imageUrls![index],
                                           ),
                                         ),
                                       );
@@ -456,7 +508,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
 
                               // Add images button
                               OutlinedButton.icon(
-                                onPressed: _pickImages,
+                                onPressed: _pickImage,
                                 icon: const Icon(
                                   Icons.add_photo_alternate,
                                   color: Colors.black,

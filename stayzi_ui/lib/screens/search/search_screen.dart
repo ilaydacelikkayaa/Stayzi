@@ -5,6 +5,15 @@ import 'package:http/http.dart' as http;
 import 'package:stayzi_ui/screens/detail/detail_scren.dart';
 import 'package:stayzi_ui/screens/search/widgets/custom_search_appbar.dart';
 
+final String baseUrl = "http://10.0.2.2:8000";
+String getListingImageUrl(String? path) {
+  if (path == null || path.isEmpty) return 'assets/images/user.jpg';
+  if (path.startsWith('/uploads')) {
+    return baseUrl + path;
+  }
+  return path;
+}
+
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
 
@@ -74,7 +83,7 @@ class _TinyHomeCardState extends State<TinyHomeCard> {
     final imageUrl =
         (listing['image_urls'] as List<dynamic>).isNotEmpty
             ? listing['image_urls'][0]
-            : 'https://via.placeholder.com/150';
+            : 'assets/images/user.jpg';
 
     return Material(
       child: InkWell(
@@ -102,7 +111,7 @@ class _TinyHomeCardState extends State<TinyHomeCard> {
                       top: Radius.circular(16),
                     ),
                     child: Image.network(
-                      imageUrl,
+                      getListingImageUrl(imageUrl),
                       height: 200,
                       width: double.infinity,
                       fit: BoxFit.cover,
@@ -177,6 +186,32 @@ class _TinyHomeCardState extends State<TinyHomeCard> {
           ),
         ),
       ),
+    );
+  }
+}
+
+Widget buildListingImage(String imageUrl) {
+  if (imageUrl.startsWith('assets/')) {
+    return Image.asset(
+      imageUrl,
+      height: 150,
+      width: double.infinity,
+      fit: BoxFit.cover,
+    );
+  } else {
+    return Image.network(
+      imageUrl,
+      height: 150,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          height: 150,
+          width: double.infinity,
+          color: Colors.grey[200],
+          child: const Icon(Icons.home_outlined, size: 64, color: Colors.grey),
+        );
+      },
     );
   }
 }

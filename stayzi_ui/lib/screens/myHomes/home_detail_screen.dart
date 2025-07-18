@@ -4,6 +4,44 @@ import '../../models/listing_model.dart';
 import '../../services/api_service.dart';
 import 'edit_home_screen.dart';
 
+final String baseUrl = "http://10.0.2.2:8000";
+String getListingImageUrl(String? path) {
+  if (path == null || path.isEmpty) return 'assets/images/user.jpg';
+  if (path.startsWith('/uploads')) {
+    return baseUrl + path;
+  }
+  return path;
+}
+
+Widget buildListingImage(String imageUrl) {
+  print('DEBUG: buildListingImage çağrıldı, imageUrl = $imageUrl');
+  if (imageUrl.startsWith('assets/')) {
+    print('DEBUG: Image.asset ile gösteriliyor');
+    return Image.asset(
+      imageUrl,
+      height: 200,
+      width: double.infinity,
+      fit: BoxFit.cover,
+    );
+  } else {
+    print('DEBUG: Image.network ile gösteriliyor');
+    return Image.network(
+      imageUrl,
+      height: 200,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          height: 200,
+          width: double.infinity,
+          color: Colors.grey[200],
+          child: const Icon(Icons.home_outlined, size: 64, color: Colors.grey),
+        );
+      },
+    );
+  }
+}
+
 class HomeDetailScreen extends StatelessWidget {
   final Listing listing;
 
@@ -11,6 +49,12 @@ class HomeDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(
+      'DEBUG: Detayda gösterilecek imageUrl: ' +
+          (listing.imageUrls != null && listing.imageUrls!.isNotEmpty
+              ? listing.imageUrls!.first
+              : 'assets/images/user.jpg'),
+    );
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -69,21 +113,8 @@ class HomeDetailScreen extends StatelessWidget {
                   listing.imageUrls != null && listing.imageUrls!.isNotEmpty
                       ? ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: Image.network(
-                          listing.imageUrls!.first,
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (context, error, stackTrace) => Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: const Icon(
-                                  Icons.home_outlined,
-                                  size: 64,
-                                  color: Colors.grey,
-                                ),
-                              ),
+                        child: buildListingImage(
+                          getListingImageUrl(listing.imageUrls!.first),
                         ),
                       )
                       : Container(
