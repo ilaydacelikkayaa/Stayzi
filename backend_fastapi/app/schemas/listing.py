@@ -2,6 +2,9 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
 
+from app.schemas.amenity import Amenity, AmenityInListing
+
+
 class ListingBase(BaseModel):
    
     title: str
@@ -16,7 +19,7 @@ class ListingBase(BaseModel):
     average_rating: Optional[float] = 0
     home_rules: Optional[str] = None
     capacity: Optional[int] = None
-    amenities: Optional[List[str]] = None
+    amenities: Optional[List[AmenityInListing]] = None
 
 class ListingCreate(ListingBase):
     pass

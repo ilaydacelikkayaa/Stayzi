@@ -80,10 +80,14 @@ class _TinyHomeCardState extends State<TinyHomeCard> {
   @override
   Widget build(BuildContext context) {
     final listing = widget.listing;
-    final imageUrl =
+    final rawUrl =
         (listing['image_urls'] as List<dynamic>).isNotEmpty
             ? listing['image_urls'][0]
-            : 'assets/images/user.jpg';
+            : null;
+    final imageUrl =
+        (rawUrl != null && rawUrl.startsWith('http'))
+            ? rawUrl
+            : 'http://localhost:8000$rawUrl';
 
     return Material(
       child: InkWell(

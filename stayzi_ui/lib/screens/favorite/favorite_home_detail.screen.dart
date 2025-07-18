@@ -48,8 +48,7 @@ class FavoriteHomeDetailScreen extends StatelessWidget {
               padding: EdgeInsets.all(16.0),
               child: Text(
                 'Bu ilana ait fotoğraf bulunmamaktadır.',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
             ),
           ),
@@ -74,9 +73,12 @@ class FavoriteHomeDetailScreen extends StatelessWidget {
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
         ),
-        Padding(padding: EdgeInsets.all(20), child: Yorumlar()),
+        Padding(
+          padding: EdgeInsets.all(20),
+          child: Yorumlar(listingId: ilan['id']),
+        ),
         Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
-        OlanaklarVeKurallar(),
+        OlanaklarVeKurallar(listing: ilan),
         const SizedBox(height: 100),
       ],
     );

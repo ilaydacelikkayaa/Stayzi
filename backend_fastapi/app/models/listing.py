@@ -21,7 +21,11 @@ class Listing(Base):
     average_rating = Column(Numeric, server_default="0")
     home_rules = Column(Text)
     capacity = Column(Integer)
-    amenities = Column(ARRAY(Text))
+    amenities = relationship(
+        "Amenity",
+        secondary="listing_amenities",
+        backref="listings"
+    )
 
     # ✅ İlişki satırı sınıfın içinde olmalı
     bookings = relationship("Booking", back_populates="listing")

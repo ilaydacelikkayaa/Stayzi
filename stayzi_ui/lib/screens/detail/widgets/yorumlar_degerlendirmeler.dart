@@ -1,26 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:stayzi_ui/models/review_model.dart';
 import 'package:stayzi_ui/screens/detail/review_detail_page.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
+import 'package:stayzi_ui/services/api_service.dart';
 
-class Yorumlar extends StatelessWidget {
-  Yorumlar({super.key});
+class Yorumlar extends StatefulWidget {
+  final int listingId;
+  final void Function(int)? onCommentCountChanged;
+  const Yorumlar({
+    super.key,
+    required this.listingId,
+    this.onCommentCountChanged,
+  });
 
-  final List<Review> reviews = [
-    Review(
-      name: "Tarık Furkan",
-      comment: "Konum olarak doğayla iç içeydi, temizdi.",
-      date: "3 hafta önce",
-      profileImage: "assets/images/user.jpg",
-    ),
-    Review(
-      name: "Emre",
-      comment: "Her şey fotoğraflarda olduğu gibiydi. Çok beğendik.",
-      date: "Şubat 2025",
-      profileImage: "assets/images/user.jpg",
-    ),
-  ];
+  @override
+  State<Yorumlar> createState() => _YorumlarState();
+}
+
+class _YorumlarState extends State<Yorumlar> {
+  List<Review> reviews = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchReviews();
+  }
+
+  Future<void> fetchReviews() async {
+    try {
+      final data = await ApiService().fetchReviews(widget.listingId);
+      setState(() {
+        reviews = data;
+        isLoading = false;
+      });
+      widget.onCommentCountChanged?.call(data.length);
+    } catch (e) {
+      print("Yorumlar alınamadı: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (reviews.isEmpty) {
+      return const Text("Henüz yorum yok.");
+    }
+
     return SizedBox(
       height: 160,
       child: ListView.builder(
@@ -28,6 +57,11 @@ class Yorumlar extends StatelessWidget {
         itemCount: reviews.length,
         itemBuilder: (context, index) {
           final review = reviews[index];
+          final profileImageUrl =
+              review.user.profileImage != null
+                  ? '${ApiConstants.baseUrl}${review.user.profileImage}'
+                  : 'https://via.placeholder.com/150';
+
           return GestureDetector(
             onTap: () {
               Navigator.push(
@@ -51,21 +85,21 @@ class Yorumlar extends StatelessWidget {
                   Row(
                     children: [
                       CircleAvatar(
-                        backgroundImage: AssetImage(review.profileImage),
+                        backgroundImage: NetworkImage(profileImageUrl),
                         radius: 16,
                       ),
                       SizedBox(width: 8),
                       Text(
-                        review.name,
+                        '${review.user.name ?? ''} ${review.user.surname ?? ''}',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Spacer(),
-                      Text(review.date, style: TextStyle(fontSize: 12)),
+                      Text(review.date ?? '', style: TextStyle(fontSize: 12)),
                     ],
                   ),
                   SizedBox(height: 10),
                   Text(
-                    review.comment,
+                    review.comment ?? '',
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: Colors.black87),

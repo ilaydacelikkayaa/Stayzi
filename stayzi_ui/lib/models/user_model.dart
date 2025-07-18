@@ -1,3 +1,5 @@
+import 'package:stayzi_ui/services/api_constants.dart';
+
 class User {
   final int id;
   final String? email;
@@ -24,15 +26,27 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    print("👤 Gelen HOST JSON: $json");
+    json.forEach((key, value) {
+      print("🔍 $key => $value (${value.runtimeType})");
+    });
     return User(
       id: json['id'],
-      email: json['email'],
+      email: json['email'] ?? 'Bilinmi',
       name: json['name'],
       surname: json['surname'],
-      birthdate: DateTime.parse(json['birthdate']),
+      birthdate:
+          json['birthdate'] != null
+              ? DateTime.parse(json['birthdate'])
+              : DateTime(2000, 1, 1),
       phone: json['phone'],
       country: json['country'],
-      profileImage: json['profile_image'],
+      profileImage:
+          json['profile_image'] != null && json['profile_image'] is String
+              ? (json['profile_image'].toString().startsWith('/')
+                  ? '${ApiConstants.baseUrl}${json['profile_image']}'
+                  : json['profile_image'].toString())
+              : null,
       isActive: json['is_active'] ?? true,
       createdAt:
           json['created_at'] != null

@@ -1,3 +1,6 @@
+import 'package:stayzi_ui/models/amenity_model.dart';
+import 'package:stayzi_ui/models/user_model.dart';
+
 class Listing {
   final int id;
   final int? userId;
@@ -13,9 +16,10 @@ class Listing {
   final double averageRating;
   final String? homeRules;
   final int? capacity;
-  final List<String>? amenities;
+  final List<Amenity>? amenities;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final User? host;
 
   Listing({
     required this.id,
@@ -35,9 +39,11 @@ class Listing {
     this.amenities,
     required this.createdAt,
     this.updatedAt,
+    this.host,
   });
 
   factory Listing.fromJson(Map<String, dynamic> json) {
+    print("👤 Gelen HOST JSON: ${json['host']}");
     return Listing(
       id: json['id'],
       userId: json['user_id'],
@@ -61,13 +67,16 @@ class Listing {
       capacity: json['capacity'],
       amenities:
           json['amenities'] != null
-              ? List<String>.from(json['amenities'])
+              ? List<Amenity>.from(
+                json['amenities'].map((e) => Amenity.fromJson(e)),
+              )
               : null,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt:
           json['updated_at'] != null
               ? DateTime.parse(json['updated_at'])
               : null,
+      host: json['host'] != null ? User.fromJson(json['host']) : null,
     );
   }
 
@@ -90,6 +99,7 @@ class Listing {
       'amenities': amenities,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
+      'host': host?.toJson(),
     };
   }
 }
@@ -108,7 +118,7 @@ class ListingCreate {
   final double averageRating;
   final String? homeRules;
   final int? capacity;
-  final List<String>? amenities;
+  final List<Amenity>? amenities;
 
   ListingCreate({
     this.userId,
@@ -142,7 +152,7 @@ class ListingCreate {
       'average_rating': averageRating,
       'home_rules': homeRules,
       'capacity': capacity,
-      'amenities': amenities,
+      'amenities': amenities?.map((e) => e.toJson()).toList(),
     };
   }
 }
