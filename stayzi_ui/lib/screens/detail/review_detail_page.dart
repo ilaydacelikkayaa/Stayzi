@@ -1,18 +1,7 @@
 import 'package:flutter/material.dart';
-
-class Review {
-  final String name;
-  final String comment;
-  final String date;
-  final String profileImage;
-
-  Review({
-    required this.name,
-    required this.comment,
-    required this.date,
-    required this.profileImage,
-  });
-}
+import 'package:intl/intl.dart';
+import 'package:stayzi_ui/models/review_model.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
 
 class ReviewDetailPage extends StatelessWidget {
   final Review review;
@@ -22,6 +11,7 @@ class ReviewDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text('Yorum Detayı'),
         backgroundColor: Colors.white,
@@ -36,7 +26,9 @@ class ReviewDetailPage extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: AssetImage(review.profileImage),
+                  backgroundImage: NetworkImage(
+                    '${ApiConstants.baseUrl}${review.profileImage}',
+                  ),
                   radius: 25,
                 ),
                 SizedBox(width: 10),
@@ -44,13 +36,9 @@ class ReviewDetailPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      review.name,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      '${review.user.name ?? ''} ${review.user.surname ?? ''}',
                     ),
-                    Text(review.date),
+                    Text(DateFormat('dd MMMM yyyy').format(review.createdAt)),
                   ],
                 ),
               ],

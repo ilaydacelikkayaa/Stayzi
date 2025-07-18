@@ -1,13 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:stayzi_ui/screens/detail/detail_scren.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
 import 'package:stayzi_ui/screens/payment/payment_details.dart';
 import 'package:stayzi_ui/screens/payment/payment_form.dart';
 
 class PaymentScreen extends StatelessWidget {
-  const PaymentScreen({super.key});
+  final DateTimeRange selectedRange;
+  final Map<String, dynamic> listing;
+
+  const PaymentScreen({
+    super.key,
+    required this.selectedRange,
+    required this.listing,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final int totalNights = selectedRange.duration.inDays;
+    final double nightlyPrice = (listing['price'] ?? 0).toDouble();
+    final double amount = nightlyPrice * totalNights;
+    const double tax = 500;
+
     return Scaffold(
       appBar: AppBar(title: const Text("Ödeme")),
       body: SingleChildScrollView(
@@ -15,35 +28,54 @@ class PaymentScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const PaymentDetails(
-              tax: 500,
-              amount: 2500,
-              totalNights: 5,
-            ), // Ödeme özeti kartı
+            PaymentDetails(tax: tax, amount: amount, totalNights: totalNights),
             const SizedBox(height: 20),
             const Text(
               "Kart Bilgileri",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            const CreditCardInfo(), // Form alanları (ad, kart numarası vs)
+            const CreditCardInfo(),
             const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButtonWidget(
-                buttonText: "Ödemeyi Tamamla",
-                buttonColor: Colors.black,
-                textColor: Colors.white,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const PaymentSuccessScreen(),
-                    ),
-                  );
-                },
-              ),
+            Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButtonWidget(
+                    buttonText: "Ödemeyi Tamamla",
+                    buttonColor: Colors.black,
+                    textColor: Colors.white,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PaymentSuccessScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButtonWidget(
+                    buttonText: "Rezervasyonu İptal Et",
+                    buttonColor: const Color.fromRGBO(213, 56, 88, 1),
+                    textColor: Colors.white,
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => ListingDetailPage(listing: listing),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ],
         ),

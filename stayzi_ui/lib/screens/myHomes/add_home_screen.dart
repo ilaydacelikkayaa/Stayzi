@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../services/api_service.dart';
@@ -20,10 +21,10 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _capacityController = TextEditingController();
   final TextEditingController _homeRulesController = TextEditingController();
-  
-  List<File> _selectedImages = [];
+
+  final List<File> _selectedImages = [];
   File? _selectedImage;
-  List<String> _selectedAmenities = [];
+  final List<String> _selectedAmenities = [];
   bool _isLoading = false;
   String? _error;
   String? _success;
@@ -35,7 +36,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
     'Çamaşır Makinesi',
     'Bulaşık Makinesi',
     'TV',
-    'Parking',
+    'Otopark',
     'Balkon',
     'Bahçe',
     'Havuz',
@@ -73,12 +74,13 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
     });
   }
 
-  void _toggleAmenity(String amenity) {
+  void _toggleAmenity(String amenityName) {
     setState(() {
-      if (_selectedAmenities.contains(amenity)) {
-        _selectedAmenities.remove(amenity);
+      final index = _selectedAmenities.indexWhere((a) => a == amenityName);
+      if (index >= 0) {
+        _selectedAmenities.removeAt(index);
       } else {
-        _selectedAmenities.add(amenity);
+        _selectedAmenities.add(amenityName);
       }
     });
   }
@@ -106,6 +108,20 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
       final price = double.parse(_priceController.text.trim());
       final capacity = int.tryParse(_capacityController.text.trim());
 
+      double? lat;
+      double? lng;
+      try {
+        List<Location> locations = await locationFromAddress(
+          _locationController.text.trim(),
+        );
+        if (locations.isNotEmpty) {
+          lat = locations.first.latitude;
+          lng = locations.first.longitude;
+        }
+      } catch (e) {
+        print("Konumdan koordinatlar alınamadı: $e");
+      }
+
       await ApiService().createListing(
         title: _titleController.text.trim(),
         description:
@@ -118,8 +134,20 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                 : _locationController.text.trim(),
         price: price,
         capacity: capacity,
-        amenities: _selectedAmenities.isNotEmpty ? _selectedAmenities : null,
+        amenities:
+            _selectedAmenities.isNotEmpty
+                ? _selectedAmenities.map((name) {
+                  final amenityIndex = _availableAmenities.indexOf(name);
+                  return {"id": amenityIndex + 1, "name": name};
+                }).toList()
+                : null,
         photo: _selectedImage,
+        homeRules:
+            _homeRulesController.text.trim().isEmpty
+                ? null
+                : _homeRulesController.text.trim(),
+        lat: lat,
+        lng: lng,
       );
 
       setState(() {
@@ -388,7 +416,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                     ),
                                   ),
                                 ),
-                              
+
                                 const SizedBox(height: 24),
 
                                 // Basic Information
@@ -401,7 +429,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                              
+
                                 _buildTextField(
                                   controller: _titleController,
                                   label: 'Başlık *',
@@ -422,14 +450,14 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                   maxLines: 3,
                                 ),
                                 const SizedBox(height: 16),
-                              
+
                                 _buildTextField(
                                   controller: _locationController,
                                   label: 'Konum',
                                   hint: 'Şehir, mahalle',
                                 ),
                                 const SizedBox(height: 16),
-                              
+
                                 _buildTextField(
                                   controller: _priceController,
                                   label: 'Fiyat (₺/gece) *',
@@ -499,9 +527,9 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                         );
                                       }).toList(),
                                 ),
-                              
+
                                 const SizedBox(height: 24),
-                              
+
                                 // House Rules
                                 _buildTextField(
                                   controller: _homeRulesController,

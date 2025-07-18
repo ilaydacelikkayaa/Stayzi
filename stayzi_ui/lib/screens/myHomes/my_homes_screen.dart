@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
 
 import '../../models/listing_model.dart';
 import '../../services/api_service.dart';
@@ -26,20 +27,23 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
   }
 
   Future<void> _loadMyListings() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
     try {
-      // Token'ı storage'dan al
       final token = await StorageService().getAccessToken();
       final listings = await ApiService().getMyListings(token: token);
+
+      if (!mounted) return;
       setState(() {
         _listings = listings;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = 'İlanlarınız yüklenemedi: $e';
         _isLoading = false;
@@ -161,6 +165,7 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
             context,
             MaterialPageRoute(builder: (context) => const AddHomeScreen()),
           );
+          if (!mounted) return;
           if (result == true) {
             _loadMyListings();
           }
@@ -184,11 +189,7 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
               color: Colors.grey[100],
               borderRadius: BorderRadius.circular(50),
             ),
-            child: Icon(
-              Icons.home_outlined,
-              size: 64,
-              color: Colors.grey[600],
-            ),
+            child: Icon(Icons.home_outlined, size: 64, color: Colors.grey[600]),
           ),
           const SizedBox(height: 24),
           const Text(
@@ -212,6 +213,7 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
                 context,
                 MaterialPageRoute(builder: (context) => const AddHomeScreen()),
               );
+              if (!mounted) return;
               if (result == true) {
                 _loadMyListings();
               }
@@ -247,8 +249,8 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
   Widget _buildListingCard(Listing listing) {
     final imageUrl =
         listing.imageUrls != null && listing.imageUrls!.isNotEmpty
-            ? listing.imageUrls!.first
-            : 'assets/images/user.jpg';
+            ? '${ApiConstants.baseUrl.replaceFirst(RegExp(r'/$'), '')}/${listing.imageUrls!.first.replaceFirst(RegExp(r'^/'), '')}'
+            : 'https://via.placeholder.com/150';
 
     return Material(
       child: InkWell(
@@ -276,7 +278,7 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
                           scrollController: scrollController,
                         ),
                       ),
-            ),
+                ),
           );
         },
         child: Card(
@@ -501,7 +503,7 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
                                                       scrollController,
                                                 ),
                                               ),
-                                ),
+                                    ),
                               );
                             },
                             style: ElevatedButton.styleFrom(
@@ -560,7 +562,7 @@ String getListingImageUrl(String? path) {
 }
 
 Widget buildListingImage(String imageUrl) {
-  print('DEBUG: imageUrl = ' + imageUrl);
+  print('DEBUG: imageUrl = $imageUrl');
   if (imageUrl.startsWith('assets/')) {
     return Image.asset(
       imageUrl,

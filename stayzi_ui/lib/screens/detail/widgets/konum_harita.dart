@@ -1,25 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:latlong2/latlong.dart';
 
 class KonumBilgisi extends StatelessWidget {
   final double? latitude;
   final double? longitude;
+  final String? locationName;
 
-  const KonumBilgisi({super.key, this.latitude, this.longitude});
+  const KonumBilgisi({
+    super.key,
+    this.latitude,
+    this.longitude,
+    this.locationName,
+  });
+
+  bool _isValidCoordinate(double? lat, double? lng) {
+    return lat != null &&
+        lng != null &&
+        !lat.isNaN &&
+        !lng.isNaN &&
+        !lat.isInfinite &&
+        !lng.isInfinite;
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (latitude == null ||
-        longitude == null ||
-        latitude!.isNaN ||
-        longitude!.isNaN ||
-        latitude!.isInfinite ||
-        longitude!.isInfinite) {
-      debugPrint('Geçersiz konum: latitude=$latitude, longitude=$longitude');
-      return const SizedBox.shrink();
+    if (_isValidCoordinate(latitude, longitude)) {
+      return _buildMap(LatLng(latitude!, longitude!));
     }
 
+    if (locationName != null && locationName!.isNotEmpty) {
+      return FutureBuilder<List<Location>>(
+        future: locationFromAddress(locationName!),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError ||
+              snapshot.data == null ||
+              snapshot.data!.isEmpty) {
+            return const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                "Konum bulunamadı",
+                style: TextStyle(color: Colors.red, fontSize: 16),
+              ),
+            );
+          } else {
+            final loc = snapshot.data!.first;
+            return _buildMap(LatLng(loc.latitude, loc.longitude));
+          }
+        },
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildMap(LatLng center) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Container(
@@ -37,10 +75,7 @@ class KonumBilgisi extends StatelessWidget {
         ),
         clipBehavior: Clip.antiAlias,
         child: FlutterMap(
-          options: MapOptions(
-            initialCenter: LatLng(latitude!, longitude!),
-            initialZoom: 15,
-          ),
+          options: MapOptions(initialCenter: center, initialZoom: 15),
           children: [
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -49,7 +84,7 @@ class KonumBilgisi extends StatelessWidget {
             MarkerLayer(
               markers: [
                 Marker(
-                  point: LatLng(latitude!, longitude!),
+                  point: center,
                   width: 40,
                   height: 40,
                   child: Container(
