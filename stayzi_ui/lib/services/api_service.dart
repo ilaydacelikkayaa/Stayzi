@@ -1,7 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:stayzi_ui/models/review_model.dart';
+import 'package:stayzi_ui/services/storage_service.dart';
+
+//import 'package:stayzi_ui/screens/detail/review_detail_page.dart';
 
 import '../models/auth_model.dart';
 import '../models/favorite_model.dart';
@@ -53,7 +58,7 @@ class ApiService {
 
   // Handle HTTP response
   dynamic _handleResponse(http.Response response) {
-    print("DEBUG: _handleResponse çağrıldı, body: " + response.body);
+    print("DEBUG: _handleResponse çağrıldı, body: ${response.body}");
     final data = json.decode(response.body);
     if (data is Map && data['detail'] != null) {
       throw Exception(data['detail']);
@@ -61,9 +66,7 @@ class ApiService {
     if (data is Map || data is List) {
       return data;
     }
-    throw Exception(
-      'Beklenmeyen response tipi: ' + data.runtimeType.toString(),
-    );
+    throw Exception('Beklenmeyen response tipi: ${data.runtimeType}');
   }
 
   // Test connection
@@ -236,7 +239,9 @@ class ApiService {
   Future<User> getUserById(int userId) async {
     try {
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.userById}$userId'),
+        Uri.parse(
+          '${ApiConstants.baseUrl}${ApiConstants.userById}$userId/with-host',
+        ),
         headers: _getHeaders(requiresAuth: true),
       );
       final data = _handleResponse(response);
@@ -295,9 +300,22 @@ class ApiService {
     }
   }
 
+  Future<Listing> getListingWithHostById(int listingId) async {
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/listings/$listingId/with-host'),
+      headers: {'Content-Type': 'application/json'},
+    );
 
+    print("🔗 URL: ${ApiConstants.baseUrl}/listings/$listingId/with-host");
+    print("📡 Status Code: ${response.statusCode}");
+    print("📥 Body: ${response.body}");
 
-
+    if (response.statusCode == 200) {
+      return Listing.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Host bilgisi alınamadı');
+    }
+  }
 
   // Delete listing
   Future<void> deleteListing(int id) async {
@@ -443,15 +461,18 @@ class ApiService {
 
   // Get user's own listings
   Future<List<Listing>> getMyListings({String? token}) async {
-    print('getMyListings çağrıldı, token: ' + (token ?? 'YOK'));
+    print('getMyListings çağrıldı, token: ${token ?? 'YOK'}');
+
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:8000/listings/my-listings'),
+      Uri.parse('${ApiConstants.baseUrl}/listings/my-listings'),
       headers: {
         if (token != null) 'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
     );
+
     print('getMyListings response status: ${response.statusCode}');
+
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
       print('getMyListings tamamlandı, ilan sayısı: ${data.length}');
@@ -485,6 +506,7 @@ class ApiService {
   // ========== LISTING IMAGES ENDPOINTS ==========
 
   // Upload listing image
+  // Upload listing image
   Future<String> uploadListingImage(int listingId, File image) async {
     try {
       var request = http.MultipartRequest(
@@ -500,6 +522,11 @@ class ApiService {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
       final data = _handleResponse(response);
+
+      // ✅ Gelen cevabı kontrol et
+      print("📸 uploadListingImage response: $data");
+      print("✅ image_url: ${data['image_url']}");
+
       return data['image_url'] ?? '';
     } catch (e) {
       throw Exception('İlan fotoğrafı yüklenemedi: $e');
@@ -538,7 +565,7 @@ class ApiService {
     List<String>? hostLanguages,
     String? homeRules,
     int? capacity,
-    List<String>? amenities,
+    List<Map<String, dynamic>>? amenities,
     File? photo,
     bool? allowEvents,
     bool? allowSmoking,
@@ -576,7 +603,9 @@ class ApiService {
       }
 
       if (amenities != null) {
-        request.fields['amenities'] = json.encode(amenities);
+        final serializedAmenities =
+            amenities.map((a) => {"id": a["id"], "name": a["name"]}).toList();
+        request.fields['amenities'] = json.encode(serializedAmenities);
       }
 
       if (photo != null) {
@@ -801,6 +830,71 @@ class ApiService {
       return data.map((json) => Listing.fromJson(json)).toList();
     } else {
       throw Exception('Filtrelenmiş ilanlar alınamadı');
+    }
+  }
+
+  // Fetch reviews for a listing
+  Future<List<Review>> fetchReviews(int listingId) async {
+    try {
+      final uri = Uri.parse(
+        '${ApiConstants.baseUrl}/reviews/listing/$listingId',
+      );
+      final headers = _getHeaders(requiresAuth: true);
+
+      final response = await http.get(uri, headers: headers);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList = json.decode(response.body);
+        final reviews = jsonList.map((item) => Review.fromJson(item)).toList();
+        print("✅ ${reviews.length} yorum başarıyla alındı.");
+        return reviews;
+      } else {
+        print(
+          "❌ Yorumlar alınamadı: ${response.statusCode} - ${response.body}",
+        );
+        throw Exception('Yorumlar alınamadı: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("❌ Yorumlar alınırken hata oluştu: $e");
+      throw Exception('Yorumlar alınırken hata oluştu: $e');
+    }
+  }
+
+  Future<bool> postReview({
+    required int listingId,
+    required double rating,
+    required String comment,
+  }) async {
+    final token = await StorageService().getToken();
+    if (token == null || token.accessToken.isEmpty) {
+      debugPrint("❌ Token bulunamadı, yorum gönderilemez.");
+      return false;
+    }
+
+    final url = Uri.parse('${ApiConstants.baseUrl}/reviews/');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${token.accessToken}',
+    };
+    final body = jsonEncode({
+      "listing_id": listingId,
+      "rating": rating,
+      "comment": comment,
+    });
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+      debugPrint(
+        "📨 postReview yanıtı: ${response.statusCode} - ${response.body}",
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      debugPrint("🚨 postReview hatası: $e");
+      return false;
     }
   }
 

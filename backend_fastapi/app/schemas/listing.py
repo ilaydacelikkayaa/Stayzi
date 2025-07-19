@@ -3,6 +3,9 @@ from typing import Optional, List
 from datetime import datetime
 from .user import UserOut
 
+from app.schemas.amenity import Amenity, AmenityInListing
+
+
 class ListingBase(BaseModel):
    
     title: str
@@ -17,7 +20,7 @@ class ListingBase(BaseModel):
     average_rating: Optional[float] = 0
     home_rules: Optional[str] = None
     capacity: Optional[int] = None
-    amenities: Optional[List[str]] = None
+    amenities: Optional[List[AmenityInListing]] = None
     room_count: Optional[int] = None
     bed_count: Optional[int] = None
     bathroom_count: Optional[int] = None

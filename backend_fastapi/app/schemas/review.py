@@ -1,6 +1,9 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+from app.schemas.user import UserOut
+
+
 class ReviewCreate(BaseModel):
     listing_id: int
     rating: float
@@ -13,6 +16,7 @@ class ReviewOut(BaseModel):
     rating: float
     comment: str
     created_at: datetime
+    user : UserOut
 
     class Config:
         orm_mode = True

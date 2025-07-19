@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
 
 import '../../models/listing_model.dart';
 import '../../services/api_service.dart';
@@ -26,20 +27,23 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
   }
 
   Future<void> _loadMyListings() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
     try {
-      // Token'ı storage'dan al
       final token = await StorageService().getAccessToken();
       final listings = await ApiService().getMyListings(token: token);
+
+      if (!mounted) return;
       setState(() {
         _listings = listings;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = 'İlanlarınız yüklenemedi: $e';
         _isLoading = false;
@@ -161,6 +165,7 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
             context,
             MaterialPageRoute(builder: (context) => const AddHomeScreen()),
           );
+          if (!mounted) return;
           if (result == true) {
             _loadMyListings();
           }
@@ -208,6 +213,7 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
                 context,
                 MaterialPageRoute(builder: (context) => const AddHomeScreen()),
               );
+              if (!mounted) return;
               if (result == true) {
                 _loadMyListings();
               }
@@ -243,17 +249,36 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
   Widget _buildListingCard(Listing listing) {
     final imageUrl =
         listing.imageUrls != null && listing.imageUrls!.isNotEmpty
-            ? listing.imageUrls!.first
-            : 'assets/images/user.jpg';
+            ? '${ApiConstants.baseUrl.replaceFirst(RegExp(r'/$'), '')}/${listing.imageUrls!.first.replaceFirst(RegExp(r'^/'), '')}'
+            : 'https://via.placeholder.com/150';
 
     return Material(
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomeDetailScreen(listingId: listing.id),
-            ),
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder:
+                (context) => DraggableScrollableSheet(
+                  initialChildSize: 0.92,
+                  minChildSize: 0.7,
+                  maxChildSize: 0.98,
+                  expand: false,
+                  builder:
+                      (context, scrollController) => Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(24),
+                          ),
+                        ),
+                        child: FavoriteHomeDetailScreen(
+                          ilan: _listingToMap(listing),
+                          scrollController: scrollController,
+                        ),
+                      ),
+                ),
           );
         },
         child: Card(
@@ -478,7 +503,7 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
                                                       scrollController,
                                                 ),
                                               ),
-                                ),
+                                    ),
                               );
                             },
                             style: ElevatedButton.styleFrom(
@@ -547,7 +572,7 @@ String getListingImageUrl(String? path) {
 }
 
 Widget buildListingImage(String imageUrl) {
-  print('DEBUG: imageUrl = ' + imageUrl);
+  print('DEBUG: imageUrl = $imageUrl');
   if (imageUrl.startsWith('assets/')) {
     return Image.asset(
       imageUrl,
