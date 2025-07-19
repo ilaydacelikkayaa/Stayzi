@@ -1,4 +1,5 @@
-import 'user_model.dart';
+import 'package:stayzi_ui/models/amenity_model.dart';
+import 'package:stayzi_ui/models/user_model.dart';
 
 class Listing {
   final int id;
@@ -15,7 +16,7 @@ class Listing {
   final double averageRating;
   final String? homeRules;
   final int? capacity;
-  final List<String>? amenities;
+  final List<Amenity>? amenities;
   final int? roomCount;
   final int? bedCount;
   final int? bathroomCount;
@@ -58,6 +59,7 @@ class Listing {
   });
 
   factory Listing.fromJson(Map<String, dynamic> json) {
+    print("👤 Gelen HOST JSON: ${json['host']}");
     return Listing(
       id: json['id'],
       userId: json['user_id'],
@@ -81,7 +83,9 @@ class Listing {
       capacity: json['capacity'],
       amenities:
           json['amenities'] != null
-              ? List<String>.from(json['amenities'])
+              ? List<Amenity>.from(
+                json['amenities'].map((e) => Amenity.fromJson(e)),
+              )
               : null,
       roomCount: json['room_count'],
       bedCount: json['bed_count'],
@@ -146,7 +150,7 @@ class ListingCreate {
   final double averageRating;
   final String? homeRules;
   final int? capacity;
-  final List<String>? amenities;
+  final List<Amenity>? amenities;
   final int? allowEvents;
   final int? allowSmoking;
   final int? allowCommercialPhoto;
@@ -188,7 +192,7 @@ class ListingCreate {
       'average_rating': averageRating,
       'home_rules': homeRules,
       'capacity': capacity,
-      'amenities': amenities,
+      'amenities': amenities?.map((e) => e.toJson()).toList(),
       'allow_events': allowEvents,
       'allow_smoking': allowSmoking,
       'allow_commercial_photo': allowCommercialPhoto,

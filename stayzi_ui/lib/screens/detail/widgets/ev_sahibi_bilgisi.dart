@@ -1,74 +1,109 @@
 import 'package:flutter/material.dart';
 import 'package:stayzi_ui/screens/detail/host_detail_screen.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
+import 'package:stayzi_ui/services/api_service.dart';
 
-class EvSahibiBilgisi extends StatelessWidget {
+class EvSahibiBilgisi extends StatefulWidget {
   final Map<String, dynamic> listing;
 
   const EvSahibiBilgisi({super.key, required this.listing});
 
   @override
+  State<EvSahibiBilgisi> createState() => _EvSahibiBilgisiState();
+}
+
+class _EvSahibiBilgisiState extends State<EvSahibiBilgisi> {
+  Map<String, dynamic>? listingWithHost;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchListingWithHost();
+  }
+
+  Future<void> fetchListingWithHost() async {
+    try {
+      final listing = await ApiService().getListingWithHostById(widget.listing['id']);
+      setState(() {
+        listingWithHost = listing.toJson();
+      });
+    } catch (e) {
+      print("❌ Listing with host alınamadı: $e");
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final hostName = listing['host_name'] ?? 'Bilinmiyor';
-    final hostUser = listing['host_user'];
-    
-    return Row(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: CircleAvatar(
-            backgroundColor: Colors.black,
+    if (listingWithHost == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final host = listingWithHost!['host'];
+    final int hostId = host?['id'] ?? 0;
+    final String hostName = host?['name'] ?? 'Bilinmiyor';
+    final String? profileImageRaw = host?['profile_image'];
+    final String? profileImage =
+        (profileImageRaw != null && profileImageRaw.isNotEmpty)
+            ? (profileImageRaw.startsWith('/')
+                ? '${ApiConstants.baseUrl}$profileImageRaw'
+                : profileImageRaw)
+            : null;
+    print("👤 Gelen HOST JSON: $host");
+    print("🖼️ profileImage: $profileImage");
+
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 30,
+            backgroundImage:
+                profileImage != null ? NetworkImage(profileImage) : null,
             child:
-                hostUser != null && hostUser['profile_image'] != null
-                    ? ClipOval(
-                      child: Image.network(
-                        hostUser['profile_image'],
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.person, color: Colors.white);
-                        },
-                      ),
-                    )
-                    : const Icon(Icons.person, color: Colors.white),
+                profileImage == null
+                    ? const Icon(Icons.person, size: 30)
+                    : null,
           ),
-        ),
-        Expanded(
-          child: Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder:
-                          (context) => HostDetailScreen(hostUser: hostUser),
-                    ),
-                  );
+                  if (hostId != 0) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder:
+                            (context) =>
+                                HostDetailScreen(listingID: widget.listing['id']),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Bu ilana ait bir ev sahibi bilgisi bulunamadı.",
+                        ),
+                      ),
+                    );
+                  }
                 },
                 style: ButtonStyle(
-                  textStyle: MaterialStateProperty.all(
+                  foregroundColor: WidgetStateProperty.all(Colors.black),
+                  textStyle: WidgetStateProperty.all(
                     const TextStyle(
                       decoration: TextDecoration.underline,
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
                     ),
                   ),
                 ),
-                child: Text(
-                  'Ev Sahibi : $hostName'),
+                child: Text('Ev Sahibi : $hostName'),
               ),
-              Text(
-                hostUser != null
-                    ? "Ev sahibi"
-                    : "Ev sahibi bilgisi mevcut değil",
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
-              ),
+              const Text("5 yıldır ev sahibi"),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

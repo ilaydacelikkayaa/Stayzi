@@ -1,104 +1,158 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:stayzi_ui/models/review_model.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/form_widget.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
+import 'package:stayzi_ui/services/api_service.dart';
 
-class CommentPage extends StatelessWidget {
-  const CommentPage({super.key});
+class CommentPage extends StatefulWidget {
+  final int listingId;
+  const CommentPage({super.key, required this.listingId});
+
+  @override
+  State<CommentPage> createState() => _CommentPageState();
+}
+
+class _CommentPageState extends State<CommentPage> {
+  List<Review> reviews = [];
+  final TextEditingController _searchController = TextEditingController();
+  List<Review> filteredReviews = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadReviews();
+  }
+
+  Future<void> loadReviews() async {
+    try {
+      final fetchedReviews = await ApiService().fetchReviews(widget.listingId);
+      setState(() {
+        reviews = fetchedReviews;
+        filteredReviews = fetchedReviews;
+      });
+    } catch (e) {
+      print('Yorumlar yüklenemedi: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 65),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Text(
-                '35 Değerlendirme',
-                style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: FormWidget(
-                hintText: 'Yorumlarda Arayın',
-                helperText: "Aramak istediğiniz anahtar kelimeyi giriniz.",
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+      body:
+          filteredReviews.isEmpty
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildReview(
-                    name: "Christian *****",
-                    locationInfo: "Baltimore, Maryland",
-                    timeAgo: "1 week ago",
-                    stayInfo: "Birkaç gece kaldı",
-                    rating: 5.0,
-                    comment:
-                        "This property was a pleasure to visit. Everything is perfectly as advertised, clean, and well maintained. The cabin is well equipped with lots of little convenient amenities.",
-                    avatarUrl: "https://randomuser.me/api/portraits/men/11.jpg",
+                  const SizedBox(height: 65),
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text(
+                      '${filteredReviews.length} Değerlendirme',
+                      style: TextStyle(
+                        fontSize: 23,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  _buildReview(
-                    name: "Hillary *****",
-                    locationInfo: "5 years on Airbnb",
-                    timeAgo: "2 weeks ago",
-                    stayInfo: "Bir evcil hayvan",
-                    rating: 4.5,
-                    comment:
-                        "We loved Dreamtime! I booked the reservation on a whim based on the cute photos and it did not disappoint! The cleanliness of the entire place was impressive.",
-                    avatarUrl:
-                        "https://randomuser.me/api/portraits/women/44.jpg",
+                  Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Builder(
+                      builder: (context) {
+                        _searchController.addListener(() {
+                          final query = _searchController.text.toLowerCase();
+                          setState(() {
+                            filteredReviews =
+                                reviews
+                                    .where(
+                                      (review) => review.comment
+                                          .toLowerCase()
+                                          .contains(query),
+                                    )
+                                    .toList();
+                          });
+                        });
+
+                        return FormWidget(
+                          controller: _searchController,
+                          hintText: 'Yorumlarda Arayın',
+                          helperText:
+                              "Aramak istediğiniz anahtar kelimeyi giriniz.",
+                          textInputAction: TextInputAction.search,
+                          keyboardType: TextInputType.text,
+                        );
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: filteredReviews.length,
+                      itemBuilder: (context, index) {
+                        final review = filteredReviews[index];
+                        return _buildReview(
+                          name: '${review.user.name} ${review.user.surname}',
+                          locationInfo: '', // opsiyonel
+                          timeAgo: DateFormat(
+                            'dd MMMM yyyy',
+                          ).format(review.createdAt),
+                          stayInfo: '', // opsiyonel
+                          rating: review.rating,
+                          comment: review.comment,
+                          avatarUrl:
+                              review.user.profileImage != null &&
+                                      review.user.profileImage!.isNotEmpty
+                                  ? '${ApiConstants.baseUrl}${review.user.profileImage!}'
+                                  : 'https://via.placeholder.com/150',
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
+    );
+  }
+
+  Widget _buildReview({
+    required String name,
+    required String locationInfo,
+    required String timeAgo,
+    required String stayInfo,
+    required double rating,
+    required String comment,
+    required String avatarUrl,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(backgroundImage: NetworkImage(avatarUrl), radius: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(locationInfo, style: const TextStyle(color: Colors.grey)),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.star, size: 16, color: Colors.black),
+                    Text(
+                      " $rating  ·  $timeAgo  ·  $stayInfo",
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(comment),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
-}
-
-Widget _buildReview({
-  required String name,
-  required String locationInfo,
-  required String timeAgo,
-  required String stayInfo,
-  required double rating,
-  required String comment,
-  required String avatarUrl,
-}) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 10),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CircleAvatar(backgroundImage: NetworkImage(avatarUrl), radius: 22),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(locationInfo, style: const TextStyle(color: Colors.grey)),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(Icons.star, size: 16, color: Colors.black),
-                  Text(
-                    " $rating  ·  $timeAgo  ·  $stayInfo",
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(comment),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
 }

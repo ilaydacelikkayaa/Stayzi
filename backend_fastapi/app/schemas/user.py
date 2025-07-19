@@ -40,9 +40,11 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 
-class UserOut(UserBase):
+class UserOut(BaseModel):
     id: int
-    created_at: Optional[date]
+    name: str
+    surname: str
+    profile_image: Optional[str] = None
 
     class Config:
         from_attributes = True

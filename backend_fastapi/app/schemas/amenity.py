@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 class AmenityBase(BaseModel):
@@ -11,3 +13,7 @@ class Amenity(AmenityBase):
 
     class Config:
         from_attributes = True  # eski adı orm_mode
+
+class AmenityInListing(BaseModel):
+    id: int
+    name: Optional[str] = None

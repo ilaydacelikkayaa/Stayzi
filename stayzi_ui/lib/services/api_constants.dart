@@ -1,7 +1,7 @@
 class ApiConstants {
   // Base URL for the FastAPI backend
-  static const String baseUrl = 'http://10.0.2.2:8000'; // For Android emulator
-  // static const String baseUrl = 'http://localhost:8000'; // For iOS simulator
+  //static const String baseUrl = 'http://10.0.2.2:8000'; // For Android emulator
+  static const String baseUrl = 'http://localhost:8000'; // For iOS simulator
   // static const String baseUrl = 'http://your-server-ip:8000'; // For physical device
   // static const String baseUrl = 'http://192.168.1.125:8000';
 

@@ -1,5 +1,4 @@
 from app.dependencies import get_current_user 
-from app.models.user import User 
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -10,6 +9,10 @@ import os
 import shutil
 from datetime import datetime
 from app.models.review import Review
+from fastapi.responses import JSONResponse
+from app.models.user import User
+from app.models.listing import Listing as ListingModel
+from app.schemas.amenity import Amenity
 
 router = APIRouter(
     prefix="/listings",
@@ -43,19 +46,19 @@ async def create_listing_route(
         # Uploads klasörünü oluştur
         upload_dir = "uploads/listings"
         os.makedirs(upload_dir, exist_ok=True)
-        
+
         # Benzersiz dosya adı oluştur
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_extension = os.path.splitext(photo.filename)[1] if photo.filename else ".jpg"
         filename = f"listing_{current_user.id}_{timestamp}{file_extension}"
         file_path = os.path.join(upload_dir, filename)
-        
+
         # Dosyayı kaydet
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(photo.file, buffer)
-        
+
         image_urls.append(f"/uploads/listings/{filename}")
-    
+
     # JSON string'leri parse et
     host_languages_list = []
     if host_languages:
@@ -64,7 +67,7 @@ async def create_listing_route(
             host_languages_list = json.loads(host_languages)
         except:
             host_languages_list = [host_languages]
-    
+
     amenities_list = []
     if amenities:
         try:
@@ -74,9 +77,9 @@ async def create_listing_route(
             amenities_list = [amenities]
     
     # Boolean string'leri parse et
-    allow_events_bool = allow_events == "1" if allow_events else False
-    allow_smoking_bool = allow_smoking == "1" if allow_smoking else False
-    allow_commercial_photo_bool = allow_commercial_photo == "1" if allow_commercial_photo else False
+    allow_events_bool = allow_events == "true" if allow_events else False
+    allow_smoking_bool = allow_smoking == "true" if allow_smoking else False
+    allow_commercial_photo_bool = allow_commercial_photo == "true" if allow_commercial_photo else False
     
     # ListingCreate objesi oluştur
     listing_data = {
@@ -97,7 +100,7 @@ async def create_listing_route(
         "allow_commercial_photo": allow_commercial_photo_bool,
         "max_guests": max_guests
     }
-    
+
     listing = ListingCreate(**listing_data)
     db_listing = create_listing(db=db, listing=listing, user_id=current_user.id)
     user = db.query(User).filter(User.id == db_listing.user_id).first()
@@ -124,8 +127,8 @@ def read_listings(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
 
 @router.get("/my-listings", response_model=List[Listing])
 def read_my_listings(
-    skip: int = 0, 
-    limit: int = 100, 
+    skip: int = 0,
+    limit: int = 100,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -166,6 +169,8 @@ def delete(listing_id: int, db: Session = Depends(get_db)):
     listing_dict['user'] = user
     return listing_dict
 
+
+
 @router.put("/{listing_id}", response_model=Listing)
 async def update(
     listing_id: int,
@@ -192,24 +197,29 @@ async def update(
     db_listing = get_listing(db, listing_id)
     if not db_listing:
         raise HTTPException(status_code=404, detail="Listing not found")
-    
+
     # Kullanıcının kendi listing'ini güncelleyip güncelleyemediğini kontrol et
     if db_listing.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to update this listing")
-    
+
     # Fotoğrafı kaydet
     image_urls = db_listing.image_urls or []
     if photo:
         upload_dir = "uploads/listings"
         os.makedirs(upload_dir, exist_ok=True)
+
+        # Benzersiz dosya adı oluştur
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_extension = os.path.splitext(photo.filename)[1] if photo.filename else ".jpg"
         filename = f"listing_{current_user.id}_{timestamp}{file_extension}"
         file_path = os.path.join(upload_dir, filename)
+
+        # Dosyayı kaydet
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(photo.file, buffer)
-        image_urls = [f"/uploads/listings/{filename}"] + image_urls  # Yeni fotoğrafı başa ekle
-    
+
+        image_urls.append(f"/uploads/listings/{filename}")
+
     # JSON string'leri parse et
     host_languages_list = None
     if host_languages:
@@ -218,7 +228,7 @@ async def update(
             host_languages_list = json.loads(host_languages)
         except:
             host_languages_list = [host_languages]
-    
+
     amenities_list = None
     if amenities:
         try:
@@ -226,7 +236,7 @@ async def update(
             amenities_list = json.loads(amenities)
         except:
             amenities_list = [amenities]
-    
+
     # ListingCreate objesi oluştur
     listing_data = {}
     if title is not None:
@@ -256,17 +266,63 @@ async def update(
     
     # Boolean string'leri parse et ve ekle
     if allow_events is not None:
-        listing_data["allow_events"] = allow_events == "1"
-        print(f"DEBUG - Backend Update: allow_events = {allow_events} -> {allow_events == '1'}")
+        listing_data["allow_events"] = allow_events == "true"
+        print(f"DEBUG - Backend Update: allow_events = {allow_events} -> {allow_events == 'true'}")
     if allow_smoking is not None:
-        listing_data["allow_smoking"] = allow_smoking == "1"
-        print(f"DEBUG - Backend Update: allow_smoking = {allow_smoking} -> {allow_smoking == '1'}")
+        listing_data["allow_smoking"] = allow_smoking == "true"
+        print(f"DEBUG - Backend Update: allow_smoking = {allow_smoking} -> {allow_smoking == 'true'}")
     if allow_commercial_photo is not None:
-        listing_data["allow_commercial_photo"] = allow_commercial_photo == "1"
-        print(f"DEBUG - Backend Update: allow_commercial_photo = {allow_commercial_photo} -> {allow_commercial_photo == '1'}")
+        listing_data["allow_commercial_photo"] = allow_commercial_photo == "true"
+        print(f"DEBUG - Backend Update: allow_commercial_photo = {allow_commercial_photo} -> {allow_commercial_photo == 'true'}")
     if max_guests is not None:
         listing_data["max_guests"] = max_guests
         print(f"DEBUG - Backend Update: max_guests = {max_guests}")
     
     listing = ListingCreate(**listing_data)
-    return update_listing(db, listing_id, listing) 
+    return update_listing(db, listing_id, listing)
+
+
+from app.crud import listing_amenity
+
+@router.get("/{listing_id}/with-host")
+def read_listing_with_host(listing_id: int, db: Session = Depends(get_db)):
+    listing = db.query(ListingModel).filter(ListingModel.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+
+    user = db.query(User).filter(User.id == listing.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Host not found")
+
+
+    amenities = listing_amenity.get_amenities_for_listing(db, listing_id)
+    amenities_data = [Amenity.model_validate(a).model_dump() for a in amenities]
+
+    listing_data = {
+        "id": listing.id,
+        "title": listing.title,
+        "description": listing.description,
+        "price": float(listing.price) if listing.price else None,
+        "location": listing.location,
+        "lat": listing.lat,
+        "lng": listing.lng,
+        "home_type": listing.home_type,
+        "image_urls": listing.image_urls,
+        "average_rating": float(listing.average_rating) if listing.average_rating else 0.0,
+        "home_rules": listing.home_rules,
+        "amenities": amenities_data,
+        "host": {
+            "id": user.id,
+            "name": user.name,
+            "surname": user.surname,
+            "email": user.email,
+            "birthdate": user.birthdate.isoformat() if user.birthdate else None,
+            "phone": user.phone,
+            "country": user.country,
+            "profile_image": user.profile_image,
+            "is_active": user.is_active,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+        }
+    }
+
+    return JSONResponse(content=listing_data)
