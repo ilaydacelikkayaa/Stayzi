@@ -5,6 +5,8 @@ import 'package:geocoding/geocoding.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../services/api_service.dart';
+import '../../services/location_service.dart';
+import 'location_picker_screen.dart';
 
 class AddHomeScreen extends StatefulWidget {
   const AddHomeScreen({super.key});
@@ -21,7 +23,6 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _capacityController = TextEditingController();
 
-
   final List<File> _selectedImages = [];
   File? _selectedImage;
   final List<String> _selectedAmenities = [];
@@ -34,6 +35,12 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   bool _allowSmoking = false;
   bool _allowCommercialPhoto = false;
   int _maxGuests = 1;
+
+  // Konum seçimi için yeni alanlar
+  double? _selectedLatitude;
+  double? _selectedLongitude;
+  bool _isLocationLoading = false;
+  String? _locationError;
 
   final List<String> _availableAmenities = [
     'WiFi',
@@ -62,6 +69,115 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
     _capacityController.dispose();
 
     super.dispose();
+  }
+
+  // Mevcut konumu al
+  Future<void> _getCurrentLocation() async {
+    setState(() {
+      _isLocationLoading = true;
+      _locationError = null;
+    });
+
+    try {
+      final locationService = LocationService();
+      final position = await locationService.getCurrentLocation();
+
+      setState(() {
+        _selectedLatitude = position.latitude;
+        _selectedLongitude = position.longitude;
+        _isLocationLoading = false;
+      });
+
+      // Koordinatlardan adres al
+      await _getAddressFromCoordinates();
+    } catch (e) {
+      setState(() {
+        _locationError = 'Konum alınamadı: $e';
+        _isLocationLoading = false;
+      });
+    }
+  }
+
+  // Koordinatlardan adres al
+  Future<void> _getAddressFromCoordinates() async {
+    if (_selectedLatitude == null || _selectedLongitude == null) return;
+
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        _selectedLatitude!,
+        _selectedLongitude!,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final placemark = placemarks.first;
+        final address = [
+          placemark.locality,
+          placemark.subLocality,
+          placemark.thoroughfare,
+        ].where((e) => e != null && e.isNotEmpty).join(', ');
+
+        setState(() {
+          _locationController.text = address;
+        });
+      }
+    } catch (e) {
+      print('Adres alınamadı: $e');
+    }
+  }
+
+  // Adresten koordinat al
+  Future<void> _getCoordinatesFromAddress() async {
+    if (_locationController.text.trim().isEmpty) return;
+
+    setState(() {
+      _isLocationLoading = true;
+      _locationError = null;
+    });
+
+    try {
+      List<Location> locations = await locationFromAddress(
+        _locationController.text.trim(),
+      );
+
+      if (locations.isNotEmpty) {
+        setState(() {
+          _selectedLatitude = locations.first.latitude;
+          _selectedLongitude = locations.first.longitude;
+          _isLocationLoading = false;
+        });
+      } else {
+        setState(() {
+          _locationError = 'Bu adres için konum bulunamadı';
+          _isLocationLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _locationError = 'Adres işlenirken hata oluştu';
+        _isLocationLoading = false;
+      });
+    }
+  }
+
+  // Haritadan konum seç
+  void _selectLocationFromMap() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (context) => LocationPickerScreen(
+              initialLatitude:
+                  _selectedLatitude ?? 39.9334, // İstanbul varsayılan
+              initialLongitude: _selectedLongitude ?? 32.8597,
+              onLocationSelected: (lat, lng, address) {
+                setState(() {
+                  _selectedLatitude = lat;
+                  _selectedLongitude = lng;
+                  _locationController.text = address;
+                });
+              },
+            ),
+      ),
+    );
   }
 
   Future<void> _pickImage() async {
@@ -148,18 +264,23 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
       final price = double.parse(_priceController.text.trim());
       final capacity = int.tryParse(_capacityController.text.trim());
 
-      double? lat;
-      double? lng;
-      try {
-        List<Location> locations = await locationFromAddress(
-          _locationController.text.trim(),
-        );
-        if (locations.isNotEmpty) {
-          lat = locations.first.latitude;
-          lng = locations.first.longitude;
+      // Koordinatları belirle
+      double? lat = _selectedLatitude;
+      double? lng = _selectedLongitude;
+
+      // Eğer koordinat seçilmemişse adresten al
+      if (lat == null || lng == null) {
+        try {
+          List<Location> locations = await locationFromAddress(
+            _locationController.text.trim(),
+          );
+          if (locations.isNotEmpty) {
+            lat = locations.first.latitude;
+            lng = locations.first.longitude;
+          }
+        } catch (e) {
+          print("Konumdan koordinatlar alınamadı: $e");
         }
-      } catch (e) {
-        print("Konumdan koordinatlar alınamadı: $e");
       }
 
       await ApiService().createListing(
@@ -488,11 +609,179 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                 ),
                                 const SizedBox(height: 16),
 
+                                // Konum Seçimi
+                                const Text(
+                                  'Konum *',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+
+                                // Konum giriş alanı
                                 _buildTextField(
                                   controller: _locationController,
-                                  label: 'Konum',
-                                  hint: 'Şehir, mahalle',
+                                  label: 'Adres',
+                                  hint: 'Şehir, mahalle, sokak',
+                                  onChanged: (value) {
+                                    // Adres değiştiğinde koordinatları sıfırla
+                                    if (_selectedLatitude != null ||
+                                        _selectedLongitude != null) {
+                                      setState(() {
+                                        _selectedLatitude = null;
+                                        _selectedLongitude = null;
+                                      });
+                                    }
+                                  },
                                 ),
+
+                                // Konum seçim butonları
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed:
+                                            _isLocationLoading
+                                                ? null
+                                                : _getCurrentLocation,
+                                        icon:
+                                            _isLocationLoading
+                                                ? const SizedBox(
+                                                  width: 16,
+                                                  height: 16,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                )
+                                                : const Icon(
+                                                  Icons.my_location,
+                                                  size: 18,
+                                                ),
+                                        label: Text(
+                                          _isLocationLoading
+                                              ? 'Alınıyor...'
+                                              : 'Mevcut Konum',
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Colors.black,
+                                          side: const BorderSide(
+                                            color: Colors.black,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 8,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed:
+                                            _isLocationLoading
+                                                ? null
+                                                : _selectLocationFromMap,
+                                        icon: const Icon(Icons.map, size: 18),
+                                        label: const Text(
+                                          'Haritadan Seç',
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: Colors.black,
+                                          side: const BorderSide(
+                                            color: Colors.black,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 8,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                // Koordinat bilgisi
+                                if (_selectedLatitude != null &&
+                                    _selectedLongitude != null) ...[
+                                  const SizedBox(height: 12),
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Colors.green.withOpacity(0.3),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.check_circle,
+                                          color: Colors.green[600],
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Koordinatlar alındı: ${_selectedLatitude!.toStringAsFixed(6)}, ${_selectedLongitude!.toStringAsFixed(6)}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.green[700],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+
+                                // Hata mesajı
+                                if (_locationError != null) ...[
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Colors.red.withOpacity(0.3),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.error_outline,
+                                          color: Colors.red[600],
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            _locationError!,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.red[700],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                                 const SizedBox(height: 16),
 
                                 _buildTextField(
@@ -721,6 +1010,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
     TextInputType? keyboardType,
     int maxLines = 1,
     String? Function(String?)? validator,
+    Function(String)? onChanged,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -739,6 +1029,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
           keyboardType: keyboardType,
           maxLines: maxLines,
           validator: validator,
+          onChanged: onChanged,
           decoration: InputDecoration(
             hintText: hint,
             border: OutlineInputBorder(

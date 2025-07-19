@@ -159,6 +159,7 @@ class _FavoriteHomeDetailScreenState extends State<FavoriteHomeDetailScreen> {
         KonumBilgisi(
           latitude: (listingData['latitude'] as num?)?.toDouble() ?? 0.0,
           longitude: (listingData['longitude'] as num?)?.toDouble() ?? 0.0,
+          locationName: listingData['location']?.toString(),
         ),
         Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
         TakvimBilgisi(),
