@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:stayzi_ui/screens/detail/comment_page.dart';
-import 'package:stayzi_ui/screens/detail/widgets/ev_sahibi_bilgisi.dart';
 import 'package:stayzi_ui/screens/detail/widgets/ilan_baslik.dart';
 import 'package:stayzi_ui/screens/detail/widgets/image_gallery.dart';
 import 'package:stayzi_ui/screens/detail/widgets/konum_harita.dart';
@@ -198,7 +197,7 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                   endIndent: 20,
                   indent: 20,
                 ),
-                EvSahibiBilgisi(listing: listing),
+
                 Divider(
                   thickness: 1,
                   color: Colors.grey,

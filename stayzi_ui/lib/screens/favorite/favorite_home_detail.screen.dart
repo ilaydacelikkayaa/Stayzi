@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:stayzi_ui/models/listing_model.dart';
-import 'package:stayzi_ui/models/user_model.dart';
-import 'package:stayzi_ui/screens/favorite/widgets/ev_sahibi_bilgisi.dart';
-import 'package:stayzi_ui/screens/favorite/widgets/ilan_baslik.dart';
-import 'package:stayzi_ui/screens/favorite/widgets/image_gallery.dart';
-import 'package:stayzi_ui/screens/favorite/widgets/konum_harita.dart';
-import 'package:stayzi_ui/screens/favorite/widgets/mekan_aciklamasi.dart';
-import 'package:stayzi_ui/screens/favorite/widgets/olanaklar_ve_kurallar.dart';
-import 'package:stayzi_ui/screens/favorite/widgets/takvim_bilgisi.dart';
-import 'package:stayzi_ui/screens/favorite/widgets/yorumlar_degerlendirmeler.dart';
-import 'package:stayzi_ui/services/api_service.dart';
+import 'package:stayzi_ui/screens/detail/widgets/ilan_baslik.dart';
+import 'package:stayzi_ui/screens/detail/widgets/image_gallery.dart';
+import 'package:stayzi_ui/screens/detail/widgets/konum_harita.dart';
+import 'package:stayzi_ui/screens/detail/widgets/mekan_aciklamasi.dart';
+import 'package:stayzi_ui/screens/detail/widgets/olanaklar_ve_kurallar.dart';
+import 'package:stayzi_ui/screens/detail/widgets/takvim_bilgisi.dart';
+import 'package:stayzi_ui/screens/detail/widgets/yorumlar_degerlendirmeler.dart';
 
-class FavoriteHomeDetailScreen extends StatefulWidget {
+class FavoriteHomeDetailScreen extends StatelessWidget {
   final Map<String, dynamic> ilan;
   final ScrollController? scrollController;
 
@@ -22,120 +18,27 @@ class FavoriteHomeDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<FavoriteHomeDetailScreen> createState() =>
-      _FavoriteHomeDetailScreenState();
-}
-
-class _FavoriteHomeDetailScreenState extends State<FavoriteHomeDetailScreen> {
-  Listing? detailedListing;
-  User? hostUser;
-  bool isLoading = false;
-  String? error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadDetailedData();
-  }
-
-  Future<void> _loadDetailedData() async {
-    setState(() {
-      isLoading = true;
-      error = null;
-    });
-
-    try {
-      // Listing detaylarını yükle
-      if (widget.ilan['id'] != null) {
-        int? listingId;
-        if (widget.ilan['id'] is int) {
-          listingId = widget.ilan['id'] as int;
-        } else {
-          listingId = int.tryParse(widget.ilan['id'].toString());
-        }
-        if (listingId != null) {
-          detailedListing = await ApiService().getListingById(listingId);
-        }
-      }
-
-      // Ev sahibi bilgilerini yükle
-      if (widget.ilan['host_name'] != null) {
-        final hostId = int.tryParse(widget.ilan['host_name'].toString());
-        if (hostId != null) {
-          hostUser = await ApiService().getUserById(hostId);
-        }
-      }
-
-      setState(() {
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        error = e.toString();
-        isLoading = false;
-      });
-      print('Detay yükleme hatası: $e');
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     // Fotoğraf galerisi için image list
     List<String> imageList = [];
     try {
-      final galeri = widget.ilan['galeri'] as List<dynamic>?;
+      final galeri = ilan['galeri'] as List<dynamic>?;
       if (galeri != null) {
         imageList =
             galeri
                 .where((url) => url != null)
                 .map((url) => url.toString())
                 .toList();
-      } else if (widget.ilan['foto'] != null) {
-        imageList = [widget.ilan['foto']];
+      } else if (ilan['foto'] != null) {
+        imageList = [ilan['foto']];
       }
     } catch (e) {
-      imageList = widget.ilan['foto'] != null ? [widget.ilan['foto']] : [];
+      imageList = ilan['foto'] != null ? [ilan['foto']] : [];
     }
-
-    // Detaylı listing verilerini kullan
-    final listingData =
-        detailedListing != null ? _listingToMap(detailedListing!) : widget.ilan;
-
-    // Ev sahibi bilgilerini güncelle
-    if (hostUser != null) {
-      listingData['host_name'] = '${hostUser!.name} ${hostUser!.surname}';
-      listingData['host_user'] = {
-        'name': hostUser!.name,
-        'surname': hostUser!.surname,
-        'email': hostUser!.email,
-        'phone': hostUser!.phone,
-        'profile_image': hostUser!.profileImage,
-      };
-    }
-
     return ListView(
-      controller: widget.scrollController,
+      controller: scrollController,
       padding: EdgeInsets.zero,
       children: [
-        // Loading indicator
-        if (isLoading)
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-
-        // Error message
-        if (error != null)
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Center(
-              child: Text(
-                'Veri yüklenirken hata: $error',
-                style: const TextStyle(color: Colors.red),
-              ),
-            ),
-          ),
-
         // Fotoğraf Galerisi
         ListingImageGallery(imageList: imageList),
         if (imageList.isEmpty)
@@ -148,63 +51,36 @@ class _FavoriteHomeDetailScreenState extends State<FavoriteHomeDetailScreen> {
               ),
             ),
           ),
-        IlanBaslik(listing: listingData),
+        // İlan başlığı ve temel bilgiler
+        IlanBaslik(listing: ilan),
         Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
-        EvSahibiBilgisi(listing: listingData),
+        // Ev sahibi bilgisi
         Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
-        MekanAciklamasi(
-          description: listingData['description']?.toString() ?? '',
-        ),
+        MekanAciklamasi(description: ilan['description']?.toString() ?? ''),
         Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
         KonumBilgisi(
-          latitude: (listingData['latitude'] as num?)?.toDouble() ?? 0.0,
-          longitude: (listingData['longitude'] as num?)?.toDouble() ?? 0.0,
-          locationName: listingData['location']?.toString(),
+          latitude: (ilan['latitude'] as num?)?.toDouble() ?? 0.0,
+          longitude: (ilan['longitude'] as num?)?.toDouble() ?? 0.0,
         ),
         Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
         TakvimBilgisi(),
-        if (listingData['id'] != null && listingData['id'] is int) ...[
-          Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              "Yorumlar ve Değerlendirmeler",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
+        Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            "Yorumlar ve Değerlendirmeler",
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
-          Padding(
-            padding: EdgeInsets.all(20),
-            child: Yorumlar(listingId: listingData['id'] as int),
-          ),
-          Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
-        ],
-        OlanaklarVeKurallar(listing: listingData),
+        ),
+        Padding(
+          padding: EdgeInsets.all(20),
+          child: Yorumlar(listingId: ilan['id']),
+        ),
+        Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
+        OlanaklarVeKurallar(listing: ilan),
         const SizedBox(height: 100),
       ],
     );
-  }
-
-  Map<String, dynamic> _listingToMap(Listing listing) {
-    return {
-      'id': listing.id,
-      'title': listing.title,
-      'location': listing.location,
-      'price': listing.price,
-      'description': listing.description,
-      'image_urls': listing.imageUrls,
-      'average_rating': listing.averageRating,
-      'host_name': listing.userId?.toString() ?? '',
-      'latitude': listing.lat,
-      'longitude': listing.lng,
-      'capacity': listing.capacity,
-      'galeri': listing.imageUrls,
-      'amenities': listing.amenities,
-      'home_rules': listing.homeRules,
-      'home_type': listing.homeType,
-      'room_count': listing.roomCount,
-      'bed_count': listing.bedCount,
-      'bathroom_count': listing.bathroomCount,
-    };
   }
 }
 

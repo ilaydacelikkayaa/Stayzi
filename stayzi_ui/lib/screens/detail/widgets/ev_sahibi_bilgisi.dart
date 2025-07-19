@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stayzi_ui/screens/detail/host_detail_screen.dart';
-import 'package:stayzi_ui/services/api_constants.dart';
+import 'package:stayzi_ui/screens/favorite/favorite_list_detail_screen.dart'
+    as ApiConstants;
 import 'package:stayzi_ui/services/api_service.dart';
 
 class EvSahibiBilgisi extends StatefulWidget {
@@ -91,7 +92,6 @@ class _EvSahibiBilgisiState extends State<EvSahibiBilgisi> {
     int? hostId,
     bool isMyListing = false,
   }) {
-
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Row(
@@ -119,8 +119,9 @@ class _EvSahibiBilgisiState extends State<EvSahibiBilgisi> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder:
-                            (context) =>
-                                HostDetailScreen(listingID: widget.listing['id']),
+                            (context) => HostDetailScreen(
+                              listingID: widget.listing['id'],
+                            ),
                       ),
                     );
                   } else {
