@@ -305,17 +305,14 @@ class ApiService {
   Future<Listing> getListingWithHostById(int listingId) async {
     final response = await http.get(
       Uri.parse('${ApiConstants.baseUrl}/listings/$listingId/with-host'),
-      headers: {'Content-Type': 'application/json'},
+      headers: ApiConstants.headers,
     );
 
-    print("🔗 URL: ${ApiConstants.baseUrl}/listings/$listingId/with-host");
-    print("📡 Status Code: ${response.statusCode}");
-    print("📥 Body: ${response.body}");
-
     if (response.statusCode == 200) {
-      return Listing.fromJson(jsonDecode(response.body));
+      final Map<String, dynamic> data = json.decode(response.body);
+      return Listing.fromJson(data);
     } else {
-      throw Exception('Host bilgisi alınamadı');
+      throw Exception('İlan ve ev sahibi bilgisi alınamadı');
     }
   }
 

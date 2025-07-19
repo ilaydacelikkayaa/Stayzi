@@ -59,7 +59,6 @@ class Listing {
   });
 
   factory Listing.fromJson(Map<String, dynamic> json) {
-    print("👤 Gelen HOST JSON: ${json['host']}");
     return Listing(
       id: json['id'],
       userId: json['user_id'],
@@ -100,6 +99,7 @@ class Listing {
           json['updated_at'] != null
               ? DateTime.parse(json['updated_at'])
               : null,
+
       user: json['user'] != null ? User.fromJson(json['user']) : null,
     );
   }

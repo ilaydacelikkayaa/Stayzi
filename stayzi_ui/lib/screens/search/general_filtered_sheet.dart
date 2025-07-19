@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
-import 'package:stayzi_ui/screens/search/filtered_screen.dart';
 
 class GeneralFilteredSheet extends StatefulWidget {
   final Map<String, dynamic> filters;
@@ -14,7 +13,7 @@ class GeneralFilteredSheet extends StatefulWidget {
 class _GeneralFilteredSheetState extends State<GeneralFilteredSheet> {
   List<bool> isSelected = [false, false, false, false];
 
-  RangeValues _priceRange = const RangeValues(1000, 100000);
+  RangeValues _priceRange = const RangeValues(0, 2000);
 
   bool isTurkishSelected = false;
   bool isEnglishSelected = false;
@@ -46,7 +45,7 @@ class _GeneralFilteredSheetState extends State<GeneralFilteredSheet> {
             ),
 
             /// Yer Türü Başlık
-            Padding(
+            /* Padding(
               padding: const EdgeInsets.only(top: 15, left: 40),
               child: Text(
                 'Place Type',
@@ -94,13 +93,12 @@ class _GeneralFilteredSheetState extends State<GeneralFilteredSheet> {
                 ],
               ),
             ),
-
             Divider(
               thickness: 1,
               color: Colors.grey,
               endIndent: 20,
               indent: 20,
-            ),
+            ),*/
 
             /// Fiyat Aralığı Başlık
             Padding(
@@ -121,7 +119,7 @@ class _GeneralFilteredSheetState extends State<GeneralFilteredSheet> {
                     inactiveColor: Colors.grey,
                     values: _priceRange,
                     min: 0,
-                    max: 100000,
+                    max: 2000,
                     divisions: 100,
                     labels: RangeLabels(
                       '₺${_priceRange.start.round()}',
@@ -198,13 +196,13 @@ class _GeneralFilteredSheetState extends State<GeneralFilteredSheet> {
                   buttonColor: Colors.black,
                   textColor: Colors.white,
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder:
-                            (context) =>
-                                FilteredScreen(filters: widget.filters),
-                      ),
+                    // Return updated filters including price range
+                    final updatedFilters = Map<String, dynamic>.from(
+                      widget.filters,
                     );
+                    updatedFilters['min_price'] = _priceRange.start.round();
+                    updatedFilters['max_price'] = _priceRange.end.round();
+                    Navigator.of(context).pop(updatedFilters);
                   },
                 ),
               ),

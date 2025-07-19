@@ -2,6 +2,9 @@ from sqlalchemy.orm import Session
 from app.models.listing import Listing
 from app.schemas.listing import ListingCreate
 from app.models.amenity import Amenity
+from datetime import date
+from app.models.booking import Booking
+from sqlalchemy import and_, or_
 
 
 # app/crud/listing.py
@@ -153,5 +156,41 @@ def get_listing_with_host(db: Session, listing_id: int):
         } if user else None
     }
 
+def get_filtered_listings(
+    db: Session,
+    location: str | None = None,
+    start_date: date | None = None,
+    end_date: date | None = None,
+    guests: int | None = None,
+    max_price: float | None = None,
+    min_price: float | None = None,
+) -> list[Listing]:
+    query = db.query(Listing)
 
+    if location:
+        query = query.filter(Listing.location.ilike(f"%{location}%"))
+    if guests is not None:
+        query = query.filter(
+            or_(Listing.capacity >= guests, Listing.capacity == None))
 
+    # Tarih çakışması
+    if start_date and end_date:
+        overlapping = (
+            db.query(Booking.listing_id)
+              .filter(
+                  or_(
+                      and_(Booking.start_date <= start_date, Booking.end_date   > start_date),
+                      and_(Booking.start_date < end_date,   Booking.end_date   >= end_date),
+                      and_(Booking.start_date >= start_date, Booking.end_date <= end_date),
+                  )
+              )
+              .subquery()
+        )
+        query = query.filter(~Listing.id.in_(overlapping))
+
+    if min_price is not None:
+        query = query.filter(Listing.price >= min_price)
+    if max_price is not None:
+        query = query.filter(Listing.price <= max_price)
+
+    return query.all()
