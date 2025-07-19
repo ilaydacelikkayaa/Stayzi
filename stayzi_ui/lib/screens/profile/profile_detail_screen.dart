@@ -28,6 +28,13 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     _fetchUser();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Sayfa her açıldığında veriyi yenile
+    _fetchUser();
+  }
+
   Future<void> _fetchUser() async {
     setState(() {
       _isLoading = true;
@@ -35,6 +42,10 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     });
     try {
       final user = await ApiService().getCurrentUser();
+      print('🔍 Profile Detail - Backendden gelen kullanıcı:');
+      print('📱 Telefon: ${user.phone}');
+      print('📧 E-posta: ${user.email}');
+      print('🏠 Ülke: ${user.country}');
       setState(() {
         _user = user;
       });
@@ -424,7 +435,11 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                   ),
                   _buildInfoRow(
                     'Telefon',
-                    user != null ? user.phone ?? 'Belirtilmemiş' : '',
+                    user != null
+                        ? (user.phone?.isNotEmpty == true
+                            ? user.phone!
+                            : 'Belirtilmemiş')
+                        : 'Belirtilmemiş',
                   ),
                 ],
               ),

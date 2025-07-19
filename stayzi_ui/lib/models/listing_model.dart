@@ -83,9 +83,9 @@ class Listing {
       capacity: json['capacity'],
       amenities:
           json['amenities'] != null
-              ? List<Amenity>.from(
-                json['amenities'].map((e) => Amenity.fromJson(e)),
-              )
+              ? (json['amenities'] as List)
+                  .map((e) => Amenity.fromJson(e as Map<String, dynamic>))
+                  .toList()
               : null,
       roomCount: json['room_count'],
       bedCount: json['bed_count'],

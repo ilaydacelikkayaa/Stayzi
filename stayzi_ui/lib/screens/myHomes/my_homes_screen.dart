@@ -34,8 +34,18 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
     });
 
     try {
+      // Token'ı StorageService'den al ve API service'e set et
       final token = await StorageService().getAccessToken();
-      final listings = await ApiService().getMyListings(token: token);
+      if (token == null) {
+        setState(() {
+          _error = 'Lütfen önce giriş yapın';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      ApiService().setAuthToken(token);
+      final listings = await ApiService().getMyListings();
 
       if (!mounted) return;
       setState(() {
@@ -159,26 +169,83 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
               : _listings.isEmpty
               ? _buildEmptyState()
               : _buildListingsList(),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddHomeScreen()),
-          );
-          if (!mounted) return;
-          if (result == true) {
-            _loadMyListings();
-          }
-        },
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Yeni İlan'),
-      ),
+      floatingActionButton:
+          _error == null || !_error!.contains('giriş yapın')
+              ? FloatingActionButton.extended(
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddHomeScreen(),
+                    ),
+                  );
+                  if (!mounted) return;
+                  if (result == true) {
+                    _loadMyListings();
+                  }
+                },
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                icon: const Icon(Icons.add),
+                label: const Text('Yeni İlan'),
+              )
+              : null,
     );
   }
 
   Widget _buildEmptyState() {
+    // Eğer hata varsa ve "giriş yapın" mesajıysa, farklı bir UI göster
+    if (_error != null && _error!.contains('giriş yapın')) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: Icon(Icons.login, size: 64, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Giriş Yapın',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'İlanlarınızı görmek için lütfen giriş yapın',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                // Ana sayfaya yönlendir veya giriş sayfasına
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.login),
+              label: const Text('Giriş Yap'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Normal boş durum
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -273,8 +340,8 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
                             top: Radius.circular(24),
                           ),
                         ),
-                        child: FavoriteHomeDetailScreen(
-                          ilan: _listingToMap(listing),
+                        child: HomeDetailScreen(
+                          listingId: listing.id,
                           scrollController: scrollController,
                         ),
                       ),
@@ -547,7 +614,10 @@ Map<String, dynamic> _listingToMap(Listing listing) {
     'longitude': listing.lng,
     'capacity': listing.capacity,
     'galeri': listing.imageUrls,
-    'amenities': listing.amenities,
+    'amenities':
+        listing.amenities != null
+            ? listing.amenities!.map((amenity) => amenity.name).toList()
+            : [],
     'home_rules': listing.homeRules,
     'home_type': listing.homeType,
     'room_count': listing.roomCount,
@@ -557,6 +627,8 @@ Map<String, dynamic> _listingToMap(Listing listing) {
     'allow_smoking': listing.allowSmoking,
     'allow_commercial_photo': listing.allowCommercialPhoto,
     'max_guests': listing.maxGuests,
+    // Ev sahibi bilgisi olarak giriş yapan kullanıcıyı göster
+    'is_my_listing': true,
   };
 }
 

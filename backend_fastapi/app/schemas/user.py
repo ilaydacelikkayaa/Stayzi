@@ -44,7 +44,12 @@ class UserOut(BaseModel):
     id: int
     name: str
     surname: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    country: Optional[str] = None
+    birthdate: Optional[date] = None
     profile_image: Optional[str] = None
+    is_active: Optional[bool] = True
 
     class Config:
         from_attributes = True

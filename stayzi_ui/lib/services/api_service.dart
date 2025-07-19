@@ -183,6 +183,7 @@ class ApiService {
     String? name,
     String? surname,
     String? email,
+    String? phone,
     DateTime? birthdate,
     String? country,
     File? profileImage,
@@ -200,6 +201,7 @@ class ApiService {
       if (name != null) request.fields['name'] = name;
       if (surname != null) request.fields['surname'] = surname;
       if (email != null) request.fields['email'] = email;
+      if (phone != null) request.fields['phone'] = phone;
       if (birthdate != null) {
         request.fields['birthdate'] = birthdate.toIso8601String().split('T')[0];
       }
@@ -463,10 +465,16 @@ class ApiService {
   Future<List<Listing>> getMyListings({String? token}) async {
     print('getMyListings çağrıldı, token: ${token ?? 'YOK'}');
 
+    // Token yoksa mevcut token'ı kullan
+    String? authToken = token ?? _authToken;
+    if (authToken == null) {
+      throw Exception('Authentication token required');
+    }
+
     final response = await http.get(
       Uri.parse('${ApiConstants.baseUrl}/listings/my-listings'),
       headers: {
-        if (token != null) 'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer $authToken',
         'Content-Type': 'application/json',
       },
     );
@@ -647,6 +655,10 @@ class ApiService {
     int? maxGuests,
   }) async {
     try {
+      print('DEBUG - Flutter UpdateListing: Başlıyor...');
+      print('DEBUG - Flutter UpdateListing: listingId = $listingId');
+      print('DEBUG - Flutter UpdateListing: amenities = $amenities');
+      
       var request = http.MultipartRequest(
         'PUT',
         Uri.parse(
@@ -685,19 +697,34 @@ class ApiService {
 
       if (amenities != null) {
         request.fields['amenities'] = json.encode(amenities);
+        print(
+          'DEBUG - Flutter UpdateListing: amenities JSON = ${json.encode(amenities)}',
+        );
+        print('DEBUG - Flutter UpdateListing: amenities field eklendi');
+      } else {
+        print('DEBUG - Flutter UpdateListing: amenities null, eklenmedi');
       }
 
-      if (photo != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath('photo', photo.path),
-        );
-      }
+      print(
+        'DEBUG - Flutter UpdateListing: Request fields = ${request.fields}',
+      );
+      print('DEBUG - Flutter UpdateListing: Request URL = ${request.url}');
+      print(
+        'DEBUG - Flutter UpdateListing: Request headers = ${request.headers}',
+      );
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
+      
+      print(
+        'DEBUG - Flutter UpdateListing: Response status = ${response.statusCode}',
+      );
+      print('DEBUG - Flutter UpdateListing: Response body = ${response.body}');
+      
       final data = _handleResponse(response);
       return Listing.fromJson(data);
     } catch (e) {
+      print('DEBUG - Flutter UpdateListing: Error = $e');
       throw Exception('İlan güncellenemedi: $e');
     }
   }

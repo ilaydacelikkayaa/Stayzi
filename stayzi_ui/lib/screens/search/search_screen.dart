@@ -19,7 +19,7 @@ class SearchScreen extends StatelessWidget {
 
   Future<List<dynamic>> fetchListings() async {
     final response = await http.get(
-      Uri.parse('http://localhost:8000/listings/'),
+      Uri.parse('http://10.0.2.2:8000/listings/'),
     );
     if (response.statusCode == 200) {
       return json.decode(response.body);
@@ -87,7 +87,7 @@ class _TinyHomeCardState extends State<TinyHomeCard> {
     final imageUrl =
         (rawUrl != null && rawUrl.startsWith('http'))
             ? rawUrl
-            : 'http://localhost:8000$rawUrl';
+            : 'http://10.0.2.2:8000$rawUrl';
 
     return Material(
       child: InkWell(

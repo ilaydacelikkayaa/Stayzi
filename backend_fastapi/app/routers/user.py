@@ -27,6 +27,7 @@ async def update_my_info(
     name: str = Form(None),
     surname: str = Form(None),
     email: str = Form(None),
+    phone: str = Form(None),
     birthdate: str = Form(None),
     country: str = Form(None),
     file: UploadFile = File(None),
@@ -48,6 +49,8 @@ async def update_my_info(
         current_user.surname = surname
     if email:
         current_user.email = email
+    if phone:
+        current_user.phone = phone
     if birthdate:
         current_user.birthdate = birthdate
     if country:

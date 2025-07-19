@@ -28,10 +28,10 @@ class _HostDetailScreenState extends State<HostDetailScreen> {
       );
       print("📦 Listing verisi: $listing");
       print(
-        "✅ Host user geldi: ${listing.host?.name} ${listing.host?.surname}",
+        "✅ Host user geldi: ${listing.user?.name} ${listing.user?.surname}",
       );
       setState(() {
-        hostUser = listing.host;
+        hostUser = listing.user;
       });
     } catch (e) {
       print("❌ Host bilgisi alınamadı: $e");

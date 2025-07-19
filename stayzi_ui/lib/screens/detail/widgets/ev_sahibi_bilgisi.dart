@@ -14,42 +14,83 @@ class EvSahibiBilgisi extends StatefulWidget {
 
 class _EvSahibiBilgisiState extends State<EvSahibiBilgisi> {
   Map<String, dynamic>? listingWithHost;
+  Map<String, dynamic>? currentUser;
 
   @override
   void initState() {
     super.initState();
-    fetchListingWithHost();
+    _loadHostData();
   }
 
-  Future<void> fetchListingWithHost() async {
+  Future<void> _loadHostData() async {
     try {
-      final listing = await ApiService().getListingWithHostById(widget.listing['id']);
-      setState(() {
-        listingWithHost = listing.toJson();
-      });
+      // Eğer bu benim ilanımsa, giriş yapan kullanıcının bilgilerini al
+      if (widget.listing['is_my_listing'] == true) {
+        final user = await ApiService().getCurrentUser();
+        setState(() {
+          currentUser = user.toJson();
+        });
+      } else {
+        // Değilse, normal ev sahibi bilgilerini al
+        final listing = await ApiService().getListingWithHostById(
+          widget.listing['id'],
+        );
+        setState(() {
+          listingWithHost = listing.toJson();
+        });
+      }
     } catch (e) {
-      print("❌ Listing with host alınamadı: $e");
+      print("❌ Host bilgisi alınamadı: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (listingWithHost == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    // Eğer bu benim ilanımsa, giriş yapan kullanıcının bilgilerini kullan
+    if (widget.listing['is_my_listing'] == true) {
+      if (currentUser == null) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-    final host = listingWithHost!['host'];
-    final int hostId = host?['id'] ?? 0;
-    final String hostName = host?['name'] ?? 'Bilinmiyor';
-    final String? profileImageRaw = host?['profile_image'];
-    final String? profileImage =
-        (profileImageRaw != null && profileImageRaw.isNotEmpty)
-            ? (profileImageRaw.startsWith('/')
-                ? '${ApiConstants.baseUrl}$profileImageRaw'
-                : profileImageRaw)
-            : null;
-    print("👤 Gelen HOST JSON: $host");
-    print("🖼️ profileImage: $profileImage");
+      final String hostName =
+          '${currentUser!['name'] ?? ''} ${currentUser!['surname'] ?? ''}'
+              .trim();
+      final String? profileImageRaw = currentUser!['profile_image'];
+      final String? profileImage =
+          (profileImageRaw != null && profileImageRaw.isNotEmpty)
+              ? (profileImageRaw.startsWith('/')
+                  ? '${ApiConstants.baseUrl}$profileImageRaw'
+                  : profileImageRaw)
+              : null;
+
+      return _buildHostInfo(hostName, profileImage, isMyListing: true);
+    } else {
+      // Normal ev sahibi bilgileri
+      if (listingWithHost == null) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      final host = listingWithHost!['host'];
+      final int hostId = host?['id'] ?? 0;
+      final String hostName = host?['name'] ?? 'Bilinmiyor';
+      final String? profileImageRaw = host?['profile_image'];
+      final String? profileImage =
+          (profileImageRaw != null && profileImageRaw.isNotEmpty)
+              ? (profileImageRaw.startsWith('/')
+                  ? '${ApiConstants.baseUrl}$profileImageRaw'
+                  : profileImageRaw)
+              : null;
+
+      return _buildHostInfo(hostName, profileImage, hostId: hostId);
+    }
+  }
+
+  Widget _buildHostInfo(
+    String hostName,
+    String? profileImage, {
+    int? hostId,
+    bool isMyListing = false,
+  }) {
 
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -69,7 +110,12 @@ class _EvSahibiBilgisiState extends State<EvSahibiBilgisi> {
             children: [
               TextButton(
                 onPressed: () {
-                  if (hostId != 0) {
+                  if (isMyListing) {
+                    // Benim ilanımsa, profil sayfasına yönlendir
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Bu sizin ilanınız")),
+                    );
+                  } else if (hostId != null && hostId != 0) {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder:
@@ -97,9 +143,13 @@ class _EvSahibiBilgisiState extends State<EvSahibiBilgisi> {
                     ),
                   ),
                 ),
-                child: Text('Ev Sahibi : $hostName'),
+                child: Text(
+                  isMyListing
+                      ? 'Ev Sahibi: Siz ($hostName)'
+                      : 'Ev Sahibi: $hostName',
+                ),
               ),
-              const Text("5 yıldır ev sahibi"),
+              Text(isMyListing ? "Sizin ilanınız" : "5 yıldır ev sahibi"),
             ],
           ),
         ],

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:stayzi_ui/models/listing_model.dart';
 import 'package:stayzi_ui/models/user_model.dart';
-import 'package:stayzi_ui/screens/detail/widgets/ev_sahibi_bilgisi.dart';
-import 'package:stayzi_ui/screens/detail/widgets/ilan_baslik.dart';
-import 'package:stayzi_ui/screens/detail/widgets/image_gallery.dart';
-import 'package:stayzi_ui/screens/detail/widgets/konum_harita.dart';
-import 'package:stayzi_ui/screens/detail/widgets/mekan_aciklamasi.dart';
-import 'package:stayzi_ui/screens/detail/widgets/olanaklar_ve_kurallar.dart';
-import 'package:stayzi_ui/screens/detail/widgets/takvim_bilgisi.dart';
-import 'package:stayzi_ui/screens/detail/widgets/yorumlar_degerlendirmeler.dart';
+import 'package:stayzi_ui/screens/myHomes/widgets/ev_sahibi_bilgisi.dart';
+import 'package:stayzi_ui/screens/myHomes/widgets/ilan_baslik.dart';
+import 'package:stayzi_ui/screens/myHomes/widgets/image_gallery.dart';
+import 'package:stayzi_ui/screens/myHomes/widgets/konum_harita.dart';
+import 'package:stayzi_ui/screens/myHomes/widgets/mekan_aciklamasi.dart';
+import 'package:stayzi_ui/screens/myHomes/widgets/olanaklar_ve_kurallar.dart';
+import 'package:stayzi_ui/screens/myHomes/widgets/takvim_bilgisi.dart';
+import 'package:stayzi_ui/screens/myHomes/widgets/yorumlar_degerlendirmeler.dart';
 import 'package:stayzi_ui/services/api_service.dart';
 
 class HomeDetailScreen extends StatefulWidget {
@@ -197,6 +197,9 @@ class _HomeDetailScreenState extends State<HomeDetailScreen> {
   }
 
   Map<String, dynamic> _listingToMap(Listing listing) {
+    // Ev kurallarını oluştur
+    String? homeRules = _buildHomeRulesText(listing);
+
     final map = {
       'id': listing.id,
       'title': listing.title,
@@ -210,8 +213,11 @@ class _HomeDetailScreenState extends State<HomeDetailScreen> {
       'longitude': listing.lng,
       'capacity': listing.capacity,
       'galeri': listing.imageUrls,
-      'amenities': listing.amenities,
-      'home_rules': listing.homeRules,
+      'amenities':
+          listing.amenities != null
+              ? listing.amenities!.map((amenity) => amenity.name).toList()
+              : [],
+      'home_rules': homeRules,
       'home_type': listing.homeType,
       'room_count': listing.roomCount,
       'bed_count': listing.bedCount,
@@ -220,8 +226,45 @@ class _HomeDetailScreenState extends State<HomeDetailScreen> {
       'allow_smoking': listing.allowSmoking,
       'allow_commercial_photo': listing.allowCommercialPhoto,
       'max_guests': listing.maxGuests,
+      // Bu benim ilanım olduğunu belirt
+      'is_my_listing': true,
     };
 
     return map;
+  }
+
+  String? _buildHomeRulesText(Listing listing) {
+    List<String> rules = [];
+
+    // İzin bilgileri
+    List<String> permissions = [];
+    if (listing.allowEvents == 1) {
+      permissions.add('✓ Etkinliklere izin verilir');
+    } else {
+      permissions.add('✗ Etkinliklere izin verilmez');
+    }
+
+    if (listing.allowSmoking == 1) {
+      permissions.add('✓ Sigara içilir');
+    } else {
+      permissions.add('✗ Sigara içilmez');
+    }
+
+    if (listing.allowCommercialPhoto == 1) {
+      permissions.add('✓ Ticari fotoğraf ve film çekilmesine izin verilir');
+    } else {
+      permissions.add('✗ Ticari fotoğraf ve film çekilmesine izin verilmez');
+    }
+
+    // Maksimum misafir sayısı
+    int maxGuests = listing.maxGuests ?? listing.capacity ?? 1;
+    permissions.add('Maksimum misafir sayısı: $maxGuests');
+
+    // İzinleri ekle
+    if (permissions.isNotEmpty) {
+      rules.add('İzinler ve Kısıtlamalar:\n${permissions.join('\n')}');
+    }
+
+    return rules.isEmpty ? null : rules.join('\n\n');
   }
 }

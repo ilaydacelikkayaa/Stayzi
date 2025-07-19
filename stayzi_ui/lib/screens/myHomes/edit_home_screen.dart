@@ -21,7 +21,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
   late TextEditingController locationController;
   late TextEditingController priceController;
   late TextEditingController capacityController;
-  late TextEditingController homeRulesController;
+
   late TextEditingController roomCountController;
   late TextEditingController bedCountController;
   late TextEditingController bathroomCountController;
@@ -73,9 +73,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
     capacityController = TextEditingController(
       text: widget.listing.capacity?.toString() ?? '',
     );
-    homeRulesController = TextEditingController(
-      text: widget.listing.homeRules ?? '',
-    );
+
     roomCountController = TextEditingController(
       text: widget.listing.roomCount?.toString() ?? '',
     );
@@ -85,7 +83,10 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
     bathroomCountController = TextEditingController(
       text: widget.listing.bathroomCount?.toString() ?? '',
     );
-    _selectedAmenities = List<String>.from(widget.listing.amenities ?? []);
+    _selectedAmenities =
+        widget.listing.amenities != null
+            ? widget.listing.amenities!.map((amenity) => amenity.name).toList()
+            : [];
     
     // İzin alanlarını mevcut değerlerle yükle
     _allowEvents = widget.listing.allowEvents == 1;
@@ -101,7 +102,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
     locationController.dispose();
     priceController.dispose();
     capacityController.dispose();
-    homeRulesController.dispose();
+
     roomCountController.dispose();
     bedCountController.dispose();
     bathroomCountController.dispose();
@@ -139,6 +140,40 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
         _selectedAmenities.add(amenity);
       }
     });
+  }
+
+  String? _buildHomeRulesText() {
+    List<String> rules = [];
+
+    // İzin bilgileri
+    List<String> permissions = [];
+    if (_allowEvents) {
+      permissions.add('✓ Etkinliklere izin verilir');
+    } else {
+      permissions.add('✗ Etkinliklere izin verilmez');
+    }
+
+    if (_allowSmoking) {
+      permissions.add('✓ Sigara içilir');
+    } else {
+      permissions.add('✗ Sigara içilmez');
+    }
+
+    if (_allowCommercialPhoto) {
+      permissions.add('✓ Ticari fotoğraf ve film çekilmesine izin verilir');
+    } else {
+      permissions.add('✗ Ticari fotoğraf ve film çekilmesine izin verilmez');
+    }
+
+    // Maksimum misafir sayısı
+    permissions.add('Maksimum misafir sayısı: $_maxGuests');
+
+    // İzinleri ekle
+    if (permissions.isNotEmpty) {
+      rules.add('İzinler ve Kısıtlamalar:\n${permissions.join('\n')}');
+    }
+
+    return rules.isEmpty ? null : rules.join('\n\n');
   }
 
   Future<void> _submitForm() async {
@@ -195,10 +230,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                 : locationController.text.trim(),
         price: price,
         capacity: capacity,
-        homeRules:
-            homeRulesController.text.trim().isEmpty
-                ? null
-                : homeRulesController.text.trim(),
+        homeRules: _buildHomeRulesText(),
         amenities: _selectedAmenities.isNotEmpty ? _selectedAmenities : null,
         photo: _selectedImage,
         roomCount: int.tryParse(roomCountController.text.trim()),
@@ -611,9 +643,9 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
 
                               const SizedBox(height: 24),
 
-                              // İzinler ve Kurallar
+                              // Ev Kuralları
                               const Text(
-                                'İzinler ve Kurallar',
+                                'Ev Kuralları',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -789,15 +821,6 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                                       );
                                     }).toList(),
                               ),
-                              const SizedBox(height: 16),
-
-                              _buildTextField(
-                                controller: homeRulesController,
-                                label: 'Ev Kuralları',
-                                hint: 'Ev kurallarınız',
-                                maxLines: 3,
-                              ),
-
                               const SizedBox(height: 32),
 
                               // Submit Button

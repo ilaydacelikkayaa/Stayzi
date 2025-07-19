@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:stayzi_ui/models/listing_model.dart';
 import 'package:stayzi_ui/models/user_model.dart';
-import 'package:stayzi_ui/screens/detail/widgets/ev_sahibi_bilgisi.dart';
-import 'package:stayzi_ui/screens/detail/widgets/ilan_baslik.dart';
-import 'package:stayzi_ui/screens/detail/widgets/image_gallery.dart';
-import 'package:stayzi_ui/screens/detail/widgets/konum_harita.dart';
-import 'package:stayzi_ui/screens/detail/widgets/mekan_aciklamasi.dart';
-import 'package:stayzi_ui/screens/detail/widgets/olanaklar_ve_kurallar.dart';
-import 'package:stayzi_ui/screens/detail/widgets/takvim_bilgisi.dart';
-import 'package:stayzi_ui/screens/detail/widgets/yorumlar_degerlendirmeler.dart';
+import 'package:stayzi_ui/screens/favorite/widgets/ev_sahibi_bilgisi.dart';
+import 'package:stayzi_ui/screens/favorite/widgets/ilan_baslik.dart';
+import 'package:stayzi_ui/screens/favorite/widgets/image_gallery.dart';
+import 'package:stayzi_ui/screens/favorite/widgets/konum_harita.dart';
+import 'package:stayzi_ui/screens/favorite/widgets/mekan_aciklamasi.dart';
+import 'package:stayzi_ui/screens/favorite/widgets/olanaklar_ve_kurallar.dart';
+import 'package:stayzi_ui/screens/favorite/widgets/takvim_bilgisi.dart';
+import 'package:stayzi_ui/screens/favorite/widgets/yorumlar_degerlendirmeler.dart';
 import 'package:stayzi_ui/services/api_service.dart';
 
 class FavoriteHomeDetailScreen extends StatefulWidget {
@@ -47,7 +47,12 @@ class _FavoriteHomeDetailScreenState extends State<FavoriteHomeDetailScreen> {
     try {
       // Listing detaylarını yükle
       if (widget.ilan['id'] != null) {
-        final listingId = int.tryParse(widget.ilan['id'].toString());
+        int? listingId;
+        if (widget.ilan['id'] is int) {
+          listingId = widget.ilan['id'] as int;
+        } else {
+          listingId = int.tryParse(widget.ilan['id'].toString());
+        }
         if (listingId != null) {
           detailedListing = await ApiService().getListingById(listingId);
         }
@@ -157,19 +162,21 @@ class _FavoriteHomeDetailScreenState extends State<FavoriteHomeDetailScreen> {
         ),
         Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
         TakvimBilgisi(),
-        Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            "Yorumlar ve Değerlendirmeler",
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        if (listingData['id'] != null && listingData['id'] is int) ...[
+          Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              "Yorumlar ve Değerlendirmeler",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
           ),
-        ),
-        Padding(
-          padding: EdgeInsets.all(20),
-          child: Yorumlar(listingId: listingData['id']),
-        ),
-        Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
+          Padding(
+            padding: EdgeInsets.all(20),
+            child: Yorumlar(listingId: listingData['id'] as int),
+          ),
+          Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
+        ],
         OlanaklarVeKurallar(listing: listingData),
         const SizedBox(height: 100),
       ],

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:stayzi_ui/screens/detail/comment_page.dart';
@@ -167,7 +165,7 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
     imageList =
         imageList.map((url) {
           if (url.startsWith('/')) {
-            return 'http://localhost:8000$url';
+            return 'http://10.0.2.2:8000$url';
           }
           return url;
         }).toList();

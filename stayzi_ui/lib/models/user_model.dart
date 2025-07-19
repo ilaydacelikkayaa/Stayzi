@@ -32,7 +32,7 @@ class User {
     });
     return User(
       id: json['id'],
-      email: json['email'] ?? 'Bilinmi',
+      email: json['email'],
       name: json['name'],
       surname: json['surname'],
       birthdate:

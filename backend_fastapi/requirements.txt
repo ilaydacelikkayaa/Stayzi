@@ -8,3 +8,4 @@ email-validator
 python-jose
 passlib[bcrypt]
 python-multipart
+redis==5.0.1
