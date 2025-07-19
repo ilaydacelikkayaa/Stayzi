@@ -20,7 +20,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _capacityController = TextEditingController();
-  final TextEditingController _homeRulesController = TextEditingController();
+
 
   final List<File> _selectedImages = [];
   File? _selectedImage;
@@ -60,7 +60,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
     _locationController.dispose();
     _priceController.dispose();
     _capacityController.dispose();
-    _homeRulesController.dispose();
+
     super.dispose();
   }
 
@@ -89,6 +89,40 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
         _selectedAmenities.add(amenityName);
       }
     });
+  }
+
+  String? _buildHomeRulesText() {
+    List<String> rules = [];
+
+    // İzin bilgileri
+    List<String> permissions = [];
+    if (_allowEvents) {
+      permissions.add('✓ Etkinliklere izin verilir');
+    } else {
+      permissions.add('✗ Etkinliklere izin verilmez');
+    }
+
+    if (_allowSmoking) {
+      permissions.add('✓ Sigara içilir');
+    } else {
+      permissions.add('✗ Sigara içilmez');
+    }
+
+    if (_allowCommercialPhoto) {
+      permissions.add('✓ Ticari fotoğraf ve film çekilmesine izin verilir');
+    } else {
+      permissions.add('✗ Ticari fotoğraf ve film çekilmesine izin verilmez');
+    }
+
+    // Maksimum misafir sayısı
+    permissions.add('Maksimum misafir sayısı: $_maxGuests');
+
+    // İzinleri ekle
+    if (permissions.isNotEmpty) {
+      rules.add('İzinler ve Kısıtlamalar:\n${permissions.join('\n')}');
+    }
+
+    return rules.isEmpty ? null : rules.join('\n\n');
   }
 
   Future<void> _submitForm() async {
@@ -148,10 +182,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                 }).toList()
                 : null,
         photo: _selectedImage,
-        homeRules:
-            _homeRulesController.text.trim().isEmpty
-                ? null
-                : _homeRulesController.text.trim(),
+        homeRules: _buildHomeRulesText(),
         lat: lat,
         lng: lng,
       );
@@ -490,9 +521,9 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
 
                                 const SizedBox(height: 24),
 
-                                // İzinler ve Kurallar
+                                // Ev Kuralları
                                 const Text(
-                                  'İzinler ve Kurallar',
+                                  'Ev Kuralları',
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -645,16 +676,6 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                           ),
                                         );
                                       }).toList(),
-                                ),
-
-                                const SizedBox(height: 24),
-
-                                // House Rules
-                                _buildTextField(
-                                  controller: _homeRulesController,
-                                  label: 'Ev Kuralları',
-                                  hint: 'Ev kurallarınız',
-                                  maxLines: 3,
                                 ),
 
                                 const SizedBox(height: 32),

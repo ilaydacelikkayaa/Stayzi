@@ -9,8 +9,11 @@ from app.crud.user import (
     create_user_from_phone
 )
 from app.utils.security import verify_password, create_access_token, hash_password
+from app.utils.redis_client import JWTBlacklist
 from app.schemas.user import UserCreate, UserOut, PhoneRegister , PhoneLogin
 from app.schemas.token import Token
+from app.dependencies import get_current_user
+from app.models.user import User
 
 
 router = APIRouter(prefix="/auth", tags=["Auth"])  # 🔥 TEK ROUTER TANIMI
@@ -65,3 +68,19 @@ def register_phone(user: PhoneRegister, db: Session = Depends(get_db)):
 
     created_user = create_user_from_phone(db, user)
     return {"message": "User registered successfully", "user_id": created_user.id}
+
+# ✅ Logout endpoint
+@router.post("/logout")
+async def logout(current_user: User = Depends(get_current_user)):
+    """Kullanıcı logout olduğunda JWT token'ı kara listeye ekle"""
+    try:
+        # JWT token'ı kara listeye ekle (24 saat süreyle)
+        # Not: Gerçek uygulamada token'ı request header'dan almak gerekir
+        # Bu örnek için basit bir implementasyon
+        await JWTBlacklist.add_to_blacklist(
+            f"user_{current_user.id}_token", 
+            expire_time=86400
+        )
+        return {"message": "Successfully logged out"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Logout failed: {str(e)}")

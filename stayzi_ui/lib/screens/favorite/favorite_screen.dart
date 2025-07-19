@@ -12,6 +12,7 @@ class FavoriteScreen extends StatelessWidget {
         'listeAdi': 'Deniz Manzaralılar',
         'ilanlar': [
           {
+            'id': 1,
             'baslik': 'Denize Sıfır',
             'foto':
                 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRkW7wNqbHHS1Wqtm9WC4jnsGsJklHEy5Wekg&s',
@@ -19,6 +20,7 @@ class FavoriteScreen extends StatelessWidget {
             'konum': 'İstanbul, Kadıköy',
           },
           {
+            'id': 2,
             'baslik': 'Yüksek Kat',
             'foto':
                 'https://media.istockphoto.com/id/483773209/tr/foto%C4%9Fraf/new-cozy-cottage.jpg?s=612x612&w=0&k=20&c=O983Ujj0wX562XAD4KQPALe3PWu_nIr0OLPzsoGfrQg=',
@@ -26,6 +28,7 @@ class FavoriteScreen extends StatelessWidget {
             'konum': 'İstanbul, Kadıköy',
           },
           {
+            'id': 3,
             'baslik': 'Havuzlu Site',
             'foto':
                 'https://media.istockphoto.com/id/503044702/tr/foto%C4%9Fraf/illuminated-sky-and-outside-of-waterfront-buiding.jpg?s=612x612&w=0&k=20&c=x2EFB0Ki7IK0btUG8CS3CV6-zwhdpzud2LNMEJUencw=',
@@ -33,6 +36,7 @@ class FavoriteScreen extends StatelessWidget {
             'konum': 'İstanbul, Kadıköy',
           },
           {
+            'id': 4,
             'baslik': 'Yeni Bina',
             'foto':
                 'https://media.istockphoto.com/id/506903162/tr/foto%C4%9Fraf/luxurious-villa-with-pool.jpg?s=612x612&w=0&k=20&c=8Ajn2ormM8zfs7E8H7p4QWzy-Zj56RAF1bnXG67R_rg=',
@@ -45,6 +49,7 @@ class FavoriteScreen extends StatelessWidget {
         'listeAdi': 'Merkez Daireler',
         'ilanlar': [
           {
+            'id': 5,
             'baslik': 'Merkezde',
             'foto':
                 'https://images.squarespace-cdn.com/content/v1/58412fc9b3db2b11ba9398df/1582209923341-LP764XVQRSG07IJAP0BW/cam-ev-tasarimi',
@@ -52,6 +57,7 @@ class FavoriteScreen extends StatelessWidget {
             'konum': 'İstanbul, Kadıköy',
           },
           {
+            'id': 6,
             'baslik': 'Toplu Taşımaya Yakın',
             'foto':
                 'https://www.evmimarileri.com/wp-content/uploads/2014/05/m%C3%BCkemmel-ev.jpg',
@@ -64,6 +70,7 @@ class FavoriteScreen extends StatelessWidget {
         'listeAdi': 'Ispartadaki Evler',
         'ilanlar': [
           {
+            'id': 7,
             'baslik': 'Merkezde',
             'foto':
                 'https://cdn.pixabay.com/photo/2013/08/30/12/56/holiday-house-177401_1280.jpg',
@@ -71,6 +78,7 @@ class FavoriteScreen extends StatelessWidget {
             'konum': 'İstanbul, Kadıköy',
           },
           {
+            'id': 8,
             'baslik': 'Toplu Taşımaya Yakın',
             'foto':
                 'https://www.shutterstock.com/image-photo/modern-white-house-large-windows-260nw-2540846177.jpg',
@@ -98,7 +106,7 @@ class FavoriteScreen extends StatelessWidget {
           ),
           itemBuilder: (context, index) {
             final liste = favoriListeleri[index];
-            final ilanlar = List<Map<String, String>>.from(liste['ilanlar']);
+            final ilanlar = List<Map<String, dynamic>>.from(liste['ilanlar']);
             final gosterilecekResimler =
                 ilanlar.take(4).toList(); // en fazla 4 resim al
 
@@ -223,7 +231,7 @@ class FavoriteScreen extends StatelessWidget {
 
 // Kolaj için yardımcı fonksiyon
 Widget _buildCollageImage(
-  List<Map<String, String>> resimler,
+  List<Map<String, dynamic>> resimler,
   int index, {
   bool topLeft = false,
   bool topRight = false,
@@ -239,12 +247,20 @@ Widget _buildCollageImage(
   if (index < resimler.length) {
     return ClipRRect(
       borderRadius: radius,
-      child: Image.network(
-        resimler[index]['foto']!,
-        fit: BoxFit.cover,
-        height: 60,
-        width: 60,
-      ),
+      child:
+          resimler[index]['foto']?.toString().startsWith('http') == true
+              ? Image.network(
+                resimler[index]['foto']!.toString(),
+                fit: BoxFit.cover,
+                height: 60,
+                width: 60,
+              )
+              : Image.asset(
+                'assets/images/user.jpg',
+                fit: BoxFit.cover,
+                height: 60,
+                width: 60,
+              ),
     );
   } else {
     return Container(color: Colors.grey[300]);

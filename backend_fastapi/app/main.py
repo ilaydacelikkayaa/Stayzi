@@ -1,5 +1,5 @@
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 import os
@@ -12,6 +12,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # DB
 from app.db.session import engine
+from app.utils.redis_client import test_redis_connection, RedisCache, is_redis_available
+from app.middleware.rate_limit import rate_limit_middleware
 
 # 🌐 Logger ayarı
 logging.basicConfig(level=logging.DEBUG)
@@ -46,6 +48,41 @@ def test_db():
     except Exception as e:
         return {"success": False, "error": str(e)}
 
+# ✅ Redis bağlantı testi
+@app.get("/test-redis")
+async def test_redis():
+    try:
+        is_connected = await test_redis_connection()
+        return {"success": is_connected, "message": "Redis connection test"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+# ✅ Redis cache test endpoint'leri
+@app.post("/test-cache")
+async def test_cache_set():
+    """Redis cache'e test verisi yaz"""
+    try:
+        if not await is_redis_available():
+            return {"success": False, "message": "Redis not available"}
+        
+        test_data = {"message": "Hello from Redis!", "timestamp": "2024-01-01"}
+        success = await RedisCache.set_cache("test_key", test_data, expire=300)
+        return {"success": success, "message": "Test data cached"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.get("/test-cache")
+async def test_cache_get():
+    """Redis cache'den test verisi oku"""
+    try:
+        if not await is_redis_available():
+            return {"success": False, "message": "Redis not available"}
+        
+        cached_data = await RedisCache.get_cache("test_key")
+        return {"success": True, "data": cached_data}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 # ✅ uploads klasörünü statik olarak sun
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
@@ -59,6 +96,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Rate limiting middleware ekle
+@app.middleware("http")
+async def rate_limit(request: Request, call_next):
+    return await rate_limit_middleware(request, call_next)
 
 app.include_router(booking.router)
 

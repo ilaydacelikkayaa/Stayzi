@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/editable_text_field.dart';
 
+import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 
 class PersonalInfoScreen extends StatefulWidget {
@@ -28,6 +29,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   bool _isLoading = false;
   String? _error;
   String? _success;
+  User? _currentUser;
 
   @override
   void initState() {
@@ -47,8 +49,12 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
       print(
         'name: \'${user.name}\', surname: \'${user.surname}\', phone: \'${user.phone}\', email: \'${user.email}\', country: \'${user.country}\'',
       );
+      print('📱 Telefon numarası: ${user.phone}');
+      print('📧 E-posta: ${user.email}');
+      print('🏠 Ülke: ${user.country}');
       _fullNameController.text = '${user.name} ${user.surname}';
       _preferredNameController.text = user.name;
+      _currentUser = user;
       _phoneNumberController.text = user.phone ?? '';
       _emailController.text = user.email ?? '';
       _addressController.text = user.country ?? '';
@@ -83,14 +89,41 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
       final names = _fullNameController.text.trim().split(' ');
       final name = names.isNotEmpty ? names.first : '';
       final surname = names.length > 1 ? names.sublist(1).join(' ') : '';
+      
+      // Telefon numarasını güvenli şekilde al
+      final phone = _phoneNumberController.text.trim();
+      final email = _emailController.text.trim();
+      final country = _addressController.text.trim();
+      
       await ApiService().updateProfile(
         name: name,
         surname: surname,
-        email: _emailController.text.trim(),
-        country: _addressController.text.trim(),
-        // phone ve preferredName backend'de yoksa eklenmez
+        email: email.isNotEmpty ? email : null,
+        phone: phone.isNotEmpty ? phone : null,
+        country: country.isNotEmpty ? country : null,
       );
       _success = 'Bilgiler başarıyla güncellendi!';
+      
+      // Veriyi yeniden çek
+      await _fetchUserInfo();
+
+      // Başarı mesajını göster ve sonra geri dön
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_success!),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+
+        // Kısa bir gecikme sonra geri dön
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            Navigator.pop(context, true);
+          }
+        });
+      }
     } catch (e) {
       _error = 'Güncelleme başarısız: $e';
     } finally {

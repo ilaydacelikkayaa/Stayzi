@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.crud.user import get_user_by_email, get_user_by_phone
 from app.models.user import User
+from app.utils.redis_client import JWTBlacklist
 
 load_dotenv()  # ✅ .env dosyasını yükle
 
@@ -18,7 +19,7 @@ ALGORITHM = "HS256"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")  # ✅ düzeltildi
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Giriş yapmanız gerekiyor",
@@ -26,6 +27,21 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     )
     try:
         print(">>> Token geldi mi:", token)  # ✅ 1. Gelen token'ı yazdır
+        
+        # JWT token'ın kara listede olup olmadığını kontrol et
+        try:
+            is_blacklisted = await JWTBlacklist.is_blacklisted(token)
+            if is_blacklisted:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Token has been revoked",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+        except Exception as e:
+            print(f">>> Redis blacklist check error: {e}")
+            # Redis hatası durumunda devam et (güvenlik için)
+            pass
+        
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         phone: str = payload.get("sub")
         print(">>> Çözülmüş phone:", phone)  # ✅ 2. JWT'den çözülen phone'u yazdır

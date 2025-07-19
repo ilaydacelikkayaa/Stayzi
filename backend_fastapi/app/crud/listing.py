@@ -55,6 +55,52 @@ def update_listing(db: Session, listing_id: int, listing: ListingCreate):
     db_listing = db.query(Listing).filter(Listing.id == listing_id).first()
     if db_listing:
         data = listing.dict(exclude_unset=True)
+        
+        print(f"DEBUG - CRUD Update: Gelen data = {data}")
+        
+        # Amenities'i özel olarak handle et
+        if 'amenities' in data:
+            print(f"DEBUG - CRUD Update: Amenities data = {data['amenities']}")
+            if data['amenities']:
+                # AmenityInListing objelerinden name'leri al (dict veya obje olabilir)
+                amenity_names = []
+                for a in data['amenities']:
+                    if isinstance(a, dict) and 'name' in a:
+                        amenity_names.append(a['name'])
+                    elif hasattr(a, 'name'):
+                        amenity_names.append(a.name)
+                
+                print(f"DEBUG - CRUD Update: Amenity names = {amenity_names}")
+                
+                if amenity_names:
+                    # Her amenity için veritabanında var mı kontrol et, yoksa oluştur
+                    amenities = []
+                    for amenity_name in amenity_names:
+                        # Önce mevcut amenity'yi ara
+                        existing_amenity = db.query(Amenity).filter(Amenity.name == amenity_name).first()
+                        if existing_amenity:
+                            amenities.append(existing_amenity)
+                            print(f"DEBUG - CRUD Update: Mevcut amenity bulundu: {amenity_name}")
+                        else:
+                            # Yeni amenity oluştur
+                            new_amenity = Amenity(name=amenity_name)
+                            db.add(new_amenity)
+                            db.flush()  # ID'yi almak için flush
+                            amenities.append(new_amenity)
+                            print(f"DEBUG - CRUD Update: Yeni amenity oluşturuldu: {amenity_name}")
+                    
+                    db_listing.amenities = amenities
+                    print(f"DEBUG - CRUD Update: Amenities güncellendi = {[a.name for a in db_listing.amenities]}")
+                else:
+                    print(f"DEBUG - CRUD Update: Geçerli amenity name'leri bulunamadı")
+            else:
+                # Boş liste gönderildiyse amenities'i temizle
+                print(f"DEBUG - CRUD Update: Amenities temizleniyor")
+                db_listing.amenities = []
+            data.pop('amenities', None)  # Remove from data dict
+        else:
+            print(f"DEBUG - CRUD Update: Amenities güncellenmedi, mevcut = {[a.name for a in db_listing.amenities] if db_listing.amenities else []}")
+        
         # Boolean değerleri integer'a çevir
         for key in ['allow_events', 'allow_smoking', 'allow_commercial_photo']:
             if key in data and isinstance(data[key], bool):
@@ -62,10 +108,15 @@ def update_listing(db: Session, listing_id: int, listing: ListingCreate):
                 data[key] = 1 if data[key] else 0
                 print(f"DEBUG - CRUD Update: {key} = {old_value} -> {data[key]}")
         
+        # Diğer alanları güncelle
         for key, value in data.items():
             setattr(db_listing, key, value)
+        
         db.commit()
         db.refresh(db_listing)
+        
+        print(f"DEBUG - CRUD Update: Güncelleme sonrası amenities = {[a.name for a in db_listing.amenities] if db_listing.amenities else []}")
+        
     return db_listing
 
 from app.crud.user import get_user_by_id

@@ -21,7 +21,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _userFuture = ApiService().getCurrentUser();
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    setState(() {
+      _userFuture = ApiService().getCurrentUser();
+    });
   }
 
   @override
@@ -218,13 +224,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.person_outline,
                       title: 'Kişisel Bilgiler',
                       subtitle: 'Ad, e-posta ve diğer bilgiler',
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const PersonalInfoScreen(),
                           ),
                         );
+                        // Eğer düzenleme yapıldıysa veriyi yenile
+                        if (result == true) {
+                          setState(() {
+                            _loadUserData();
+                          });
+                        }
                       },
                     ),
                     const SizedBox(height: 16),

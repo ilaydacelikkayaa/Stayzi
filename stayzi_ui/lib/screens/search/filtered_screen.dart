@@ -19,7 +19,7 @@ class _FilteredScreenState extends State<FilteredScreen> {
 
   Future<List<Listing>> fetchFilteredListings() async {
     final response = await http.post(
-      Uri.parse('http://localhost:8000/listings/filter'),
+      Uri.parse('http://10.0.2.2:8000/listings/filter'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(widget.filters),
     );
