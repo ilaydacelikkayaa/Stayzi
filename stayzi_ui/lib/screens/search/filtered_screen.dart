@@ -2,9 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:stayzi_ui/models/listing_model.dart'; // Eğer Listing modeli farklı bir yerdeyse, path'i düzelt
+import 'package:stayzi_ui/models/listing_model.dart';
 import 'package:stayzi_ui/screens/search/general_filtered_sheet.dart';
 import 'package:stayzi_ui/screens/search/search_screen.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
 
 class FilteredScreen extends StatefulWidget {
   final Map<String, dynamic> filters;
@@ -18,11 +19,24 @@ class _FilteredScreenState extends State<FilteredScreen> {
   final double _mapHeightFraction = 0.6;
 
   Future<List<Listing>> fetchFilteredListings() async {
-    final response = await http.post(
-      Uri.parse('http://10.0.2.2:8000/listings/filter'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(widget.filters),
+    final uri = Uri.parse('${ApiConstants.baseUrl}/listings/filter').replace(
+      queryParameters: {
+        if (widget.filters['location'] != null)
+          'location': widget.filters['location'].toString(),
+        if (widget.filters['start_date'] != null)
+          'start_date': widget.filters['start_date'].toString(),
+        if (widget.filters['end_date'] != null)
+          'end_date': widget.filters['end_date'].toString(),
+        if (widget.filters['guests'] != null)
+          'guests': widget.filters['guests'].toString(),
+        if (widget.filters['min_price'] != null)
+          'min_price': widget.filters['min_price'].toString(),
+        if (widget.filters['max_price'] != null)
+          'max_price': widget.filters['max_price'].toString(),
+      },
     );
+
+    final response = await http.get(uri);
 
     if (response.statusCode == 200) {
       List data = jsonDecode(response.body);
@@ -37,19 +51,27 @@ class _FilteredScreenState extends State<FilteredScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("Filtered results"),
+        title: Text("Filterelenmiş Sonuçlar"),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 15),
             child: IconButton(
-              onPressed: () {
-                Navigator.of(context).push(
+              onPressed: () async {
+                final updated = await Navigator.of(
+                  context,
+                ).push<Map<String, dynamic>>(
                   MaterialPageRoute(
                     builder:
                         (context) =>
                             GeneralFilteredSheet(filters: widget.filters),
                   ),
                 );
+                if (updated != null) {
+                  setState(() {
+                    widget.filters.clear();
+                    widget.filters.addAll(updated);
+                  });
+                }
               },
               icon: Icon(Icons.filter_list),
             ),
@@ -93,7 +115,29 @@ class _FilteredScreenState extends State<FilteredScreen> {
                         return const Center(child: Text('No listings found'));
                       }
 
-                      final listings = snapshot.data!;
+                      // apply client-side price filtering
+                      final allListings = snapshot.data!;
+                      final double? minPrice =
+                          widget.filters['min_price'] != null
+                              ? double.tryParse(
+                                widget.filters['min_price'].toString(),
+                              )
+                              : null;
+                      final double? maxPrice =
+                          widget.filters['max_price'] != null
+                              ? double.tryParse(
+                                widget.filters['max_price'].toString(),
+                              )
+                              : null;
+                      final listings =
+                          allListings.where((listing) {
+                            if (minPrice != null && listing.price < minPrice)
+                              return false;
+                            if (maxPrice != null && listing.price > maxPrice)
+                              return false;
+                            return true;
+                          }).toList();
+
                       return Container(
                         decoration: BoxDecoration(
                           color: Colors.white,

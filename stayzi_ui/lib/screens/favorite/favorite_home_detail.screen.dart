@@ -150,7 +150,9 @@ class _FavoriteHomeDetailScreenState extends State<FavoriteHomeDetailScreen> {
           ),
         IlanBaslik(listing: listingData),
         Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
+
         EvSahibiBilgisi(listing: listingData),
+
         Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
         MekanAciklamasi(
           description: listingData['description']?.toString() ?? '',

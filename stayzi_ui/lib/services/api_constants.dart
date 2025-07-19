@@ -67,4 +67,9 @@ class ApiConstants {
       'Authorization': 'Bearer $token',
     };
   }
+
+  static Map<String, String> headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
 }

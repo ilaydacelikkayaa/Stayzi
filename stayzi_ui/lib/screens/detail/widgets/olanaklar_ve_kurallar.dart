@@ -34,18 +34,22 @@ class _OlanaklarVeKurallarState extends State<OlanaklarVeKurallar> {
                     spacing: 10,
                     runSpacing: 10,
                     children:
-                        amenities.map((item) {
+                        amenities.map((amenity) {
                           return Chip(
-                            label: Text(item['name'].toString()),
+                            label: Text(
+                              // Burada amenity.name kullanıyoruz:
+                              amenity.name ?? '',
+                              style: TextStyle(fontSize: 14),
+                            ),
                             backgroundColor: Colors.grey[200],
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: 10,
                               vertical: 5,
                             ),
                           );
                         }).toList(),
                   )
-                  : Text("Bu ilana ait olanak bilgisi bulunmamaktadır."),
+                  : const Text("Bu ilana ait olanak bilgisi bulunmamaktadır."),
         ),
         SizedBox(height: 20),
         Padding(

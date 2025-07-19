@@ -84,6 +84,7 @@ class _TinyHomeCardState extends State<TinyHomeCard> {
         (listing['image_urls'] as List<dynamic>).isNotEmpty
             ? listing['image_urls'][0]
             : null;
+
     final imageUrl =
         (rawUrl != null && rawUrl.startsWith('http'))
             ? rawUrl

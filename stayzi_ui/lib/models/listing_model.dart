@@ -55,11 +55,11 @@ class Listing {
     this.maxGuests,
     required this.createdAt,
     this.updatedAt,
+
     this.user,
   });
 
   factory Listing.fromJson(Map<String, dynamic> json) {
-    print("👤 Gelen HOST JSON: ${json['host']}");
     return Listing(
       id: json['id'],
       userId: json['user_id'],
@@ -100,6 +100,7 @@ class Listing {
           json['updated_at'] != null
               ? DateTime.parse(json['updated_at'])
               : null,
+
       user: json['user'] != null ? User.fromJson(json['user']) : null,
     );
   }
@@ -131,6 +132,7 @@ class Listing {
       'max_guests': maxGuests,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
+
       'user': user?.toJson(),
     };
   }

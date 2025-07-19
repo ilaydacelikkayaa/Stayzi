@@ -41,4 +41,17 @@ class Listing(ListingBase):
     user: Optional[UserOut] = None
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
+
+
+class ListingOut(BaseModel):
+    id: int
+    title: str
+    description: Optional[str]
+    price: float
+    location: str
+    created_at: datetime
+    image_urls: Optional[List[str]]
+
+    class Config:
+        from_attributes = True

@@ -1,4 +1,7 @@
+// lib/screens/detail/host_detail_screen.dart
+
 import 'package:flutter/material.dart';
+
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
 
@@ -41,85 +44,36 @@ class _HostDetailScreenState extends State<HostDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Ev Sahibi Bilgileri')),
-      body:
-          hostUser == null
-              ? Center(child: CircularProgressIndicator())
-              : Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Column(
-                        children: [
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundImage:
-                                (hostUser?.profileImage != null &&
-                                        hostUser!.profileImage!.isNotEmpty)
-                                    ? NetworkImage(hostUser!.profileImage!)
-                                    : const AssetImage(
-                                          'assets/default_user.png',
-                                        )
-                                        as ImageProvider,
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            '${hostUser!.name} ${hostUser!.surname}',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 30),
-                    Row(
-                      children: [
-                        Icon(Icons.star, color: Colors.orange),
-                        SizedBox(width: 5),
-                        Text('4.8 · 72 değerlendirme'),
-                      ],
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      'Hakkında',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      hostUser!.country != null
-                          ? 'Ülke: ${hostUser!.country}'
-                          : 'Ülke bilgisi mevcut değil',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      'Yanıt Süresi: Ortalama 1 saat içinde',
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                    SizedBox(height: 5),
-                    Text(
-                      'Dil: Türkçe, İngilizce',
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                    SizedBox(height: 30),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // mesaj gönderme aksiyonu
-                        },
-                        child: Text('Mesaj Gönder'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+      appBar: AppBar(title: const Text("Ev Sahibi Detayı")),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 50,
+              backgroundImage:
+                  hostUser?.profileImage != null
+                      ? NetworkImage(hostUser!.profileImage!)
+                      : null,
+              child:
+                  hostUser?.profileImage == null
+                      ? const Icon(Icons.person, size: 50)
+                      : null,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '${hostUser?.name} ${hostUser?.surname}',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text('Ülke: ${hostUser?.country ?? "Bilinmiyor"}'),
+            const SizedBox(height: 8),
+            Text('Telefon: ${hostUser?.phone ?? "Gizli"}'),
+            const SizedBox(height: 8),
+            Text('E-posta: ${hostUser?.email ?? "Yok"}'),
+          ],
+        ),
+      ),
     );
   }
 }

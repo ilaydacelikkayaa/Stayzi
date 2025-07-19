@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
+import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart'; // for ElevatedButtonWidget
 import 'package:stayzi_ui/screens/onboard/widgets/form_widget.dart';
 import 'package:stayzi_ui/screens/search/date_time_picker.dart';
 import 'package:stayzi_ui/screens/search/filtered_screen.dart';
@@ -21,6 +21,9 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
   int _children = 0;
   int _infants = 0;
   int _pets = 0;
+
+  double? _minPrice;
+  double? _maxPrice;
 
   String? _dateSummary;
 
@@ -72,12 +75,14 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
       "guests": _adults + _children + _infants + _pets,
       "start_date": _selectedDateRange?.start.toIso8601String(),
       "end_date": _selectedDateRange?.end.toIso8601String(),
+      "min_price": _minPrice?.toString(), // ekle
+      "max_price": _maxPrice?.toString(),
     };
 
+    print("Applied Filters: $filters");
+
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => FilteredScreen(filters: filters),
-      ),
+      MaterialPageRoute(builder: (context) => FilteredScreen(filters: filters)),
     );
   }
 
