@@ -1,23 +1,48 @@
-from app.dependencies import get_current_user 
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
-from sqlalchemy.orm import Session
-from typing import List, Optional
-from app.schemas.listing import Listing, ListingCreate
+from app.dependencies import get_current_user
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, Query
+from app.schemas.listing import Listing, ListingCreate, ListingOut
 from app.crud.listing import create_listing, get_listing, get_listings, delete_listing, update_listing, get_listings_by_user
-from app.db.dependency import get_db
 import os
 import shutil
-from datetime import datetime
 from fastapi.responses import JSONResponse
 from app.models.user import User
 from app.models.listing import Listing as ListingModel
 from app.schemas.amenity import Amenity
+
+from datetime import datetime
+from fastapi import APIRouter, Query, Depends
+from typing import Optional, List
+from sqlalchemy.orm import Session
+from app.schemas.listing import Listing
+from app.db.dependency import get_db
 
 router = APIRouter(
     prefix="/listings",
     tags=["listings"]
 )
 
+@router.get("/filter", response_model=List[ListingOut])
+def filter_listings(
+    location:  Optional[str]  = Query(None),
+    start_date: Optional[str] = Query(None),
+    end_date:   Optional[str] = Query(None),
+    guests:     Optional[int]  = Query(None),
+    min_price:  Optional[float]= Query(None, alias="min_price"),
+    max_price:  Optional[float]= Query(None, alias="max_price"),
+    db:         Session        = Depends(get_db),
+):
+    sd = datetime.fromisoformat(start_date).date() if start_date else None
+    ed = datetime.fromisoformat(end_date).date()   if end_date   else None
+
+    return get_filtered_listings(
+        db,
+        location=location,
+        start_date=sd,
+        end_date=ed,
+        guests=guests,
+        min_price=min_price,
+        max_price=max_price
+    )
 @router.post("/", response_model=Listing)
 async def create_listing_route(
     title: str = Form(...),
@@ -160,7 +185,9 @@ async def update(
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(photo.file, buffer)
         image_urls = [f"/uploads/listings/{filename}"] + image_urls  # Yeni fotoğrafı başa ekle
-    
+
+
+        image_urls.append(f"/uploads/listings/{filename}")
 
     # JSON string'leri parse et
     host_languages_list = None
@@ -254,3 +281,7 @@ def read_listing_with_host(listing_id: int, db: Session = Depends(get_db)):
     }
 
     return JSONResponse(content=listing_data)
+
+
+from app.crud.listing import get_filtered_listings
+

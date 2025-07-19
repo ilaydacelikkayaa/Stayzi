@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:stayzi_ui/screens/detail/detail_scren.dart';
 import 'package:stayzi_ui/screens/search/widgets/custom_search_appbar.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
 
-final String baseUrl = "http://10.0.2.2:8000";
+final String baseUrl = "'http://localhost:8000";
 String getListingImageUrl(String? path) {
   if (path == null || path.isEmpty) return 'assets/images/user.jpg';
   if (path.startsWith('/uploads')) {
@@ -19,7 +20,7 @@ class SearchScreen extends StatelessWidget {
 
   Future<List<dynamic>> fetchListings() async {
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:8000/listings/'),
+      Uri.parse('${ApiConstants.baseUrl}/listings/'),
     );
     if (response.statusCode == 200) {
       return json.decode(response.body);
@@ -88,7 +89,7 @@ class _TinyHomeCardState extends State<TinyHomeCard> {
     final imageUrl =
         (rawUrl != null && rawUrl.startsWith('http'))
             ? rawUrl
-            : 'http://10.0.2.2:8000$rawUrl';
+            : '${ApiConstants.baseUrl}$rawUrl';
 
     return Material(
       child: InkWell(

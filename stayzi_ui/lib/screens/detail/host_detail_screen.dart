@@ -1,9 +1,10 @@
 // lib/screens/detail/host_detail_screen.dart
 
-import 'package:flutter/material.dart';
+// lib/screens/detail/host_detail_screen.dart
 
-import '../../models/user_model.dart';
-import '../../services/api_service.dart';
+import 'package:flutter/material.dart';
+import 'package:stayzi_ui/models/user_model.dart';
+import 'package:stayzi_ui/services/api_service.dart';
 
 class HostDetailScreen extends StatefulWidget {
   final int listingID;

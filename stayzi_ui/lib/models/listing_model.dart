@@ -55,7 +55,6 @@ class Listing {
     this.maxGuests,
     required this.createdAt,
     this.updatedAt,
-
     this.user,
   });
 
@@ -132,7 +131,6 @@ class Listing {
       'max_guests': maxGuests,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
-
       'user': user?.toJson(),
     };
   }
