@@ -1,3 +1,5 @@
+import 'user_model.dart';
+
 class Listing {
   final int id;
   final int? userId;
@@ -14,8 +16,17 @@ class Listing {
   final String? homeRules;
   final int? capacity;
   final List<String>? amenities;
+  final int? roomCount;
+  final int? bedCount;
+  final int? bathroomCount;
+  final int? reviewCount;
+  final int? allowEvents;
+  final int? allowSmoking;
+  final int? allowCommercialPhoto;
+  final int? maxGuests;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final User? user;
 
   Listing({
     required this.id,
@@ -33,8 +44,17 @@ class Listing {
     this.homeRules,
     this.capacity,
     this.amenities,
+    this.roomCount,
+    this.bedCount,
+    this.bathroomCount,
+    this.reviewCount,
+    this.allowEvents,
+    this.allowSmoking,
+    this.allowCommercialPhoto,
+    this.maxGuests,
     required this.createdAt,
     this.updatedAt,
+    this.user,
   });
 
   factory Listing.fromJson(Map<String, dynamic> json) {
@@ -63,11 +83,20 @@ class Listing {
           json['amenities'] != null
               ? List<String>.from(json['amenities'])
               : null,
+      roomCount: json['room_count'],
+      bedCount: json['bed_count'],
+      bathroomCount: json['bathroom_count'],
+      reviewCount: json['review_count'],
+      allowEvents: json['allow_events'],
+      allowSmoking: json['allow_smoking'],
+      allowCommercialPhoto: json['allow_commercial_photo'],
+      maxGuests: json['max_guests'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt:
           json['updated_at'] != null
               ? DateTime.parse(json['updated_at'])
               : null,
+      user: json['user'] != null ? User.fromJson(json['user']) : null,
     );
   }
 
@@ -88,8 +117,17 @@ class Listing {
       'home_rules': homeRules,
       'capacity': capacity,
       'amenities': amenities,
+      'room_count': roomCount,
+      'bed_count': bedCount,
+      'bathroom_count': bathroomCount,
+      'review_count': reviewCount,
+      'allow_events': allowEvents,
+      'allow_smoking': allowSmoking,
+      'allow_commercial_photo': allowCommercialPhoto,
+      'max_guests': maxGuests,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
+      'user': user?.toJson(),
     };
   }
 }
@@ -109,6 +147,10 @@ class ListingCreate {
   final String? homeRules;
   final int? capacity;
   final List<String>? amenities;
+  final int? allowEvents;
+  final int? allowSmoking;
+  final int? allowCommercialPhoto;
+  final int? maxGuests;
 
   ListingCreate({
     this.userId,
@@ -125,6 +167,10 @@ class ListingCreate {
     this.homeRules,
     this.capacity,
     this.amenities,
+    this.allowEvents,
+    this.allowSmoking,
+    this.allowCommercialPhoto,
+    this.maxGuests,
   });
 
   Map<String, dynamic> toJson() {
@@ -143,6 +189,10 @@ class ListingCreate {
       'home_rules': homeRules,
       'capacity': capacity,
       'amenities': amenities,
+      'allow_events': allowEvents,
+      'allow_smoking': allowSmoking,
+      'allow_commercial_photo': allowCommercialPhoto,
+      'max_guests': maxGuests,
     };
   }
 }
@@ -159,6 +209,10 @@ class ListingUpdate {
   final String? homeRules;
   final int? capacity;
   final List<String>? amenities;
+  final int? allowEvents;
+  final int? allowSmoking;
+  final int? allowCommercialPhoto;
+  final int? maxGuests;
 
   ListingUpdate({
     this.title,
@@ -172,6 +226,10 @@ class ListingUpdate {
     this.homeRules,
     this.capacity,
     this.amenities,
+    this.allowEvents,
+    this.allowSmoking,
+    this.allowCommercialPhoto,
+    this.maxGuests,
   });
 
   Map<String, dynamic> toJson() {
@@ -187,6 +245,11 @@ class ListingUpdate {
     if (homeRules != null) data['home_rules'] = homeRules;
     if (capacity != null) data['capacity'] = capacity;
     if (amenities != null) data['amenities'] = amenities;
+    if (allowEvents != null) data['allow_events'] = allowEvents;
+    if (allowSmoking != null) data['allow_smoking'] = allowSmoking;
+    if (allowCommercialPhoto != null)
+      data['allow_commercial_photo'] = allowCommercialPhoto;
+    if (maxGuests != null) data['max_guests'] = maxGuests;
     return data;
   }
 }

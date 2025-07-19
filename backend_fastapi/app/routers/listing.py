@@ -9,6 +9,7 @@ from app.db.dependency import get_db
 import os
 import shutil
 from datetime import datetime
+from app.models.review import Review
 
 router = APIRouter(
     prefix="/listings",
@@ -28,6 +29,10 @@ async def create_listing_route(
     home_rules: Optional[str] = Form(None),
     capacity: Optional[int] = Form(None),
     amenities: Optional[str] = Form(None),  # JSON string olarak gelecek
+    allow_events: Optional[str] = Form(None),  # "true" veya "false" string olarak gelecek
+    allow_smoking: Optional[str] = Form(None),  # "true" veya "false" string olarak gelecek
+    allow_commercial_photo: Optional[str] = Form(None),  # "true" veya "false" string olarak gelecek
+    max_guests: Optional[int] = Form(None),
     photo: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -68,6 +73,11 @@ async def create_listing_route(
         except:
             amenities_list = [amenities]
     
+    # Boolean string'leri parse et
+    allow_events_bool = allow_events == "1" if allow_events else False
+    allow_smoking_bool = allow_smoking == "1" if allow_smoking else False
+    allow_commercial_photo_bool = allow_commercial_photo == "1" if allow_commercial_photo else False
+    
     # ListingCreate objesi oluştur
     listing_data = {
         "title": title,
@@ -81,15 +91,36 @@ async def create_listing_route(
         "image_urls": image_urls,
         "home_rules": home_rules,
         "capacity": capacity,
-        "amenities": amenities_list
+        "amenities": amenities_list,
+        "allow_events": allow_events_bool,
+        "allow_smoking": allow_smoking_bool,
+        "allow_commercial_photo": allow_commercial_photo_bool,
+        "max_guests": max_guests
     }
     
     listing = ListingCreate(**listing_data)
-    return create_listing(db=db, listing=listing, user_id=current_user.id)
+    db_listing = create_listing(db=db, listing=listing, user_id=current_user.id)
+    user = db.query(User).filter(User.id == db_listing.user_id).first()
+    listing_dict = db_listing.__dict__.copy()
+    listing_dict['user'] = user
+    return listing_dict
 
 @router.get("/", response_model=List[Listing])
 def read_listings(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return get_listings(db, skip=skip, limit=limit)
+    listings = get_listings(db, skip=skip, limit=limit)
+    result = []
+    for l in listings:
+        d = l.__dict__.copy()
+        d['user'] = db.query(User).filter(User.id == l.user_id).first()
+        result.append(d)
+        
+        # Debug: İlk listing'in verilerini yazdır
+        if len(result) == 1:
+            print(f"DEBUG - Backend GET / (first listing):")
+            print(f"SQLAlchemy objesi: {l.__dict__}")
+            print(f"Final response: {d}")
+    
+    return result
 
 @router.get("/my-listings", response_model=List[Listing])
 def read_my_listings(
@@ -98,21 +129,42 @@ def read_my_listings(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return get_listings_by_user(db, current_user.id, skip=skip, limit=limit)
+    listings = get_listings_by_user(db, current_user.id, skip=skip, limit=limit)
+    result = []
+    for l in listings:
+        d = l.__dict__.copy()
+        d['user'] = db.query(User).filter(User.id == l.user_id).first()
+        result.append(d)
+    return result
 
 @router.get("/{listing_id}", response_model=Listing)
 def read_listing(listing_id: int, db: Session = Depends(get_db)):
     db_listing = get_listing(db, listing_id)
     if not db_listing:
         raise HTTPException(status_code=404, detail="Listing not found")
-    return db_listing
+    user = db.query(User).filter(User.id == db_listing.user_id).first()
+    review_count = db.query(Review).filter(Review.listing_id == db_listing.id).count()
+    # Listing şemasına uygun dict oluştur
+    listing_dict = db_listing.__dict__.copy()
+    listing_dict['user'] = user
+    listing_dict['review_count'] = review_count
+    
+    # Debug: SQLAlchemy objesinin tüm alanlarını yazdır
+    print(f"DEBUG - Backend GET /{listing_id}:")
+    print(f"SQLAlchemy objesi: {db_listing.__dict__}")
+    print(f"Final response: {listing_dict}")
+    
+    return listing_dict
 
 @router.delete("/{listing_id}", response_model=Listing)
 def delete(listing_id: int, db: Session = Depends(get_db)):
     db_listing = delete_listing(db, listing_id)
     if not db_listing:
         raise HTTPException(status_code=404, detail="Listing not found")
-    return db_listing
+    user = db.query(User).filter(User.id == db_listing.user_id).first()
+    listing_dict = db_listing.__dict__.copy()
+    listing_dict['user'] = user
+    return listing_dict
 
 @router.put("/{listing_id}", response_model=Listing)
 async def update(
@@ -128,6 +180,10 @@ async def update(
     home_rules: Optional[str] = Form(None),
     capacity: Optional[int] = Form(None),
     amenities: Optional[str] = Form(None),
+    allow_events: Optional[str] = Form(None),
+    allow_smoking: Optional[str] = Form(None),
+    allow_commercial_photo: Optional[str] = Form(None),
+    max_guests: Optional[int] = Form(None),
     photo: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -197,6 +253,20 @@ async def update(
         listing_data["capacity"] = capacity
     if amenities_list is not None:
         listing_data["amenities"] = amenities_list
+    
+    # Boolean string'leri parse et ve ekle
+    if allow_events is not None:
+        listing_data["allow_events"] = allow_events == "1"
+        print(f"DEBUG - Backend Update: allow_events = {allow_events} -> {allow_events == '1'}")
+    if allow_smoking is not None:
+        listing_data["allow_smoking"] = allow_smoking == "1"
+        print(f"DEBUG - Backend Update: allow_smoking = {allow_smoking} -> {allow_smoking == '1'}")
+    if allow_commercial_photo is not None:
+        listing_data["allow_commercial_photo"] = allow_commercial_photo == "1"
+        print(f"DEBUG - Backend Update: allow_commercial_photo = {allow_commercial_photo} -> {allow_commercial_photo == '1'}")
+    if max_guests is not None:
+        listing_data["max_guests"] = max_guests
+        print(f"DEBUG - Backend Update: max_guests = {max_guests}")
     
     listing = ListingCreate(**listing_data)
     return update_listing(db, listing_id, listing) 

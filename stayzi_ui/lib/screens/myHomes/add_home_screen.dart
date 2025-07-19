@@ -27,6 +27,12 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   bool _isLoading = false;
   String? _error;
   String? _success;
+  
+  // İzin alanları
+  bool _allowEvents = false;
+  bool _allowSmoking = false;
+  bool _allowCommercialPhoto = false;
+  int _maxGuests = 1;
 
   final List<String> _availableAmenities = [
     'WiFi',
@@ -120,6 +126,10 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
         capacity: capacity,
         amenities: _selectedAmenities.isNotEmpty ? _selectedAmenities : null,
         photo: _selectedImage,
+        allowEvents: _allowEvents,
+        allowSmoking: _allowSmoking,
+        allowCommercialPhoto: _allowCommercialPhoto,
+        maxGuests: _maxGuests,
       );
 
       setState(() {
@@ -456,6 +466,119 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
 
                                 const SizedBox(height: 24),
 
+                                // İzinler ve Kurallar
+                                const Text(
+                                  'İzinler ve Kurallar',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+
+                                // Etkinliklere izin
+                                _buildPermissionRow(
+                                  title: 'Etkinliklere izin verilir',
+                                  value: _allowEvents,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _allowEvents = value;
+                                    });
+                                  },
+                                ),
+                                const SizedBox(height: 12),
+
+                                // Sigara içilir
+                                _buildPermissionRow(
+                                  title: 'Sigara içilir',
+                                  value: _allowSmoking,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _allowSmoking = value;
+                                    });
+                                  },
+                                ),
+                                const SizedBox(height: 12),
+
+                                // Ticari fotoğraf ve film çekilmesine izin
+                                _buildPermissionRow(
+                                  title:
+                                      'Ticari fotoğraf ve film çekilmesine izin verilir',
+                                  value: _allowCommercialPhoto,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _allowCommercialPhoto = value;
+                                    });
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+
+                                // İzin verilen misafir sayısı
+                                const Text(
+                                  'İzin verilen misafir sayısı',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.grey.withOpacity(0.3),
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      IconButton(
+                                        onPressed: () {
+                                          if (_maxGuests > 1) {
+                                            setState(() {
+                                              _maxGuests--;
+                                            });
+                                          }
+                                        },
+                                        icon: const Icon(
+                                          Icons.remove_circle_outline,
+                                        ),
+                                        color:
+                                            _maxGuests > 1
+                                                ? Colors.black
+                                                : Colors.grey,
+                                      ),
+                                      Text(
+                                        '$_maxGuests',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            _maxGuests++;
+                                          });
+                                        },
+                                        icon: const Icon(
+                                          Icons.add_circle_outline,
+                                        ),
+                                        color: Colors.black,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                const SizedBox(height: 24),
+
                                 // Amenities Section
                                 const Text(
                                   'Olanaklar',
@@ -594,6 +717,79 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPermissionRow({
+    required String title,
+    required bool value,
+    required Function(bool) onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 14, color: Colors.black),
+            ),
+          ),
+          Row(
+            children: [
+              // Çarpı butonu (izin verilmiyor)
+              GestureDetector(
+                onTap: () => onChanged(false),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: !value ? Colors.red : Colors.grey.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: !value ? Colors.red : Colors.grey.withOpacity(0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    color: !value ? Colors.white : Colors.grey,
+                    size: 18,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Tik butonu (izin veriliyor)
+              GestureDetector(
+                onTap: () => onChanged(true),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: value ? Colors.green : Colors.grey.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color:
+                          value ? Colors.green : Colors.grey.withOpacity(0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.check,
+                    color: value ? Colors.white : Colors.grey,
+                    size: 18,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

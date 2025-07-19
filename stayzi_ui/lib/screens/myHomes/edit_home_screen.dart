@@ -22,6 +22,9 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
   late TextEditingController priceController;
   late TextEditingController capacityController;
   late TextEditingController homeRulesController;
+  late TextEditingController roomCountController;
+  late TextEditingController bedCountController;
+  late TextEditingController bathroomCountController;
 
   List<File> _selectedImages = [];
   File? _selectedImage;
@@ -29,6 +32,13 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
   String? _error;
   String? _success;
   List<String> _selectedAmenities = [];
+  
+  // İzin alanları
+  bool _allowEvents = false;
+  bool _allowSmoking = false;
+  bool _allowCommercialPhoto = false;
+  int _maxGuests = 1;
+  
   final List<String> _availableAmenities = [
     'WiFi',
     'Klima',
@@ -66,7 +76,22 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
     homeRulesController = TextEditingController(
       text: widget.listing.homeRules ?? '',
     );
+    roomCountController = TextEditingController(
+      text: widget.listing.roomCount?.toString() ?? '',
+    );
+    bedCountController = TextEditingController(
+      text: widget.listing.bedCount?.toString() ?? '',
+    );
+    bathroomCountController = TextEditingController(
+      text: widget.listing.bathroomCount?.toString() ?? '',
+    );
     _selectedAmenities = List<String>.from(widget.listing.amenities ?? []);
+    
+    // İzin alanlarını mevcut değerlerle yükle
+    _allowEvents = widget.listing.allowEvents == 1;
+    _allowSmoking = widget.listing.allowSmoking == 1;
+    _allowCommercialPhoto = widget.listing.allowCommercialPhoto == 1;
+    _maxGuests = widget.listing.maxGuests ?? widget.listing.capacity ?? 1;
   }
 
   @override
@@ -77,6 +102,9 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
     priceController.dispose();
     capacityController.dispose();
     homeRulesController.dispose();
+    roomCountController.dispose();
+    bedCountController.dispose();
+    bathroomCountController.dispose();
     super.dispose();
   }
 
@@ -173,6 +201,13 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                 : homeRulesController.text.trim(),
         amenities: _selectedAmenities.isNotEmpty ? _selectedAmenities : null,
         photo: _selectedImage,
+        roomCount: int.tryParse(roomCountController.text.trim()),
+        bedCount: int.tryParse(bedCountController.text.trim()),
+        bathroomCount: int.tryParse(bathroomCountController.text.trim()),
+        allowEvents: _allowEvents,
+        allowSmoking: _allowSmoking,
+        allowCommercialPhoto: _allowCommercialPhoto,
+        maxGuests: _maxGuests,
       );
 
       setState(() {
@@ -180,6 +215,14 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
       });
 
       if (context.mounted) {
+        // Başarı mesajını göster ve geri dön
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_success!),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
         Navigator.pop(context, true);
       }
     } catch (e) {
@@ -565,6 +608,142 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                                 hint: 'Misafir sayısı',
                                 keyboardType: TextInputType.number,
                               ),
+
+                              const SizedBox(height: 24),
+
+                              // İzinler ve Kurallar
+                              const Text(
+                                'İzinler ve Kurallar',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Etkinliklere izin
+                              _buildPermissionRow(
+                                title: 'Etkinliklere izin verilir',
+                                value: _allowEvents,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _allowEvents = value;
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 12),
+
+                              // Sigara içilir
+                              _buildPermissionRow(
+                                title: 'Sigara içilir',
+                                value: _allowSmoking,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _allowSmoking = value;
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 12),
+
+                              // Ticari fotoğraf ve film çekilmesine izin
+                              _buildPermissionRow(
+                                title:
+                                    'Ticari fotoğraf ve film çekilmesine izin verilir',
+                                value: _allowCommercialPhoto,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _allowCommercialPhoto = value;
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 16),
+
+                              // İzin verilen misafir sayısı
+                              const Text(
+                                'İzin verilen misafir sayısı',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.grey.withOpacity(0.3),
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    IconButton(
+                                      onPressed: () {
+                                        if (_maxGuests > 1) {
+                                          setState(() {
+                                            _maxGuests--;
+                                          });
+                                        }
+                                      },
+                                      icon: const Icon(
+                                        Icons.remove_circle_outline,
+                                      ),
+                                      color:
+                                          _maxGuests > 1
+                                              ? Colors.black
+                                              : Colors.grey,
+                                    ),
+                                    Text(
+                                      '$_maxGuests',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _maxGuests++;
+                                        });
+                                      },
+                                      icon: const Icon(
+                                        Icons.add_circle_outline,
+                                      ),
+                                      color: Colors.black,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Oda, yatak, banyo alanları
+                              _buildTextField(
+                                controller: roomCountController,
+                                label: 'Oda Sayısı',
+                                hint: 'Oda sayısı',
+                                keyboardType: TextInputType.number,
+                              ),
+                              const SizedBox(height: 16),
+                              _buildTextField(
+                                controller: bedCountController,
+                                label: 'Yatak Sayısı',
+                                hint: 'Yatak sayısı',
+                                keyboardType: TextInputType.number,
+                              ),
+                              const SizedBox(height: 16),
+                              _buildTextField(
+                                controller: bathroomCountController,
+                                label: 'Banyo Sayısı',
+                                hint: 'Banyo sayısı',
+                                keyboardType: TextInputType.number,
+                              ),
                               const SizedBox(height: 16),
 
                               // Olanaklar (Amenities) Bölümü
@@ -696,6 +875,79 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPermissionRow({
+    required String title,
+    required bool value,
+    required Function(bool) onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontSize: 14, color: Colors.black),
+            ),
+          ),
+          Row(
+            children: [
+              // Çarpı butonu (izin verilmiyor)
+              GestureDetector(
+                onTap: () => onChanged(false),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: !value ? Colors.red : Colors.grey.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: !value ? Colors.red : Colors.grey.withOpacity(0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    color: !value ? Colors.white : Colors.grey,
+                    size: 18,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Tik butonu (izin veriliyor)
+              GestureDetector(
+                onTap: () => onChanged(true),
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: value ? Colors.green : Colors.grey.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color:
+                          value ? Colors.green : Colors.grey.withOpacity(0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.check,
+                    color: value ? Colors.white : Colors.grey,
+                    size: 18,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

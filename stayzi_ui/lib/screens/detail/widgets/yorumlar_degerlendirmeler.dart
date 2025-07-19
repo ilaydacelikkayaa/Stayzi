@@ -1,26 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:stayzi_ui/screens/detail/review_detail_page.dart';
+import 'package:stayzi_ui/services/api_service.dart';
 
-class Yorumlar extends StatelessWidget {
-  Yorumlar({super.key});
+class Yorumlar extends StatefulWidget {
+  final int? listingId;
+  
+  const Yorumlar({super.key, this.listingId});
 
-  final List<Review> reviews = [
-    Review(
-      name: "Tarık Furkan",
-      comment: "Konum olarak doğayla iç içeydi, temizdi.",
-      date: "3 hafta önce",
-      profileImage: "assets/images/user.jpg",
-    ),
-    Review(
-      name: "Emre",
-      comment: "Her şey fotoğraflarda olduğu gibiydi. Çok beğendik.",
-      date: "Şubat 2025",
-      profileImage: "assets/images/user.jpg",
-    ),
-  ];
+  @override
+  State<Yorumlar> createState() => _YorumlarState();
+}
+
+class _YorumlarState extends State<Yorumlar> {
+  List<Map<String, dynamic>> reviews = [];
+  bool isLoading = true;
+  String? error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReviews();
+  }
+
+  Future<void> _loadReviews() async {
+    if (widget.listingId == null) {
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      final apiReviews = await ApiService().getListingReviews(
+        widget.listingId!,
+      );
+      setState(() {
+        reviews = apiReviews;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        error = e.toString();
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const SizedBox(
+        height: 160,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (error != null) {
+      return SizedBox(
+        height: 160,
+        child: Center(
+          child: Text(
+            'Yorumlar yüklenemedi: $error',
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
+      );
+    }
+
+    if (reviews.isEmpty) {
+      return const SizedBox(
+        height: 160,
+        child: Center(
+          child: Text(
+            'Bu ilan için henüz yorum bulunmamaktadır.',
+            style: TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+        ),
+      );
+    }
+
     return SizedBox(
       height: 160,
       child: ListView.builder(
@@ -28,12 +86,19 @@ class Yorumlar extends StatelessWidget {
         itemCount: reviews.length,
         itemBuilder: (context, index) {
           final review = reviews[index];
+          final reviewObj = Review(
+            name: review['user_name'] ?? 'Anonim',
+            comment: review['comment'] ?? '',
+            date: _formatDate(review['created_at']),
+            profileImage: "assets/images/user.jpg",
+          );
+          
           return GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ReviewDetailPage(review: review),
+                  builder: (context) => ReviewDetailPage(review: reviewObj),
                 ),
               );
             },
@@ -51,21 +116,23 @@ class Yorumlar extends StatelessWidget {
                   Row(
                     children: [
                       CircleAvatar(
-                        backgroundImage: AssetImage(review.profileImage),
+                        backgroundImage: AssetImage(reviewObj.profileImage),
                         radius: 16,
                       ),
                       SizedBox(width: 8),
-                      Text(
-                        review.name,
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Expanded(
+                        child: Text(
+                          reviewObj.name,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      Spacer(),
-                      Text(review.date, style: TextStyle(fontSize: 12)),
+                      Text(reviewObj.date, style: TextStyle(fontSize: 12)),
                     ],
                   ),
                   SizedBox(height: 10),
                   Text(
-                    review.comment,
+                    reviewObj.comment,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: Colors.black87),
@@ -77,5 +144,34 @@ class Yorumlar extends StatelessWidget {
         },
       ),
     );
+  }
+
+  String _formatDate(String? dateString) {
+    if (dateString == null) return 'Bilinmiyor';
+
+    try {
+      final date = DateTime.parse(dateString);
+      final now = DateTime.now();
+      final difference = now.difference(date);
+
+      if (difference.inDays == 0) {
+        return 'Bugün';
+      } else if (difference.inDays == 1) {
+        return 'Dün';
+      } else if (difference.inDays < 7) {
+        return '${difference.inDays} gün önce';
+      } else if (difference.inDays < 30) {
+        final weeks = (difference.inDays / 7).floor();
+        return '$weeks hafta önce';
+      } else if (difference.inDays < 365) {
+        final months = (difference.inDays / 30).floor();
+        return '$months ay önce';
+      } else {
+        final years = (difference.inDays / 365).floor();
+        return '$years yıl önce';
+      }
+    } catch (e) {
+      return 'Bilinmiyor';
+    }
   }
 }

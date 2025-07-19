@@ -4,7 +4,15 @@ from app.schemas.listing import ListingCreate
 
 
 def create_listing(db: Session, listing: ListingCreate, user_id: int):
-    db_listing = Listing(**listing.dict(), user_id=user_id)
+    data = listing.dict(exclude_unset=True)
+    data.pop('review_count', None)
+    
+    # Boolean değerleri integer'a çevir
+    for key in ['allow_events', 'allow_smoking', 'allow_commercial_photo']:
+        if key in data and isinstance(data[key], bool):
+            data[key] = 1 if data[key] else 0
+    
+    db_listing = Listing(**data, user_id=user_id)
     db.add(db_listing)
     db.commit()
     db.refresh(db_listing)
@@ -33,7 +41,15 @@ def delete_listing(db: Session, listing_id: int):
 def update_listing(db: Session, listing_id: int, listing: ListingCreate):
     db_listing = db.query(Listing).filter(Listing.id == listing_id).first()
     if db_listing:
-        for key, value in listing.dict(exclude_unset=True).items():
+        data = listing.dict(exclude_unset=True)
+        # Boolean değerleri integer'a çevir
+        for key in ['allow_events', 'allow_smoking', 'allow_commercial_photo']:
+            if key in data and isinstance(data[key], bool):
+                old_value = data[key]
+                data[key] = 1 if data[key] else 0
+                print(f"DEBUG - CRUD Update: {key} = {old_value} -> {data[key]}")
+        
+        for key, value in data.items():
             setattr(db_listing, key, value)
         db.commit()
         db.refresh(db_listing)

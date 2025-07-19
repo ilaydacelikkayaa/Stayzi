@@ -540,6 +540,10 @@ class ApiService {
     int? capacity,
     List<String>? amenities,
     File? photo,
+    bool? allowEvents,
+    bool? allowSmoking,
+    bool? allowCommercialPhoto,
+    int? maxGuests,
   }) async {
     try {
       var request = http.MultipartRequest(
@@ -557,6 +561,15 @@ class ApiService {
       if (homeType != null) request.fields['home_type'] = homeType;
       if (homeRules != null) request.fields['home_rules'] = homeRules;
       if (capacity != null) request.fields['capacity'] = capacity.toString();
+      if (allowEvents != null)
+        request.fields['allow_events'] = (allowEvents ? 1 : 0).toString();
+      if (allowSmoking != null)
+        request.fields['allow_smoking'] = (allowSmoking ? 1 : 0).toString();
+      if (allowCommercialPhoto != null)
+        request.fields['allow_commercial_photo'] =
+            (allowCommercialPhoto ? 1 : 0).toString();
+      if (maxGuests != null)
+        request.fields['max_guests'] = maxGuests.toString();
 
       if (hostLanguages != null) {
         request.fields['host_languages'] = json.encode(hostLanguages);
@@ -596,6 +609,13 @@ class ApiService {
     int? capacity,
     List<String>? amenities,
     File? photo,
+    int? roomCount,
+    int? bedCount,
+    int? bathroomCount,
+    bool? allowEvents,
+    bool? allowSmoking,
+    bool? allowCommercialPhoto,
+    int? maxGuests,
   }) async {
     try {
       var request = http.MultipartRequest(
@@ -615,6 +635,20 @@ class ApiService {
       if (homeType != null) request.fields['home_type'] = homeType;
       if (homeRules != null) request.fields['home_rules'] = homeRules;
       if (capacity != null) request.fields['capacity'] = capacity.toString();
+      if (roomCount != null)
+        request.fields['room_count'] = roomCount.toString();
+      if (bedCount != null) request.fields['bed_count'] = bedCount.toString();
+      if (bathroomCount != null)
+        request.fields['bathroom_count'] = bathroomCount.toString();
+      if (allowEvents != null)
+        request.fields['allow_events'] = (allowEvents ? 1 : 0).toString();
+      if (allowSmoking != null)
+        request.fields['allow_smoking'] = (allowSmoking ? 1 : 0).toString();
+      if (allowCommercialPhoto != null)
+        request.fields['allow_commercial_photo'] =
+            (allowCommercialPhoto ? 1 : 0).toString();
+      if (maxGuests != null)
+        request.fields['max_guests'] = maxGuests.toString();
 
       if (hostLanguages != null) {
         request.fields['host_languages'] = json.encode(hostLanguages);
@@ -636,6 +670,45 @@ class ApiService {
       return Listing.fromJson(data);
     } catch (e) {
       throw Exception('İlan güncellenemedi: $e');
+    }
+  }
+
+  // ========== REVIEW ENDPOINTS ==========
+
+  // Get reviews for a listing
+  Future<List<Map<String, dynamic>>> getListingReviews(int listingId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/reviews/listing/$listingId'),
+        headers: _getHeaders(),
+      );
+      final data = _handleResponse(response);
+      return (data as List).cast<Map<String, dynamic>>();
+    } catch (e) {
+      print('Review yükleme hatası: $e');
+      return []; // Hata durumunda boş liste döndür
+    }
+  }
+
+  // Create a review
+  Future<Map<String, dynamic>> createReview({
+    required int listingId,
+    required int rating,
+    required String comment,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/reviews/'),
+        headers: _getHeaders(requiresAuth: true),
+        body: json.encode({
+          'listing_id': listingId,
+          'rating': rating,
+          'comment': comment,
+        }),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      throw Exception('Review oluşturulamadı: $e');
     }
   }
 

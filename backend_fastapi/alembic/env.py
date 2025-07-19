@@ -6,7 +6,7 @@ from sqlalchemy import pool
 
 from alembic import context
 from dotenv import load_dotenv
-from app.models import user
+from app.models import user, listing, booking, review, favorite, amenity, listing_amenity, listing_availability
 from app import models
 
 load_dotenv()

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
+from .user import UserOut
 
 class ListingBase(BaseModel):
    
@@ -17,6 +18,16 @@ class ListingBase(BaseModel):
     home_rules: Optional[str] = None
     capacity: Optional[int] = None
     amenities: Optional[List[str]] = None
+    room_count: Optional[int] = None
+    bed_count: Optional[int] = None
+    bathroom_count: Optional[int] = None
+    review_count: Optional[int] = 0
+    
+    # Yeni izin alanları
+    allow_events: Optional[int] = 0  # 0: izin yok, 1: izin var
+    allow_smoking: Optional[int] = 0  # 0: izin yok, 1: izin var
+    allow_commercial_photo: Optional[int] = 0  # 0: izin yok, 1: izin var
+    max_guests: Optional[int] = 1
 
 class ListingCreate(ListingBase):
     pass
@@ -24,6 +35,7 @@ class ListingCreate(ListingBase):
 class Listing(ListingBase):
     id: int
     created_at: datetime
+    user: Optional[UserOut] = None
 
     class Config:
         from_attributes = True 

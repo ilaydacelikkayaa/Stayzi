@@ -1,436 +1,227 @@
 import 'package:flutter/material.dart';
+import 'package:stayzi_ui/models/listing_model.dart';
+import 'package:stayzi_ui/models/user_model.dart';
+import 'package:stayzi_ui/screens/detail/widgets/ev_sahibi_bilgisi.dart';
+import 'package:stayzi_ui/screens/detail/widgets/ilan_baslik.dart';
+import 'package:stayzi_ui/screens/detail/widgets/image_gallery.dart';
+import 'package:stayzi_ui/screens/detail/widgets/konum_harita.dart';
+import 'package:stayzi_ui/screens/detail/widgets/mekan_aciklamasi.dart';
+import 'package:stayzi_ui/screens/detail/widgets/olanaklar_ve_kurallar.dart';
+import 'package:stayzi_ui/screens/detail/widgets/takvim_bilgisi.dart';
+import 'package:stayzi_ui/screens/detail/widgets/yorumlar_degerlendirmeler.dart';
+import 'package:stayzi_ui/services/api_service.dart';
 
-import '../../models/listing_model.dart';
-import '../../services/api_service.dart';
-import 'edit_home_screen.dart';
+class HomeDetailScreen extends StatefulWidget {
+  final int listingId;
+  final ScrollController? scrollController;
+  
+  const HomeDetailScreen({
+    super.key,
+    required this.listingId,
+    this.scrollController,
+  });
 
-final String baseUrl = "http://10.0.2.2:8000";
-String getListingImageUrl(String? path) {
-  if (path == null || path.isEmpty) return 'assets/images/user.jpg';
-  if (path.startsWith('/uploads')) {
-    return baseUrl + path;
-  }
-  return path;
+  @override
+  State<HomeDetailScreen> createState() => _HomeDetailScreenState();
 }
 
-Widget buildListingImage(String imageUrl) {
-  print('DEBUG: buildListingImage çağrıldı, imageUrl = $imageUrl');
-  if (imageUrl.startsWith('assets/')) {
-    print('DEBUG: Image.asset ile gösteriliyor');
-    return Image.asset(
-      imageUrl,
-      height: 200,
-      width: double.infinity,
-      fit: BoxFit.cover,
-    );
-  } else {
-    print('DEBUG: Image.network ile gösteriliyor');
-    return Image.network(
-      imageUrl,
-      height: 200,
-      width: double.infinity,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        return Container(
-          height: 200,
-          width: double.infinity,
-          color: Colors.grey[200],
-          child: const Icon(Icons.home_outlined, size: 64, color: Colors.grey),
-        );
-      },
-    );
+class _HomeDetailScreenState extends State<HomeDetailScreen> {
+  Listing? detailedListing;
+  User? currentUser;
+  bool isLoading = true;
+  String? error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDetailedData();
   }
-}
 
-class HomeDetailScreen extends StatelessWidget {
-  final Listing listing;
 
-  const HomeDetailScreen({super.key, required this.listing});
+
+  Future<void> _loadDetailedData() async {
+    setState(() {
+      isLoading = true;
+      error = null;
+    });
+
+    try {
+      // Listing detaylarını yükle
+      detailedListing = await ApiService().getListingById(widget.listingId);
+
+      // Giriş yapmış kullanıcı bilgilerini al (ev sahibi)
+      currentUser = await ApiService().getCurrentUser();
+
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        error = e.toString();
+        isLoading = false;
+      });
+      print('Detay yükleme hatası: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    print(
-      'DEBUG: Detayda gösterilecek imageUrl: ' +
-          (listing.imageUrls != null && listing.imageUrls!.isNotEmpty
-              ? listing.imageUrls!.first
-              : 'assets/images/user.jpg'),
-    );
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        title: Text(
-          listing.title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: Colors.black,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit, color: Colors.black),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => EditHomeScreen(listing: listing),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () {
-              _showDeleteConfirmation(context);
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (error != null) {
+      return Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Image section
-            Container(
-              width: double.infinity,
-              height: 250,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child:
-                  listing.imageUrls != null && listing.imageUrls!.isNotEmpty
-                      ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: buildListingImage(
-                          getListingImageUrl(listing.imageUrls!.first),
-                        ),
-                      )
-                      : Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(
-                          Icons.home_outlined,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                      ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Title and price
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    listing.title,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (listing.location != null) ...[
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.location_on_outlined,
-                          size: 16,
-                          color: Colors.grey[600],
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            listing.location!,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '₺${listing.price.toStringAsFixed(0)}/gece',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          const Icon(Icons.star, size: 20, color: Colors.amber),
-                          const SizedBox(width: 4),
-                          Text(
-                            listing.averageRating.toStringAsFixed(1),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            
+            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
             const SizedBox(height: 16),
-            
-            // Details section
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Detaylar',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  if (listing.capacity != null) ...[
-                    _buildDetailRow(
-                      icon: Icons.people_outline,
-                      label: 'Kapasite',
-                      value: '${listing.capacity} misafir',
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-
-                  if (listing.homeType != null) ...[
-                    _buildDetailRow(
-                      icon: Icons.home_outlined,
-                      label: 'Ev Tipi',
-                      value: listing.homeType!,
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-
-                  if (listing.description != null) ...[
-                    _buildDetailRow(
-                      icon: Icons.description_outlined,
-                      label: 'Açıklama',
-                      value: listing.description!,
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-
-                  if (listing.amenities != null &&
-                      listing.amenities!.isNotEmpty) ...[
-                    _buildDetailRow(
-                      icon: Icons.checklist_outlined,
-                      label: 'Olanaklar',
-                      value: listing.amenities!.join(', '),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-
-                  if (listing.homeRules != null) ...[
-                    _buildDetailRow(
-                      icon: Icons.rule_outlined,
-                      label: 'Ev Kuralları',
-                      value: listing.homeRules!,
-                    ),
-                  ],
-                ],
-              ),
+            Text(
+              'Veri yüklenirken hata: $error',
+              style: const TextStyle(color: Colors.red),
+              textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 16),
-
-            // Action buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => EditHomeScreen(listing: listing),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.edit),
-                    label: const Text('Düzenle'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      side: const BorderSide(color: Colors.black),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      _showDeleteConfirmation(context);
-                    },
-                    icon: const Icon(Icons.delete),
-                    label: const Text('Sil'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            ElevatedButton(
+              onPressed: _loadDetailedData,
+              child: const Text('Tekrar Dene'),
             ),
           ],
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  Widget _buildDetailRow({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    if (detailedListing == null) {
+      return const Center(child: Text('İlan bulunamadı'));
+    }
+
+    // Listing verilerini Map'e çevir
+    final listingData = _listingToMap(detailedListing!);
+
+    // Ev sahibi bilgilerini giriş yapmış kullanıcıdan al
+    if (currentUser != null) {
+      listingData['host_name'] = '${currentUser!.name} ${currentUser!.surname}';
+      listingData['host_user'] = {
+        'name': currentUser!.name,
+        'surname': currentUser!.surname,
+        'email': currentUser!.email,
+        'phone': currentUser!.phone,
+        'profile_image': currentUser!.profileImage,
+      };
+    }
+
+    // Fotoğraf galerisi için image list
+    List<String> imageList = [];
+    try {
+      final galeri = listingData['galeri'] as List<dynamic>?;
+      if (galeri != null) {
+        imageList =
+            galeri
+                .where((url) => url != null)
+                .map((url) => url.toString())
+                .toList();
+      } else if (listingData['foto'] != null) {
+        imageList = [listingData['foto']];
+      }
+    } catch (e) {
+      imageList = listingData['foto'] != null ? [listingData['foto']] : [];
+    }
+
+    return ListView(
+      controller: widget.scrollController,
+      padding: EdgeInsets.zero,
       children: [
-        Icon(icon, size: 20, color: Colors.black),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[700],
-                ),
+        // Loading indicator
+        if (isLoading)
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+
+        // Error message
+        if (error != null)
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              child: Text(
+                'Veri yüklenirken hata: $error',
+                style: const TextStyle(color: Colors.red),
               ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: const TextStyle(fontSize: 16, color: Colors.black),
+            ),
+          ),
+
+        // Fotoğraf Galerisi
+        ListingImageGallery(imageList: imageList),
+        if (imageList.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'Bu ilana ait fotoğraf bulunmamaktadır.',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
-            ],
+            ),
+          ),
+        IlanBaslik(listing: listingData),
+        Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
+        EvSahibiBilgisi(listing: listingData),
+        Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
+        MekanAciklamasi(
+          description: listingData['description']?.toString() ?? '',
+        ),
+        Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
+        KonumBilgisi(
+          latitude: (listingData['latitude'] as num?)?.toDouble() ?? 0.0,
+          longitude: (listingData['longitude'] as num?)?.toDouble() ?? 0.0,
+        ),
+        Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
+        TakvimBilgisi(),
+        Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            "Yorumlar ve Değerlendirmeler",
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
         ),
+        Padding(
+          padding: EdgeInsets.all(20),
+          child: Yorumlar(listingId: listingData['id']),
+        ),
+        Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
+        OlanaklarVeKurallar(listing: listingData),
+        const SizedBox(height: 100),
       ],
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text(
-            'İlanı Sil',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: Text(
-            '"${listing.title}" ilanını silmek istediğinizden emin misiniz?',
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('İptal'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            ElevatedButton(
-              child: const Text('Sil'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                try {
-                  await ApiService().deleteListing(listing.id);
-                  if (context.mounted) {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('İlan başarıyla silindi.'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Silme başarısız: $e'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
+  Map<String, dynamic> _listingToMap(Listing listing) {
+    final map = {
+      'id': listing.id,
+      'title': listing.title,
+      'location': listing.location,
+      'price': listing.price,
+      'description': listing.description,
+      'image_urls': listing.imageUrls,
+      'average_rating': listing.averageRating,
+      'host_name': listing.userId?.toString() ?? '',
+      'latitude': listing.lat,
+      'longitude': listing.lng,
+      'capacity': listing.capacity,
+      'galeri': listing.imageUrls,
+      'amenities': listing.amenities,
+      'home_rules': listing.homeRules,
+      'home_type': listing.homeType,
+      'room_count': listing.roomCount,
+      'bed_count': listing.bedCount,
+      'bathroom_count': listing.bathroomCount,
+      'allow_events': listing.allowEvents,
+      'allow_smoking': listing.allowSmoking,
+      'allow_commercial_photo': listing.allowCommercialPhoto,
+      'max_guests': listing.maxGuests,
+    };
+
+    return map;
   }
 }
