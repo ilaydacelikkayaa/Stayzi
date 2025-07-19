@@ -78,91 +78,39 @@ class _FilteredScreenState extends State<FilteredScreen> {
           ),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return Stack(
-            // stack koymamızın sebebi altta harita üstte bir bottomsheet olcak.
-            children: [
-              // Harita Alanının buyuyup kuculmesi icin gerekli olan basit animasyon
-              AnimatedContainer(
-                duration: Duration(milliseconds: 300),
-                height: constraints.maxHeight * _mapHeightFraction, //gpt yapti
-                width: double.infinity,
-                color: Colors.blueGrey, // Harita yerine dummy renk
-                child: Center(
-                  child: Text(
-                    'MAP',
-                    style: TextStyle(color: Colors.white, fontSize: 24),
-                  ),
-                ),
-              ),
+      body: FutureBuilder<List<Listing>>(
+        future: fetchFilteredListings(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No listings found'));
+          }
 
-              // Draggable BottomSheet
-              DraggableScrollableSheet(
-                snap: true,
-                initialChildSize: 0.4,
-                minChildSize: 0.2,
-                maxChildSize: 0.8,
-                builder: (context, scrollController) {
-                  return FutureBuilder<List<Listing>>(
-                    future: fetchFilteredListings(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(child: Text('No listings found'));
-                      }
+          final allListings = snapshot.data!;
+          final double? minPrice =
+              widget.filters['min_price'] != null
+                  ? double.tryParse(widget.filters['min_price'].toString())
+                  : null;
+          final double? maxPrice =
+              widget.filters['max_price'] != null
+                  ? double.tryParse(widget.filters['max_price'].toString())
+                  : null;
 
-                      // apply client-side price filtering
-                      final allListings = snapshot.data!;
-                      final double? minPrice =
-                          widget.filters['min_price'] != null
-                              ? double.tryParse(
-                                widget.filters['min_price'].toString(),
-                              )
-                              : null;
-                      final double? maxPrice =
-                          widget.filters['max_price'] != null
-                              ? double.tryParse(
-                                widget.filters['max_price'].toString(),
-                              )
-                              : null;
-                      final listings =
-                          allListings.where((listing) {
-                            if (minPrice != null && listing.price < minPrice)
-                              return false;
-                            if (maxPrice != null && listing.price > maxPrice)
-                              return false;
-                            return true;
-                          }).toList();
+          final listings =
+              allListings.where((listing) {
+                if (minPrice != null && listing.price < minPrice) return false;
+                if (maxPrice != null && listing.price > maxPrice) return false;
+                return true;
+              }).toList();
 
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(20),
-                          ),
-                          boxShadow: [
-                            BoxShadow(color: Colors.black26, blurRadius: 10),
-                          ],
-                        ),
-                        child: ListView.builder(
-                          controller: scrollController,
-                          itemCount: listings.length,
-                          itemBuilder: (context, index) {
-                            return TinyHomeCard(
-                              listing: listings[index].toJson(),
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
+          return ListView.builder(
+            itemCount: listings.length,
+            itemBuilder: (context, index) {
+              return TinyHomeCard(listing: listings[index].toJson());
+            },
           );
         },
       ),

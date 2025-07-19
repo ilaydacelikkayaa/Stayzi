@@ -21,10 +21,10 @@ class ListingBase(BaseModel):
     home_rules: Optional[str] = None
     capacity: Optional[int] = None
     amenities: Optional[List[AmenityInListing]] = None
-    room_count: Optional[int] = None
-    bed_count: Optional[int] = None
-    bathroom_count: Optional[int] = None
-    review_count: Optional[int] = 0
+    #room_count: Optional[int] = None
+    #bed_count: Optional[int] = None
+    #bathroom_count: Optional[int] = None
+    #review_count: Optional[int] = 0
     
     # Yeni izin alanları
     allow_events: Optional[int] = 0  # 0: izin yok, 1: izin var
