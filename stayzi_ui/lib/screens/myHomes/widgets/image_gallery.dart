@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
 
 class ListingImageGallery extends StatelessWidget {
   final List<String> imageList;
 
   const ListingImageGallery({super.key, required this.imageList});
 
-  final String baseUrl = "http://10.0.2.2:8000";
+  final String baseUrl = ApiConstants.baseUrl;
   String getListingImageUrl(String? path) {
     if (path == null || path.isEmpty) return 'assets/images/user.jpg';
     if (path.startsWith('/uploads')) {

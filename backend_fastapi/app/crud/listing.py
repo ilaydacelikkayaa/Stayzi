@@ -164,6 +164,7 @@ def get_filtered_listings(
     guests: int | None = None,
     max_price: float | None = None,
     min_price: float | None = None,
+    exclude_user_id: int | None = None,  # yeni parametre
 ) -> list[Listing]:
     query = db.query(Listing)
 
@@ -192,5 +193,7 @@ def get_filtered_listings(
         query = query.filter(Listing.price >= min_price)
     if max_price is not None:
         query = query.filter(Listing.price <= max_price)
+    if exclude_user_id is not None:
+        query = query.filter(Listing.user_id != exclude_user_id)
 
     return query.all()

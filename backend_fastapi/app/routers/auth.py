@@ -32,17 +32,22 @@ def login_with_email(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-# ✅ Telefonla login
-
+# ✅ Telefonla login (şifresiz)
 @router.post("/login/phone", response_model=Token)
 def login_with_phone(
     login_data: PhoneLogin,
     db: Session = Depends(get_db)
 ):
+    print(f"📲 Telefon ile giriş isteği: {login_data.phone}")
+    
     user = get_user_by_phone(db, login_data.phone)
-    if not user or not verify_password(login_data.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Telefon veya şifre hatalı")
-
+    print(f"📲 Kullanıcı bulundu mu: {user is not None}")
+    
+    if not user:
+        print("❌ Kullanıcı bulunamadı")
+        raise HTTPException(status_code=401, detail="Telefon numarası bulunamadı")
+    
+    print(f"✅ Giriş başarılı: {user.name} {user.surname}")
     access_token = create_access_token(data={"sub": user.phone})
     print("🔐 Oluşturulan JWT Token:", access_token)
     return {"access_token": access_token, "token_type": "bearer"}

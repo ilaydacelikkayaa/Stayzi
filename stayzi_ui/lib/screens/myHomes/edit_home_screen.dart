@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
 
 import '../../models/listing_model.dart';
 import '../../services/api_service.dart';
@@ -122,18 +123,19 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
     super.dispose();
   }
 
-  // 1. Fotoğraf seçme fonksiyonu
+  // Fotoğraf seçme fonksiyonu - birden fazla fotoğraf için
   Future<void> _pickImage() async {
     final pickedFile = await ImagePicker().pickImage(
       source: ImageSource.gallery,
     );
     if (pickedFile != null) {
       setState(() {
-        _selectedImage = File(pickedFile.path);
+        _selectedImages.add(File(pickedFile.path));
       });
       print(
-        'DEBUG: Fotoğraf seçildi:  [32m [1m [4m${_selectedImage!.path} [0m',
+        'DEBUG: Fotoğraf seçildi ve listeye eklendi: ${File(pickedFile.path).path}',
       );
+      print('DEBUG: Toplam seçili fotoğraf sayısı: ${_selectedImages.length}');
     } else {
       print('DEBUG: Fotoğraf seçilmedi.');
     }
@@ -327,16 +329,21 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
         throw Exception('Geçerli bir fiyat giriniz');
       }
 
-      // DEBUG: Seçilen fotoğrafı yazdır
+      // DEBUG: Seçilen fotoğrafları yazdır
       print(
-        'Güncelleme için seçilen fotoğraf:  [32m [1m [4m${_selectedImage?.path} [0m',
+        'Güncelleme için seçilen fotoğraf sayısı: ${_selectedImages.length}',
       );
-      if (_selectedImage == null) {
+      if (_selectedImages.isEmpty) {
         print(
           'DEBUG: Fotoğraf seçilmedi, sadece metin alanları güncelleniyor.',
         );
       } else {
-        print('DEBUG: Fotoğraf updateListing fonksiyonuna gönderiliyor.');
+        print(
+          'DEBUG: ${_selectedImages.length} adet fotoğraf updateListing fonksiyonuna gönderiliyor.',
+        );
+        for (int i = 0; i < _selectedImages.length; i++) {
+          print('DEBUG: Fotoğraf ${i + 1}: ${_selectedImages[i].path}');
+        }
       }
 
       // Koordinatları belirle
@@ -375,7 +382,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
         capacity: capacity,
         homeRules: _buildHomeRulesText(),
         amenities: _selectedAmenities.isNotEmpty ? _selectedAmenities : null,
-        photo: _selectedImage,
+        photos: _selectedImages.isNotEmpty ? _selectedImages : null,
         roomCount: int.tryParse(roomCountController.text.trim()),
         bedCount: int.tryParse(bedCountController.text.trim()),
         bathroomCount: int.tryParse(bathroomCountController.text.trim()),
@@ -412,8 +419,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
   }
 
   // Android emülatörü için bilgisayarın localhost'una erişim:
-  final String baseUrl =
-      "http://10.0.2.2:8000"; // Gerçek cihazda test için bilgisayarınızın IP adresini kullanın
+  final String baseUrl = ApiConstants.baseUrl;
   String getListingImageUrl(String? path) {
     if (path == null || path.isEmpty) {
       return "assets/images/user.jpg"; // assets klasörünüzdeki varsayılan görsel

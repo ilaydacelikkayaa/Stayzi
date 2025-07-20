@@ -9,3 +9,6 @@ python-jose
 passlib[bcrypt]
 python-multipart
 redis==5.0.1
+redis>=4.2.0
+pika
+alembic

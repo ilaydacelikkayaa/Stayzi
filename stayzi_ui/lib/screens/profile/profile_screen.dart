@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
 
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
@@ -118,13 +119,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     // Profile Card
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const ProfileDetailScreen(),
                           ),
                         );
+                        // Profil detay sayfasından döndükten sonra veriyi yenile
+                        setState(() {
+                          _loadUserData();
+                        });
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -225,18 +230,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       title: 'Kişisel Bilgiler',
                       subtitle: 'Ad, e-posta ve diğer bilgiler',
                       onTap: () async {
-                        final result = await Navigator.push(
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const PersonalInfoScreen(),
                           ),
                         );
-                        // Eğer düzenleme yapıldıysa veriyi yenile
-                        if (result == true) {
-                          setState(() {
-                            _loadUserData();
-                          });
-                        }
+                        // Kişisel bilgiler sayfasından döndükten sonra veriyi yenile
+                        setState(() {
+                          _loadUserData();
+                        });
                       },
                     ),
                     const SizedBox(height: 16),
@@ -464,8 +467,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
 // Yeni kod:
 // Android emülatörü için bilgisayarın localhost'una erişim:
-final String baseUrl =
-    "http://10.0.2.2:8000"; // Gerçek cihazda test için bilgisayarınızın IP adresini kullanın
+final String baseUrl = ApiConstants.baseUrl;
 String getProfileImageUrl(String? path) {
   if (path == null || path.isEmpty) return '';
   if (path.startsWith('/uploads')) {

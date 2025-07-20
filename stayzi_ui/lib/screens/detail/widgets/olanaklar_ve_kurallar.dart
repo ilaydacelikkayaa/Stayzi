@@ -12,9 +12,17 @@ class OlanaklarVeKurallar extends StatefulWidget {
 class _OlanaklarVeKurallarState extends State<OlanaklarVeKurallar> {
   @override
   Widget build(BuildContext context) {
+    print("🔧 OlanaklarVeKurallar - İlan verisi:");
+    print("  Olanaklar: ${widget.listing['amenities']}");
+    print("  Ev kuralları: ${widget.listing['home_rules']}");
+    
     final List<dynamic>? amenities = widget.listing['amenities'];
     final String homeRules =
         widget.listing['home_rules'] ?? 'Ev kuralları belirtilmemiş.';
+
+    print("🔧 İşlenmiş veriler:");
+    print("  Olanaklar sayısı: ${amenities?.length ?? 0}");
+    print("  Ev kuralları: $homeRules");
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,10 +43,11 @@ class _OlanaklarVeKurallarState extends State<OlanaklarVeKurallar> {
                     runSpacing: 10,
                     children:
                         amenities.map((amenity) {
+                          print("🔧 Olanak: $amenity");
                           return Chip(
                             label: Text(
                               // Burada amenity.name kullanıyoruz:
-                              amenity.name ?? '',
+                              amenity['name'] ?? '',
                               style: TextStyle(fontSize: 14),
                             ),
                             backgroundColor: Colors.grey[200],

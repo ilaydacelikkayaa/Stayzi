@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
 
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
@@ -46,31 +47,115 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       print('📱 Telefon: ${user.phone}');
       print('📧 E-posta: ${user.email}');
       print('🏠 Ülke: ${user.country}');
+      print('🖼️ Profil fotoğrafı: ${user.profileImage}');
       setState(() {
         _user = user;
+        _isLoading = false;
       });
     } catch (e) {
+      print('❌ Kullanıcı bilgisi alınamadı: $e');
       setState(() {
         _error = 'Kullanıcı bilgisi alınamadı: $e';
-      });
-    } finally {
-      setState(() {
         _isLoading = false;
       });
     }
   }
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedImage = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text(
+                    'Profil Fotoğrafı Seç',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E88E5).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      color: Color(0xFF1E88E5),
+                    ),
+                  ),
+                  title: const Text('Kamera ile Çek'),
+                  subtitle: const Text('Yeni fotoğraf çek'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final picker = ImagePicker();
+                    final pickedImage = await picker.pickImage(
+                      source: ImageSource.camera,
+                      imageQuality: 80,
+                    );
+                    if (pickedImage != null) {
+                      setState(() {
+                        _imageFile = File(pickedImage.path);
+                      });
+                      await _uploadProfileImage();
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E88E5).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.photo_library,
+                      color: Color(0xFF1E88E5),
+                    ),
+                  ),
+                  title: const Text('Galeriden Seç'),
+                  subtitle: const Text('Mevcut fotoğraf seç'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final picker = ImagePicker();
+                    final pickedImage = await picker.pickImage(
+                      source: ImageSource.gallery,
+                      imageQuality: 80,
+                    );
+                    if (pickedImage != null) {
+                      setState(() {
+                        _imageFile = File(pickedImage.path);
+                      });
+                      await _uploadProfileImage();
+                    }
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
     );
-    if (pickedImage != null) {
-      setState(() {
-        _imageFile = File(pickedImage.path);
-      });
-    }
   }
 
   Future<void> _uploadProfileImage() async {
@@ -82,13 +167,62 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     });
     try {
       await ApiService().updateProfile(profileImage: _imageFile);
+      
+      // Önce kullanıcı bilgilerini güncelle
+      await _fetchUser();
+      
       setState(() {
         _uploadSuccess = 'Profil fotoğrafı başarıyla yüklendi!';
+        _imageFile = null; // Yükleme başarılı olduktan sonra dosyayı temizle
       });
-      await _fetchUser(); // Fotoğrafı güncellemek için tekrar çek
+
+      // UI'ı force rebuild et
+      if (mounted) {
+        setState(() {});
+      }
+
+      // Başarı mesajını göster
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profil fotoğrafı başarıyla güncellendi!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+
+      // 3 saniye sonra başarı mesajını kaldır
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _uploadSuccess = null;
+          });
+        }
+      });
     } catch (e) {
       setState(() {
         _uploadError = 'Yükleme başarısız: $e';
+      });
+      
+      // Hata mesajını göster
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fotoğraf yüklenemedi: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+
+      // 5 saniye sonra hata mesajını kaldır
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) {
+          setState(() {
+            _uploadError = null;
+          });
+        }
       });
     } finally {
       setState(() {
@@ -187,76 +321,106 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                       // Profile Image Section
                       GestureDetector(
                         onTap: _pickImage,
-                        child: Stack(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 4,
-                                ),
-                                borderRadius: BorderRadius.circular(60),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              child:
-                                  _imageFile != null
-                                      ? CircleAvatar(
-                                        radius: 56,
-                                        backgroundImage: FileImage(_imageFile!),
-                                      )
-                                      : (user != null &&
-                                          user.profileImage != null &&
-                                          user.profileImage!.isNotEmpty)
-                                      ? CircleAvatar(
-                                        radius: 56,
-                                        backgroundImage: NetworkImage(
-                                          getProfileImageUrl(user.profileImage),
-                                        ),
-                                      )
-                                      : CircleAvatar(
-                                        radius: 56,
-                                        backgroundColor: Colors.white
-                                            .withOpacity(0.2),
-                                        child: Text(
-                                          initial,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 48,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
+                        child: Tooltip(
+                          message: 'Profil fotoğrafını değiştir',
+                          child: Stack(
+                            children: [
+                              Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 4,
+                                  ),
+                                  borderRadius: BorderRadius.circular(60),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 5),
                                     ),
                                   ],
                                 ),
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  color: Color(0xFF1E88E5),
-                                  size: 20,
+                                child:
+                                    _imageFile != null
+                                        ? CircleAvatar(
+                                        radius: 56,
+                                        backgroundImage: FileImage(_imageFile!),
+                                      )
+                                        : (user != null &&
+                                            user.profileImage != null &&
+                                            user.profileImage!.isNotEmpty)
+                                        ? Builder(
+                                          builder: (context) {
+                                            final imageUrl = getProfileImageUrl(
+                                              user.profileImage,
+                                            );
+                                            print(
+                                              '🖼️ Profil fotoğrafı URL: $imageUrl',
+                                            );
+                                            return CircleAvatar(
+                                              radius: 56,
+                                              backgroundImage: NetworkImage(
+                                                imageUrl,
+                                              ),
+                                              onBackgroundImageError: (
+                                                exception,
+                                                stackTrace,
+                                              ) {
+                                                print(
+                                                  '❌ Profil fotoğrafı yüklenemedi: $exception',
+                                                );
+                                                print('🖼️ URL: $imageUrl');
+                                              },
+                                            );
+                                          },
+                                        )
+                                        : CircleAvatar(
+                                          radius: 56,
+                                          backgroundColor: Colors.white
+                                              .withOpacity(0.2),
+                                          child: Text(
+                                            initial,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 48,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: _pickImage,
+                                  child: Tooltip(
+                                    message: 'Fotoğraf değiştir',
+                                    child: Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF1E88E5),
+                                        borderRadius: BorderRadius.circular(28),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.4,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.camera_alt,
+                                        color: Colors.white,
+                                        size: 24,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -264,33 +428,42 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                       // Upload Status
                       if (_isUploading)
                         Container(
+                          margin: const EdgeInsets.only(top: 12),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 8,
+                            vertical: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(25),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              SizedBox(
-                                width: 16,
-                                height: 16,
+                              const SizedBox(
+                                width: 20,
+                                height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
+                                    Color(0xFF1E88E5),
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Yükleniyor...',
+                              const SizedBox(width: 12),
+                              const Text(
+                                'Fotoğraf yükleniyor...',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Color(0xFF1E88E5),
                                   fontSize: 14,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
@@ -302,11 +475,18 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                           margin: const EdgeInsets.only(top: 12),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 8,
+                            vertical: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.red.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(25),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.red.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -314,14 +494,17 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                               const Icon(
                                 Icons.error_outline,
                                 color: Colors.white,
-                                size: 16,
+                                size: 20,
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _uploadError!,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _uploadError!,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],
@@ -333,11 +516,18 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                           margin: const EdgeInsets.only(top: 12),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 8,
+                            vertical: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.green.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(25),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.green.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -345,41 +535,23 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                               const Icon(
                                 Icons.check_circle_outline,
                                 color: Colors.white,
-                                size: 16,
+                                size: 20,
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _uploadSuccess!,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _uploadSuccess!,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
                       
-                      if (_imageFile != null && !_isUploading)
-                        Container(
-                          margin: const EdgeInsets.only(top: 16),
-                          child: ElevatedButton.icon(
-                            onPressed: _uploadProfileImage,
-                            icon: const Icon(Icons.save),
-                            label: const Text('Kaydet'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF1E88E5),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
-                              ),
-                            ),
-                          ),
-                        ),
-
                       const SizedBox(height: 20),
 
                       // User Name
@@ -547,12 +719,11 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
 // Kullanıcı profil fotoğrafı gösterimi
 // Android emülatörü için bilgisayarın localhost'una erişim:
-final String baseUrl =
-    "http://10.0.2.2:8000"; // Gerçek cihazda test için bilgisayarınızın IP adresini kullanın
+final String baseUrl = ApiConstants.baseUrl;
 String getProfileImageUrl(String? path) {
   if (path == null || path.isEmpty) return '';
   if (path.startsWith('/uploads')) {
-    return baseUrl + path;
+    return '$baseUrl$path?t=${DateTime.now().millisecondsSinceEpoch}';
   }
-  return path;
+  return '$path?t=${DateTime.now().millisecondsSinceEpoch}';
 }

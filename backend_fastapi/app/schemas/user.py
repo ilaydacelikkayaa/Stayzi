@@ -65,4 +65,4 @@ class PhoneRegister(BaseModel):
 
 class PhoneLogin(BaseModel):
     phone: str
-    password: str
+    password: Optional[str] = None  # Şifre artık opsiyonel

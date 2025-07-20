@@ -18,6 +18,7 @@ print(">>> SECRET_KEY:", SECRET_KEY)
 ALGORITHM = "HS256"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")  # ✅ düzeltildi
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)  # Optional için
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
     credentials_exception = HTTPException(
@@ -56,4 +57,37 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 
     if user is None:
         raise credentials_exception
+    return user
+
+async def get_current_user_optional(token: str = Depends(oauth2_scheme_optional), db: Session = Depends(get_db)) -> User | None:
+    if token is None:
+        return None
+        
+    try:
+        print(">>> Token geldi mi:", token)  # ✅ 1. Gelen token'ı yazdır
+        
+        # JWT token'ın kara listede olup olmadığını kontrol et
+        try:
+            is_blacklisted = await JWTBlacklist.is_blacklisted(token)
+            if is_blacklisted:
+                return None
+        except Exception as e:
+            print(f">>> Redis blacklist check error: {e}")
+            # Redis hatası durumunda devam et (güvenlik için)
+            pass
+        
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        phone: str = payload.get("sub")
+        print(">>> Çözülmüş phone:", phone)  # ✅ 2. JWT'den çözülen phone'u yazdır
+        if phone is None:
+            return None
+    except JWTError as e:
+        print(">>> JWT Hatası:", str(e))  # ✅ 3. Hata varsa konsola yaz
+        return None
+
+    user = get_user_by_phone(db, phone=phone)
+    print(">>> Kullanıcı objesi:", user)  # ✅ 4. Kullanıcıyı yazdır
+
+    if user is None:
+        return None
     return user

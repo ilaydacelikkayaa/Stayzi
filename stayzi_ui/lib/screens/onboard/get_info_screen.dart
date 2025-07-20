@@ -57,10 +57,7 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
       print("✅ Kullanıcı başarıyla kaydedildi.");
 
       // Giriş yap ve token al
-      final token = await ApiService().loginWithPhone(
-        standardizedPhone,
-        _controllers['password']!.text.trim(),
-      );
+      final token = await ApiService().loginWithPhone(standardizedPhone);
 
       // Token'ı API service'e set et
       ApiService().setAuthToken(token.accessToken);
@@ -68,11 +65,8 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
       // Token'ı StorageService ile kaydet
       await StorageService().saveToken(token);
 
-      // ✅ Şifreyi de kaydet
+      // ✅ Standardized phone'u kaydet
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_password', _controllers['password']!.text.trim());
-      
-      // ✅ Standardized phone'u da kaydet
       await prefs.setString('user_phone', standardizedPhone);
 
       Navigator.pushReplacement(

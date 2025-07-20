@@ -59,49 +59,81 @@ class Listing {
   });
 
   factory Listing.fromJson(Map<String, dynamic> json) {
-    return Listing(
-      id: json['id'],
-      userId: json['user_id'],
-      title: json['title'],
-      description: json['description'],
-      price: json['price'].toDouble(),
-      location: json['location'],
-      lat: json['lat']?.toDouble(),
-      lng: json['lng']?.toDouble(),
-      homeType: json['home_type'],
-      hostLanguages:
-          json['host_languages'] != null
-              ? List<String>.from(json['host_languages'])
-              : null,
-      imageUrls:
-          json['image_urls'] != null
-              ? List<String>.from(json['image_urls'])
-              : null,
-      averageRating: json['average_rating']?.toDouble() ?? 0.0,
-      homeRules: json['home_rules'],
-      capacity: json['capacity'],
-      amenities:
-          json['amenities'] != null
-              ? (json['amenities'] as List)
-                  .map((e) => Amenity.fromJson(e as Map<String, dynamic>))
-                  .toList()
-              : null,
-      roomCount: json['room_count'],
-      bedCount: json['bed_count'],
-      bathroomCount: json['bathroom_count'],
-      reviewCount: json['review_count'],
-      allowEvents: json['allow_events'],
-      allowSmoking: json['allow_smoking'],
-      allowCommercialPhoto: json['allow_commercial_photo'],
-      maxGuests: json['max_guests'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt:
-          json['updated_at'] != null
-              ? DateTime.parse(json['updated_at'])
-              : null,
+    print("🏠 Listing.fromJson çağrıldı");
+    print("🏠 JSON verisi: $json");
 
-      user: json['user'] != null ? User.fromJson(json['user']) : null,
-    );
+    try {
+      // Host bilgisini al (hem 'user' hem 'host' alanlarını kontrol et)
+      Map<String, dynamic>? hostData;
+      if (json['host'] != null) {
+        hostData = json['host'] as Map<String, dynamic>;
+        print("🏠 Host verisi bulundu: $hostData");
+      } else if (json['user'] != null) {
+        hostData = json['user'] as Map<String, dynamic>;
+        print("🏠 User verisi bulundu: $hostData");
+      }
+
+      User? user;
+      if (hostData != null) {
+        try {
+          user = User.fromJson(hostData);
+          print("🏠 User objesi oluşturuldu: ${user.name} ${user.surname}");
+        } catch (e) {
+          print("❌ User.fromJson hatası: $e");
+          user = null;
+        }
+      }
+
+      return Listing(
+        id: json['id'],
+        userId: json['user_id'],
+        title: json['title'] ?? '',
+        description: json['description'],
+        price: (json['price'] ?? 0.0).toDouble(),
+        location: json['location'],
+        lat: json['lat']?.toDouble(),
+        lng: json['lng']?.toDouble(),
+        homeType: json['home_type'],
+        hostLanguages:
+            json['host_languages'] != null
+                ? List<String>.from(json['host_languages'])
+                : null,
+        imageUrls:
+            json['image_urls'] != null
+                ? List<String>.from(json['image_urls'])
+                : null,
+        averageRating: (json['average_rating'] ?? 0.0).toDouble(),
+        homeRules: json['home_rules'],
+        capacity: json['capacity'],
+        amenities:
+            json['amenities'] != null
+                ? (json['amenities'] as List)
+                    .map((e) => Amenity.fromJson(e as Map<String, dynamic>))
+                    .toList()
+                : null,
+        roomCount: json['room_count'],
+        bedCount: json['bed_count'],
+        bathroomCount: json['bathroom_count'],
+        reviewCount: json['review_count'],
+        allowEvents: json['allow_events'],
+        allowSmoking: json['allow_smoking'],
+        allowCommercialPhoto: json['allow_commercial_photo'],
+        maxGuests: json['max_guests'],
+        createdAt:
+            json['created_at'] != null
+                ? DateTime.parse(json['created_at'])
+                : DateTime.now(), // Fallback olarak şu anki zaman
+        updatedAt:
+            json['updated_at'] != null
+                ? DateTime.parse(json['updated_at'])
+                : null,
+        user: user,
+      );
+    } catch (e) {
+      print("❌ Listing.fromJson hatası: $e");
+      print("❌ JSON verisi: $json");
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {

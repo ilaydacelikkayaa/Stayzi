@@ -9,7 +9,7 @@ import aiohttp
 import json
 import time
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://10.0.2.2:8000"
 
 async def test_redis_connection():
     """Redis bağlantısını test et"""

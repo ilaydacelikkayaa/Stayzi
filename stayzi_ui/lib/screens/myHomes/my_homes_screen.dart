@@ -633,8 +633,7 @@ Map<String, dynamic> _listingToMap(Listing listing) {
 }
 
 // Android emülatörü için bilgisayarın localhost'una erişim:
-final String baseUrl =
-    "http://10.0.2.2:8000"; // Gerçek cihazda test için bilgisayarınızın IP adresini kullanın
+final String baseUrl = ApiConstants.baseUrl;
 String getListingImageUrl(String? path) {
   if (path == null || path.isEmpty) return '';
   if (path.startsWith('/uploads')) {

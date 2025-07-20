@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:stayzi_ui/screens/onboard/widgets/editable_text_field.dart';
 
 import '../../models/user_model.dart';
 import '../../services/api_service.dart';
@@ -52,12 +51,17 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
       print('📱 Telefon numarası: ${user.phone}');
       print('📧 E-posta: ${user.email}');
       print('🏠 Ülke: ${user.country}');
-      _fullNameController.text = '${user.name} ${user.surname}';
-      _preferredNameController.text = user.name;
-      _currentUser = user;
-      _phoneNumberController.text = user.phone ?? '';
-      _emailController.text = user.email ?? '';
-      _addressController.text = user.country ?? '';
+      
+      setState(() {
+        _fullNameController.text = '${user.name} ${user.surname}';
+        _preferredNameController.text = user.name;
+        _currentUser = user;
+        _phoneNumberController.text = user.phone ?? '';
+        _emailController.text = user.email ?? '';
+        _addressController.text = user.country ?? '';
+        _isLoading = false;
+      });
+      
       // Eğer veri eksikse kullanıcıya uyarı göster
       if ((user.name.isEmpty && user.surname.isEmpty) &&
           (user.email == null || user.email!.isEmpty)) {
@@ -71,9 +75,8 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
         }
       }
     } catch (e) {
-      _error = 'Kullanıcı bilgileri alınamadı: $e';
-    } finally {
       setState(() {
+        _error = 'Kullanıcı bilgileri alınamadı: $e';
         _isLoading = false;
       });
     }
@@ -102,13 +105,22 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
         phone: phone.isNotEmpty ? phone : null,
         country: country.isNotEmpty ? country : null,
       );
-      _success = 'Bilgiler başarıyla güncellendi!';
+      
+      setState(() {
+        _success = 'Bilgiler başarıyla güncellendi!';
+        // Tüm düzenleme alanlarını kapat
+        _isFullNameEditable = false;
+        _isPreferredNameEditable = false;
+        _isPhoneNumberEditable = false;
+        _isEmailEditable = false;
+        _isAddressEditable = false;
+      });
       
       // Veriyi yeniden çek
       await _fetchUserInfo();
 
-      // Başarı mesajını göster ve sonra geri dön
-      if (mounted) {
+      // Başarı mesajını göster
+      if (mounted && _success != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_success!),
@@ -116,16 +128,85 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
             duration: const Duration(seconds: 2),
           ),
         );
-
-        // Kısa bir gecikme sonra geri dön
-        Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) {
-            Navigator.pop(context, true);
-          }
-        });
       }
     } catch (e) {
-      _error = 'Güncelleme başarısız: $e';
+      setState(() {
+        _error = 'Güncelleme başarısız: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _saveField(String fieldName, String value) async {
+    // Boş değerleri kontrol et
+    if (value.trim().isEmpty) {
+      setState(() {
+        _error = 'Bu alan boş bırakılamaz';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+      _success = null;
+    });
+
+    try {
+      String? name, surname, email, phone, country;
+
+      switch (fieldName) {
+        case 'name':
+          final names = value.trim().split(' ');
+          name = names.isNotEmpty ? names.first : null;
+          surname = names.length > 1 ? names.sublist(1).join(' ') : null;
+          break;
+        case 'preferredName':
+          name = value.trim();
+          break;
+        case 'phone':
+          phone = value.trim();
+          break;
+        case 'email':
+          email = value.trim();
+          break;
+        case 'country':
+          country = value.trim();
+          break;
+      }
+
+      await ApiService().updateProfile(
+        name: name,
+        surname: surname,
+        email: email,
+        phone: phone,
+        country: country,
+      );
+
+      setState(() {
+        _success = 'Bilgiler başarıyla güncellendi!';
+      });
+
+      // Veriyi yeniden çek
+      await _fetchUserInfo();
+
+      // Başarı mesajını göster
+      if (mounted && _success != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_success!),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Güncelleme başarısız: $e';
+      });
     } finally {
       setState(() {
         _isLoading = false;
@@ -308,7 +389,13 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                                       controller: _fullNameController,
                                       hint: 'Ad Soyad',
                                       isEditable: _isFullNameEditable,
-                                      onEditPressed: () {
+                                      onEditPressed: () async {
+                                        if (_isFullNameEditable) {
+                                          await _saveField(
+                                            'name',
+                                            _fullNameController.text,
+                                          );
+                                        }
                                         setState(() {
                                           _isFullNameEditable =
                                               !_isFullNameEditable;
@@ -321,7 +408,13 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                                       controller: _preferredNameController,
                                       hint: 'Ad',
                                       isEditable: _isPreferredNameEditable,
-                                      onEditPressed: () {
+                                      onEditPressed: () async {
+                                        if (_isPreferredNameEditable) {
+                                          await _saveField(
+                                            'preferredName',
+                                            _preferredNameController.text,
+                                          );
+                                        }
                                         setState(() {
                                           _isPreferredNameEditable =
                                               !_isPreferredNameEditable;
@@ -341,7 +434,13 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                                       controller: _phoneNumberController,
                                       hint: '+90 555 123 45 67',
                                       isEditable: _isPhoneNumberEditable,
-                                      onEditPressed: () {
+                                      onEditPressed: () async {
+                                        if (_isPhoneNumberEditable) {
+                                          await _saveField(
+                                            'phone',
+                                            _phoneNumberController.text,
+                                          );
+                                        }
                                         setState(() {
                                           _isPhoneNumberEditable =
                                               !_isPhoneNumberEditable;
@@ -354,7 +453,13 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                                       controller: _emailController,
                                       hint: 'eposta@example.com',
                                       isEditable: _isEmailEditable,
-                                      onEditPressed: () {
+                                      onEditPressed: () async {
+                                        if (_isEmailEditable) {
+                                          await _saveField(
+                                            'email',
+                                            _emailController.text,
+                                          );
+                                        }
                                         setState(() {
                                           _isEmailEditable = !_isEmailEditable;
                                         });
@@ -373,7 +478,13 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                                       controller: _addressController,
                                       hint: 'Şehir, Ülke',
                                       isEditable: _isAddressEditable,
-                                      onEditPressed: () {
+                                      onEditPressed: () async {
+                                        if (_isAddressEditable) {
+                                          await _saveField(
+                                            'country',
+                                            _addressController.text,
+                                          );
+                                        }
                                         setState(() {
                                           _isAddressEditable =
                                               !_isAddressEditable;
@@ -470,7 +581,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     required TextEditingController controller,
     required String hint,
     required bool isEditable,
-    required VoidCallback onEditPressed,
+    required Future<void> Function() onEditPressed,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -498,25 +609,51 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                   color: Colors.grey[700],
                 ),
               ),
-              IconButton(
-                onPressed: onEditPressed,
-                icon: Icon(
-                  isEditable ? Icons.check : Icons.edit,
-                  color: isEditable ? Colors.green : Colors.black,
-                  size: 20,
+              TextButton(
+                onPressed: () async {
+                  await onEditPressed();
+                },
+                child: Text(
+                  isEditable ? 'Kaydet' : 'Düzenle',
+                  style: TextStyle(
+                    color: isEditable ? Colors.green : Colors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          EditableTextField(
-            label: '',
+          TextField(
             controller: controller,
-            hint: hint,
-            isEditable: isEditable,
-            onEditPressed: onEditPressed,
+            enabled: isEditable,
+            decoration: InputDecoration(
+              hintText: hint,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color:
+                      isEditable
+                          ? Colors.black.withOpacity(0.3)
+                          : Colors.grey.withOpacity(0.3),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color:
+                      isEditable
+                          ? Colors.black.withOpacity(0.3)
+                          : Colors.grey.withOpacity(0.3),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.black.withOpacity(0.5)),
+              ),
+              filled: !isEditable,
+              fillColor: isEditable ? Colors.white : Colors.grey[100],
+            ),
           ),
         ],
       ),

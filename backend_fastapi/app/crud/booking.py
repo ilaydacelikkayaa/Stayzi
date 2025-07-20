@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 from app.models.booking import Booking
 from app.schemas.booking import BookingCreate, BookingUpdate
+from app.utils.rabbitmq_client import send_booking_created_message
 
 # ➕ Booking Oluştur
 def create_booking(db: Session, booking: BookingCreate, user_id: int):
@@ -35,6 +36,15 @@ def create_booking(db: Session, booking: BookingCreate, user_id: int):
     db.add(db_booking)
     db.commit()
     db.refresh(db_booking)
+    # RabbitMQ'ya mesaj gönder
+    send_booking_created_message({
+        "booking_id": db_booking.id,
+        "user_id": db_booking.user_id,
+        "listing_id": db_booking.listing_id,
+        "start_date": str(db_booking.start_date),
+        "end_date": str(db_booking.end_date),
+        "created_at": str(db_booking.created_at)
+    })
     return db_booking
 
 # 🔍 Belirli bir booking ID'sini getir

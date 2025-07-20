@@ -1,4 +1,4 @@
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, get_current_user_optional
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, Query
 from app.schemas.listing import Listing, ListingCreate, ListingOut
 from app.crud.listing import create_listing, get_listing, get_listings, delete_listing, update_listing, get_listings_by_user
@@ -30,9 +30,12 @@ def filter_listings(
     min_price:  Optional[float]= Query(None, alias="min_price"),
     max_price:  Optional[float]= Query(None, alias="max_price"),
     db:         Session        = Depends(get_db),
+    current_user: User = Depends(get_current_user),  # kullanıcıyı al
 ):
     sd = datetime.fromisoformat(start_date).date() if start_date else None
     ed = datetime.fromisoformat(end_date).date()   if end_date   else None
+
+    exclude_user_id = current_user.id if current_user else None
 
     return get_filtered_listings(
         db,
@@ -41,7 +44,8 @@ def filter_listings(
         end_date=ed,
         guests=guests,
         min_price=min_price,
-        max_price=max_price
+        max_price=max_price,
+        exclude_user_id=exclude_user_id  # filtrele
     )
 @router.post("/", response_model=Listing)
 async def create_listing_route(
@@ -115,9 +119,16 @@ async def create_listing_route(
     listing = ListingCreate(**listing_data)
     return create_listing(db=db, listing=listing, user_id=current_user.id)
 
-@router.get("/", response_model=List[Listing])
-def read_listings(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return get_listings(db, skip=skip, limit=limit)
+@router.get("/", response_model=List[ListingOut])
+def get_all_listings(
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    print(f"DEBUG: current_user = {current_user}")
+    print(f"DEBUG: current_user.id = {current_user.id if current_user else None}")
+    exclude_user_id = current_user.id if current_user else None
+    print(f"DEBUG: exclude_user_id = {exclude_user_id}")
+    return get_filtered_listings(db, exclude_user_id=exclude_user_id)
 
 @router.get("/my-listings", response_model=List[Listing])
 def read_my_listings(
@@ -159,6 +170,14 @@ async def update(
     capacity: Optional[int] = Form(None),
     amenities: Optional[str] = Form(None),
     photo: Optional[UploadFile] = File(None),
+    photos: Optional[List[UploadFile]] = File(None),
+    room_count: Optional[int] = Form(None),
+    bed_count: Optional[int] = Form(None),
+    bathroom_count: Optional[int] = Form(None),
+    allow_events: Optional[int] = Form(None),
+    allow_smoking: Optional[int] = Form(None),
+    allow_commercial_photo: Optional[int] = Form(None),
+    max_guests: Optional[int] = Form(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -171,9 +190,27 @@ async def update(
     if db_listing.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to update this listing")
 
-    # Fotoğrafı kaydet
+    # Fotoğrafları kaydet
     image_urls = db_listing.image_urls or []
-    if photo:
+    
+    # Birden fazla fotoğraf varsa onları işle
+    if photos:
+        upload_dir = "uploads/listings"
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        for i, photo in enumerate(photos):
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            file_extension = os.path.splitext(photo.filename)[1] if photo.filename else ".jpg"
+            filename = f"listing_{current_user.id}_{timestamp}_{i}{file_extension}"
+            file_path = os.path.join(upload_dir, filename)
+            
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(photo.file, buffer)
+            image_urls.append(f"/uploads/listings/{filename}")
+            print(f"DEBUG: Fotoğraf {i+1} kaydedildi: {filename}")
+    
+    # Tek fotoğraf için geriye dönük uyumluluk
+    elif photo:
         upload_dir = "uploads/listings"
         os.makedirs(upload_dir, exist_ok=True)
 
@@ -185,9 +222,7 @@ async def update(
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(photo.file, buffer)
         image_urls = [f"/uploads/listings/{filename}"] + image_urls  # Yeni fotoğrafı başa ekle
-
-
-        image_urls.append(f"/uploads/listings/{filename}")
+        print(f"DEBUG: Tek fotoğraf kaydedildi: {filename}")
 
     # JSON string'leri parse et
     host_languages_list = None
@@ -202,9 +237,23 @@ async def update(
     if amenities:
         try:
             import json
-            amenities_list = json.loads(amenities)
-        except:
-            amenities_list = [amenities]
+            amenities_data = json.loads(amenities)
+            # String listesini AmenityInListing objelerine çevir
+            amenities_list = []
+            for amenity_name in amenities_data:
+                # Önce veritabanında bu amenity var mı kontrol et
+                existing_amenity = db.query(Amenity).filter(Amenity.name == amenity_name).first()
+                if existing_amenity:
+                    amenities_list.append({"id": existing_amenity.id, "name": existing_amenity.name})
+                else:
+                    # Yeni amenity oluştur
+                    new_amenity = Amenity(name=amenity_name)
+                    db.add(new_amenity)
+                    db.flush()  # ID'yi almak için flush
+                    amenities_list.append({"id": new_amenity.id, "name": new_amenity.name})
+        except Exception as e:
+            print(f"DEBUG: Amenities parse hatası: {e}")
+            amenities_list = []
 
     # ListingCreate objesi oluştur
     listing_data = {}
@@ -232,6 +281,20 @@ async def update(
         listing_data["capacity"] = capacity
     if amenities_list is not None:
         listing_data["amenities"] = amenities_list
+    if room_count is not None:
+        listing_data["room_count"] = room_count
+    if bed_count is not None:
+        listing_data["bed_count"] = bed_count
+    if bathroom_count is not None:
+        listing_data["bathroom_count"] = bathroom_count
+    if allow_events is not None:
+        listing_data["allow_events"] = allow_events
+    if allow_smoking is not None:
+        listing_data["allow_smoking"] = allow_smoking
+    if allow_commercial_photo is not None:
+        listing_data["allow_commercial_photo"] = allow_commercial_photo
+    if max_guests is not None:
+        listing_data["max_guests"] = max_guests
 
     listing = ListingCreate(**listing_data)
     return update_listing(db, listing_id, listing)
