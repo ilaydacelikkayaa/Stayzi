@@ -1,21 +1,27 @@
-Domain Adresi: domainadresi.com
+Docker: Kullanıldı.
 
-Docker: Kullanılmadı/Kullanıldı.
+REST API: Kullanıldı.
 
-REST API: Kullanıldı/Kullanılmadı.
+Redis:Kullanıldı.
 
-Redis:Kullanıldı/Kullanılmadı.
-
-RabbitMQ: Kullanıldı/Kullanılmadı.
+RabbitMQ: Kullanıldı.
 
 CI/CD: Kullanıldı/Kullanılmadı.
 
-# Ali Atabin Backend #
-1. Kayıt Ol
-2. Giriş Yap
-3. 2FA Sayfası
-4. .....
-5. .....
+# Ahmet Koca Backend #
+1. Profil Göster
+2. Kişisel Bilgiler Görüntüleme
+3. Kişisel Bilgiler Düzenleme
+4. Çıkış Yapma 
+5. Hesabı Devre Dışı Bırakma
+6. Fotoğraf Ekleme (Profil İçin)
+7. Ev İlanı Ekleme
+8. İlanlarım Düzenleme
+9. Fotoğraf Ekleme (İlan İçin)
+10. Liste Detay (Favorilerdeki)
+11. İlan Silme
+12. Redis Entegrasyonu
+13. RabbitMQ Entegrasyonu
 
 
 # Ayşe Toputut Backend #
