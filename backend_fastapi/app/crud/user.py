@@ -20,7 +20,12 @@ def get_user_by_email(db: Session, email: str):
 
 # 🔍 Telefon ile kullanıcı getir
 def get_user_by_phone(db: Session, phone: str):
-    return db.query(User).filter(User.phone == phone).first()
+    print(f"🔍 Telefon ile kullanıcı aranıyor: {phone}")
+    user = db.query(User).filter(User.phone == phone).first()
+    print(f"🔍 Kullanıcı bulundu mu: {user is not None}")
+    if user:
+        print(f"🔍 Kullanıcı bilgileri: ID={user.id}, Name={user.name}, Phone={user.phone}")
+    return user
 
 # ✅ Yeni kullanıcı oluştur (şifreyi hashleyerek)
 def create_user(db: Session, user: UserCreate):

@@ -11,6 +11,7 @@ import 'package:stayzi_ui/screens/detail/widgets/yorumlar_degerlendirmeler.dart'
 import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/form_widget.dart';
 import 'package:stayzi_ui/screens/payment/payment_screen.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
 import 'package:stayzi_ui/services/api_service.dart';
 import 'package:stayzi_ui/services/storage_service.dart';
 
@@ -164,7 +165,7 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
     imageList =
         imageList.map((url) {
           if (url.startsWith('/')) {
-            return 'http://10.0.2.2:8000$url';
+            return '${ApiConstants.baseUrl}$url';
           }
           return url;
         }).toList();

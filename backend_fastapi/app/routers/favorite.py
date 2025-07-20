@@ -15,7 +15,7 @@ router = APIRouter(
 
 @router.post("/", response_model=Favorite)
 def create(favorite: FavoriteCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return create_favorite(db, favorite)
+    return create_favorite(db, favorite, current_user.id)
 
 @router.get("/my-favorites", response_model=List[Favorite])
 def read_my_favorites(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stayzi_ui/screens/favorite/favorite_home_detail.screen.dart';
+import 'package:stayzi_ui/services/api_constants.dart';
+import 'package:stayzi_ui/services/api_service.dart';
 
 class FavoriteListDetailScreen extends StatefulWidget {
   final String listeAdi;
@@ -83,7 +85,7 @@ class _FavoriteListDetailScreenState extends State<FavoriteListDetailScreen> {
   }
 }
 
-final String baseUrl = "http://10.0.2.2:8000";
+final String baseUrl = ApiConstants.baseUrl;
 String getListingImageUrl(String? path) {
   if (path == null || path.isEmpty) return 'assets/images/user.jpg';
   if (path.startsWith('/uploads')) {
@@ -119,6 +121,89 @@ class _FavoriteCardWithHeartState extends State<_FavoriteCardWithHeart> {
     );
   }
 
+  Future<void> _showListingDetail() async {
+    try {
+      print("📄 İlan detayı alınıyor: ID=${widget.ilan['id']}");
+
+      // Backend'den tam ilan detaylarını al (ev sahibi bilgisi dahil)
+      final listing = await ApiService().getListingWithHostById(
+        widget.ilan['id'],
+      );
+      print("✅ İlan detayı alındı: ${listing.title}");
+      print("🏠 Ev sahibi: ${listing.user?.name} ${listing.user?.surname}");
+
+      // İlan verisini Map'e çevir
+      final fullListingData = {
+        'id': listing.id,
+        'title': listing.title,
+        'description': listing.description,
+        'price': listing.price,
+        'location': listing.location,
+        'lat': listing.lat,
+        'lng': listing.lng,
+        'image_urls': listing.imageUrls,
+        'foto':
+            listing.imageUrls?.isNotEmpty == true
+                ? listing.imageUrls!.first
+                : null,
+        'average_rating': listing.averageRating,
+        'host': listing.user?.toJson(), // ✅ Ev sahibi bilgisi eklendi
+        'amenities': listing.amenities?.map((a) => a.toJson()).toList(),
+        'home_rules': listing.homeRules,
+        'capacity': listing.capacity,
+        'home_type': listing.homeType,
+        'host_languages': listing.hostLanguages,
+        'allow_events': listing.allowEvents,
+        'allow_smoking': listing.allowSmoking,
+        'allow_commercial_photo': listing.allowCommercialPhoto,
+        'max_guests': listing.maxGuests,
+      };
+
+      print("🏠 Tam ilan verisi hazırlandı:");
+      print("  Başlık: ${fullListingData['title']}");
+      print("  Açıklama: ${fullListingData['description']}");
+      print("  Ev sahibi: ${fullListingData['host']}");
+      print("  Olanaklar: ${fullListingData['amenities']}");
+      print("  Ev kuralları: ${fullListingData['home_rules']}");
+
+      if (!mounted) return;
+
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder:
+            (context) => DraggableScrollableSheet(
+              initialChildSize: 0.92,
+              minChildSize: 0.7,
+              maxChildSize: 0.98,
+              expand: false,
+              builder:
+                  (context, scrollController) => Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
+                    ),
+                    child: FavoriteHomeDetailScreen(
+                      ilan: fullListingData,
+                      scrollController: scrollController,
+                    ),
+                  ),
+            ),
+      );
+    } catch (e) {
+      print("❌ İlan detayı alınamadı: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('İlan detayı yüklenirken hata oluştu: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ilan = widget.ilan;
@@ -129,33 +214,7 @@ class _FavoriteCardWithHeartState extends State<_FavoriteCardWithHeart> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(13),
-          onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder:
-                  (context) => DraggableScrollableSheet(
-                    initialChildSize: 0.92,
-                    minChildSize: 0.7,
-                    maxChildSize: 0.98,
-                    expand: false,
-                    builder:
-                        (context, scrollController) => Container(
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(24),
-                            ),
-                          ),
-                          child: FavoriteHomeDetailScreen(
-                            ilan: ilan,
-                            scrollController: scrollController,
-                          ),
-                        ),
-                  ),
-            );
-          },
+          onTap: _showListingDetail,
           child: Card(
             elevation: 4,
             shape: RoundedRectangleBorder(

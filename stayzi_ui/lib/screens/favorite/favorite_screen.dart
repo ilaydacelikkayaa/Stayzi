@@ -1,230 +1,349 @@
 import 'package:flutter/material.dart';
+import 'package:stayzi_ui/screens/favorite/favorite_list_detail_screen.dart';
+import 'package:stayzi_ui/services/api_service.dart';
+import 'package:stayzi_ui/services/storage_service.dart';
 
-import 'favorite_list_detail_screen.dart';
+class FavoriteScreen extends StatefulWidget {
+  const FavoriteScreen({super.key});
 
-class FavoriteScreen extends StatelessWidget {
-  final List<Map<String, dynamic>> favoriListeleri;
+  @override
+  State<FavoriteScreen> createState() => _FavoriteScreenState();
+}
 
-  const FavoriteScreen({
-    super.key,
-    this.favoriListeleri = const [
-      {
-        'listeAdi': 'Deniz Manzaralılar',
-        'ilanlar': [
-          {
-            'id': 1,
-            'baslik': 'Denize Sıfır',
-            'foto':
-                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRkW7wNqbHHS1Wqtm9WC4jnsGsJklHEy5Wekg&s',
-            'fiyat': '10.000 TL',
-            'konum': 'İstanbul, Kadıköy',
-          },
-          {
-            'id': 2,
-            'baslik': 'Yüksek Kat',
-            'foto':
-                'https://media.istockphoto.com/id/483773209/tr/foto%C4%9Fraf/new-cozy-cottage.jpg?s=612x612&w=0&k=20&c=O983Ujj0wX562XAD4KQPALe3PWu_nIr0OLPzsoGfrQg=',
-            'fiyat': '10.000 TL',
-            'konum': 'İstanbul, Kadıköy',
-          },
-          {
-            'id': 3,
-            'baslik': 'Havuzlu Site',
-            'foto':
-                'https://media.istockphoto.com/id/503044702/tr/foto%C4%9Fraf/illuminated-sky-and-outside-of-waterfront-buiding.jpg?s=612x612&w=0&k=20&c=x2EFB0Ki7IK0btUG8CS3CV6-zwhdpzud2LNMEJUencw=',
-            'fiyat': '10.000 TL',
-            'konum': 'İstanbul, Kadıköy',
-          },
-          {
-            'id': 4,
-            'baslik': 'Yeni Bina',
-            'foto':
-                'https://media.istockphoto.com/id/506903162/tr/foto%C4%9Fraf/luxurious-villa-with-pool.jpg?s=612x612&w=0&k=20&c=8Ajn2ormM8zfs7E8H7p4QWzy-Zj56RAF1bnXG67R_rg=',
-            'fiyat': '10.000 TL',
-            'konum': 'İstanbul, Kadıköy',
-          },
-        ],
-      },
-      {
-        'listeAdi': 'Merkez Daireler',
-        'ilanlar': [
-          {
-            'id': 5,
-            'baslik': 'Merkezde',
-            'foto':
-                'https://images.squarespace-cdn.com/content/v1/58412fc9b3db2b11ba9398df/1582209923341-LP764XVQRSG07IJAP0BW/cam-ev-tasarimi',
-            'fiyat': '10.000 TL',
-            'konum': 'İstanbul, Kadıköy',
-          },
-          {
-            'id': 6,
-            'baslik': 'Toplu Taşımaya Yakın',
-            'foto':
-                'https://www.evmimarileri.com/wp-content/uploads/2014/05/m%C3%BCkemmel-ev.jpg',
-            'fiyat': '10.000 TL',
-            'konum': 'İstanbul, Kadıköy',
-          },
-        ],
-      },
-      {
-        'listeAdi': 'Ispartadaki Evler',
-        'ilanlar': [
-          {
-            'id': 7,
-            'baslik': 'Merkezde',
-            'foto':
-                'https://cdn.pixabay.com/photo/2013/08/30/12/56/holiday-house-177401_1280.jpg',
-            'fiyat': '10.000 TL',
-            'konum': 'İstanbul, Kadıköy',
-          },
-          {
-            'id': 8,
-            'baslik': 'Toplu Taşımaya Yakın',
-            'foto':
-                'https://www.shutterstock.com/image-photo/modern-white-house-large-windows-260nw-2540846177.jpg',
-            'fiyat': '10.000 TL',
-            'konum': 'İstanbul, Kadıköy',
-          },
-        ],
-      },
-    ],
-  });
+class _FavoriteScreenState extends State<FavoriteScreen> {
+  List<Map<String, dynamic>> favoriListeleri = [];
+  bool isLoading = true;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    try {
+      setState(() {
+        isLoading = true;
+        errorMessage = null;
+      });
+
+      print("🔄 Favoriler yükleniyor...");
+
+      // Token'ı al
+      final token = await StorageService().getAccessToken();
+      print("🔐 Token alındı: ${token != null ? 'VAR' : 'YOK'}");
+      if (token != null) {
+        print("🔐 Token başlangıcı: ${token.substring(0, 20)}...");
+        ApiService().setAuthToken(token);
+      }
+
+      print("📡 Backend'e istek gönderiliyor...");
+      // Backend'den favorileri al
+      final favorites = await ApiService().getMyFavorites();
+      print("✅ Favoriler alındı: ${favorites.length} adet");
+
+      // Favorileri liste adına göre grupla
+      final Map<String, List<Map<String, dynamic>>> groupedFavorites = {};
+
+      for (final favorite in favorites) {
+        final listName = favorite.listName ?? 'Genel Favoriler';
+        print(
+          "📋 Favori: ID=${favorite.id}, ListingID=${favorite.listingId}, ListName=$listName",
+        );
+
+        if (!groupedFavorites.containsKey(listName)) {
+          groupedFavorites[listName] = [];
+        }
+
+        // Favori ilanının detaylarını al
+        try {
+          print("📄 İlan detayı alınıyor: ID=${favorite.listingId}");
+          final listing = await ApiService().getListingById(favorite.listingId);
+          print("✅ İlan detayı alındı: ${listing.title}");
+          print("📸 İlan fotoğrafları: ${listing.imageUrls}");
+          print("🏠 Ev sahibi: ${listing.user}");
+          print("🔧 Olanaklar: ${listing.amenities}");
+          print("📋 Ev kuralları: ${listing.homeRules}");
+
+          String? fotoUrl;
+          if (listing.imageUrls?.isNotEmpty == true) {
+            fotoUrl = listing.imageUrls!.first;
+            print("📸 Seçilen fotoğraf: $fotoUrl");
+          }
+
+          groupedFavorites[listName]!.add({
+            'id': listing.id,
+            'title': listing.title, // ✅ Başlık eklendi
+            'baslik': listing.title,
+            'description': listing.description, // ✅ Açıklama eklendi
+            'foto': fotoUrl,
+            'image_urls': listing.imageUrls, // ✅ Tüm fotoğraflar eklendi
+            'fiyat': '₺${listing.price}',
+            'price': listing.price, // ✅ Fiyat eklendi
+            'konum': listing.location ?? 'Konum belirtilmemiş',
+            'location': listing.location, // ✅ Konum eklendi
+            'latitude': listing.lat, // ✅ Enlem eklendi
+            'longitude': listing.lng, // ✅ Boylam eklendi
+            'puan': listing.averageRating,
+            'average_rating': listing.averageRating, // ✅ Puan eklendi
+            'host': listing.user?.toJson(), // ✅ Ev sahibi bilgisi eklendi
+            'amenities':
+                listing.amenities
+                    ?.map((a) => a.toJson())
+                    .toList(), // ✅ Olanaklar eklendi
+            'home_rules': listing.homeRules, // ✅ Ev kuralları eklendi
+            'capacity': listing.capacity, // ✅ Kapasite eklendi
+            'home_type': listing.homeType, // ✅ Ev tipi eklendi
+            'host_languages':
+                listing.hostLanguages, // ✅ Ev sahibi dilleri eklendi
+            'allow_events': listing.allowEvents, // ✅ Etkinlik izni eklendi
+            'allow_smoking': listing.allowSmoking, // ✅ Sigara izni eklendi
+            'allow_commercial_photo':
+                listing.allowCommercialPhoto, // ✅ Ticari fotoğraf izni eklendi
+            'max_guests': listing.maxGuests, // ✅ Maksimum misafir eklendi
+          });
+        } catch (e) {
+          print('❌ İlan detayı alınamadı: $e');
+          // İlan detayı alınamazsa basit bir obje oluştur
+          groupedFavorites[listName]!.add({
+            'id': favorite.listingId,
+            'title': 'İlan #${favorite.listingId}',
+            'baslik': 'İlan #${favorite.listingId}',
+            'description': 'İlan detayı alınamadı',
+            'foto': null,
+            'fiyat': 'Fiyat belirtilmemiş',
+            'price': 0.0,
+            'konum': 'Konum belirtilmemiş',
+            'location': 'Konum belirtilmemiş',
+            'puan': 0.0,
+            'average_rating': 0.0,
+          });
+        }
+      }
+
+      // Gruplandırılmış favorileri listeye çevir
+      final List<Map<String, dynamic>> result = [];
+      groupedFavorites.forEach((listName, ilanlar) {
+        print("📁 Liste: $listName (${ilanlar.length} ilan)");
+        for (int i = 0; i < ilanlar.length; i++) {
+          print(
+            "  📋 İlan $i: ${ilanlar[i]['baslik']} - Fotoğraf: ${ilanlar[i]['foto']}",
+          );
+        }
+        result.add({'listeAdi': listName, 'ilanlar': ilanlar});
+      });
+
+      print("🎉 Favori listeleri hazırlandı: ${result.length} liste");
+
+      setState(() {
+        favoriListeleri = result;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('❌ Favoriler yüklenirken hata: $e');
+      setState(() {
+        errorMessage = 'Favoriler yüklenirken hata oluştu: $e';
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Favori Listeler')),
-      body: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: GridView.builder(
-          itemCount: favoriListeleri.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-            childAspectRatio: 1, // Kare yapı
+      appBar: AppBar(
+        title: const Text('Favori Listeler'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadFavorites,
           ),
-          itemBuilder: (context, index) {
-            final liste = favoriListeleri[index];
-            final ilanlar = List<Map<String, dynamic>>.from(liste['ilanlar']);
-            final gosterilecekResimler =
-                ilanlar.take(4).toList(); // en fazla 4 resim al
-
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (_) => FavoriteListDetailScreen(
-                          listeAdi: liste['listeAdi'],
-                          ilanlar: ilanlar,
-                        ),
-                  ),
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 6,
-                      offset: Offset(2, 2),
+        ],
+      ),
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : errorMessage != null
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      errorMessage!,
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadFavorites,
+                      child: const Text('Tekrar Dene'),
                     ),
                   ],
                 ),
+              )
+              : favoriListeleri.isEmpty
+              ? const Center(
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Fotoğraf kolajı
-                    SizedBox(
-                      height: 120,
-                      width: double.infinity,
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(22),
-                        ),
-                        child: Table(
-                          defaultColumnWidth: const FlexColumnWidth(1),
-                          children: [
-                            TableRow(
-                              children: [
-                                _buildCollageImage(
-                                  gosterilecekResimler,
-                                  0,
-                                  topLeft: true,
+                    Icon(Icons.favorite_border, size: 64, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text(
+                      'Henüz favori listeniz yok',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'İlanları favorilere ekleyerek\nlisteler oluşturabilirsiniz',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              )
+              : Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: GridView.builder(
+                  itemCount: favoriListeleri.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 1, // Kare yapı
+                  ),
+                  itemBuilder: (context, index) {
+                    final liste = favoriListeleri[index];
+                    final ilanlar = List<Map<String, dynamic>>.from(
+                      liste['ilanlar'],
+                    );
+                    final gosterilecekResimler =
+                        ilanlar.take(4).toList(); // en fazla 4 resim al
+                    
+                    print(
+                      "🎨 Liste $index (${liste['listeAdi']}) için ${gosterilecekResimler.length} fotoğraf hazırlanıyor",
+                    );
+                    for (int i = 0; i < gosterilecekResimler.length; i++) {
+                      print(
+                        "  🖼️ Fotoğraf $i: ${gosterilecekResimler[i]['foto']}",
+                      );
+                    }
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (_) => FavoriteListDetailScreen(
+                                  listeAdi: liste['listeAdi'],
+                                  ilanlar: ilanlar,
                                 ),
-                                _buildCollageImage(
-                                  gosterilecekResimler,
-                                  1,
-                                  topRight: true,
-                                ),
-                              ],
+                          ),
+                        );
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 6,
+                              offset: Offset(2, 2),
                             ),
-                            TableRow(
-                              children: [
-                                _buildCollageImage(
-                                  gosterilecekResimler,
-                                  2,
-                                  bottomLeft: true,
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            // Fotoğraf kolajı
+                            SizedBox(
+                              height: 120,
+                              width: double.infinity,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(22),
                                 ),
-                                _buildCollageImage(
-                                  gosterilecekResimler,
-                                  3,
-                                  bottomRight: true,
+                                child: Table(
+                                  defaultColumnWidth: const FlexColumnWidth(1),
+                                  children: [
+                                    TableRow(
+                                      children: [
+                                        _buildCollageImage(
+                                          gosterilecekResimler,
+                                          0,
+                                          topLeft: true,
+                                        ),
+                                        _buildCollageImage(
+                                          gosterilecekResimler,
+                                          1,
+                                          topRight: true,
+                                        ),
+                                      ],
+                                    ),
+                                    TableRow(
+                                      children: [
+                                        _buildCollageImage(
+                                          gosterilecekResimler,
+                                          2,
+                                          bottomLeft: true,
+                                        ),
+                                        _buildCollageImage(
+                                          gosterilecekResimler,
+                                          3,
+                                          bottomRight: true,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                top: 10,
+                                left: 8,
+                                right: 8,
+                                bottom: 4,
+                              ),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    liste['listeAdi'],
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 17,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      '${ilanlar.length} ilan',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        top: 10,
-                        left: 8,
-                        right: 8,
-                        bottom: 4,
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            liste['listeAdi'],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 17,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '${ilanlar.length} ilan',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.black54,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
-            );
-          },
-        ),
-      ),
     );
   }
 }
@@ -244,22 +363,62 @@ Widget _buildCollageImage(
     bottomLeft: bottomLeft ? const Radius.circular(22) : Radius.zero,
     bottomRight: bottomRight ? const Radius.circular(22) : Radius.zero,
   );
+  
   if (index < resimler.length) {
+    final foto = resimler[index]['foto'];
+    print("🖼️ Fotoğraf $index: $foto");
+
+    String? imageUrl;
+    if (foto != null && foto.toString().isNotEmpty) {
+      if (foto.toString().startsWith('http')) {
+        // Tam URL
+        imageUrl = foto.toString();
+      } else if (foto.toString().startsWith('/uploads')) {
+        // Backend URL'i
+        imageUrl = 'http://10.0.2.2:8000${foto.toString()}';
+      } else {
+        // Diğer durumlar
+        imageUrl = foto.toString();
+      }
+    }
+
+    print("🖼️ İşlenmiş URL $index: $imageUrl");
+    
     return ClipRRect(
       borderRadius: radius,
       child:
-          resimler[index]['foto']?.toString().startsWith('http') == true
+          imageUrl != null
               ? Image.network(
-                resimler[index]['foto']!.toString(),
+                imageUrl,
                 fit: BoxFit.cover,
                 height: 60,
                 width: 60,
+                errorBuilder: (context, error, stackTrace) {
+                  print("❌ Fotoğraf yüklenemedi $index: $error");
+                  return Container(
+                    color: Colors.grey[300],
+                    height: 60,
+                    width: 60,
+                    child: const Icon(Icons.home_outlined, color: Colors.grey),
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    color: Colors.grey[200],
+                    height: 60,
+                    width: 60,
+                    child: const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  );
+                },
               )
-              : Image.asset(
-                'assets/images/user.jpg',
-                fit: BoxFit.cover,
+              : Container(
+                color: Colors.grey[300],
                 height: 60,
                 width: 60,
+                child: const Icon(Icons.home_outlined, color: Colors.grey),
               ),
     );
   } else {

@@ -42,19 +42,19 @@ async def update_my_info(
             image.write(await file.read())
         current_user.profile_image = f"/uploads/{filename}"
 
-    # 📝 Diğer alanları güncelle
-    if name:
-        current_user.name = name
-    if surname:
-        current_user.surname = surname
-    if email:
-        current_user.email = email
-    if phone:
-        current_user.phone = phone
-    if birthdate:
+    # 📝 Diğer alanları güncelle (sadece boş olmayan değerleri)
+    if name and name.strip():
+        current_user.name = name.strip()
+    if surname and surname.strip():
+        current_user.surname = surname.strip()
+    if email and email.strip():
+        current_user.email = email.strip()
+    if phone and phone.strip():
+        current_user.phone = phone.strip()
+    if birthdate and birthdate.strip():
         current_user.birthdate = birthdate
-    if country:
-        current_user.country = country
+    if country and country.strip():
+        current_user.country = country.strip()
 
     db.commit()
     db.refresh(current_user)

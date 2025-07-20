@@ -112,14 +112,24 @@ class ApiService {
     }
   }
 
-  // Login with phone
-  Future<Token> loginWithPhone(String phone, String password) async {
+  // Login with phone (şifresiz)
+  Future<Token> loginWithPhone(String phone, [String? password]) async {
     try {
+      print("📲 Telefon ile giriş deneniyor: $phone");
+
+      final body =
+          password != null
+              ? jsonEncode({'phone': phone, 'password': password})
+              : jsonEncode({'phone': phone});
+      
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}${ApiConstants.loginPhone}'),
-        headers: {'Content-Type': 'application/json'}, // direkt sabit yaz
-        body: jsonEncode({'phone': phone, 'password': password}),
+        headers: _getHeaders(), // ✅ Doğru header'ları kullan
+        body: body,
       );
+
+      print("📲 Response status: ${response.statusCode}");
+      print("📲 Response body: ${response.body}");
 
       final data = _handleResponse(response);
       final token = Token.fromJson(data);
@@ -127,8 +137,9 @@ class ApiService {
 
       print("📲 Giriş yapan kullanıcının token'ı: ${token.accessToken}");
 
-      return Token.fromJson(data);
+      return token; // ✅ Token'ı tekrar oluşturma
     } catch (e) {
+      print("❌ Telefon ile giriş hatası: $e");
       throw Exception('Phone login failed: $e');
     }
   }
@@ -197,15 +208,20 @@ class ApiService {
       // Add headers
       request.headers.addAll(_getHeaders(requiresAuth: true));
 
-      // Add form fields
-      if (name != null) request.fields['name'] = name;
-      if (surname != null) request.fields['surname'] = surname;
-      if (email != null) request.fields['email'] = email;
-      if (phone != null) request.fields['phone'] = phone;
+      // Add form fields (sadece boş olmayan değerleri gönder)
+      if (name != null && name.trim().isNotEmpty)
+        request.fields['name'] = name.trim();
+      if (surname != null && surname.trim().isNotEmpty)
+        request.fields['surname'] = surname.trim();
+      if (email != null && email.trim().isNotEmpty)
+        request.fields['email'] = email.trim();
+      if (phone != null && phone.trim().isNotEmpty)
+        request.fields['phone'] = phone.trim();
       if (birthdate != null) {
         request.fields['birthdate'] = birthdate.toIso8601String().split('T')[0];
       }
-      if (country != null) request.fields['country'] = country;
+      if (country != null && country.trim().isNotEmpty)
+        request.fields['country'] = country.trim();
 
       // Add profile image if provided
       if (profileImage != null) {
@@ -273,11 +289,17 @@ class ApiService {
   // Get all listings
   Future<List<Listing>> getListings({int skip = 0, int limit = 100}) async {
     try {
+      print("🔍 getListings çağrıldı");
+      print("🔍 _authToken = $_authToken");
+
+      final headers = _getHeaders(requiresAuth: true);
+      print("🔍 Headers: $headers");
+      
       final response = await http.get(
         Uri.parse(
           '${ApiConstants.baseUrl}${ApiConstants.listings}?skip=$skip&limit=$limit',
         ),
-        headers: _getHeaders(),
+        headers: headers, // ✅ Token gönder
       );
       final data = _handleResponse(response);
       return (data as List).map((json) => Listing.fromJson(json)).toList();
@@ -303,16 +325,32 @@ class ApiService {
   }
 
   Future<Listing> getListingWithHostById(int listingId) async {
-    final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}/listings/$listingId/with-host'),
-      headers: ApiConstants.headers,
-    );
+    try {
+      print("🏠 getListingWithHostById çağrıldı: ID=$listingId");
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = json.decode(response.body);
-      return Listing.fromJson(data);
-    } else {
-      throw Exception('İlan ve ev sahibi bilgisi alınamadı');
+      final headers = _getHeaders(requiresAuth: true);
+      print("🏠 Headers: $headers");
+      
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/listings/$listingId/with-host'),
+        headers: headers,
+      );
+
+      print("🏠 Response status: ${response.statusCode}");
+      print("🏠 Response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        print("🏠 Parsed data: $data");
+        return Listing.fromJson(data);
+      } else {
+        throw Exception(
+          'İlan ve ev sahibi bilgisi alınamadı: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      print("❌ getListingWithHostById hatası: $e");
+      throw Exception('İlan ve ev sahibi bilgisi alınamadı: $e');
     }
   }
 
@@ -367,15 +405,34 @@ class ApiService {
   // Get my favorites
   Future<List<Favorite>> getMyFavorites({int skip = 0, int limit = 100}) async {
     try {
+      print("🔍 getMyFavorites çağrıldı");
+      print(
+        "🔍 URL: ${ApiConstants.baseUrl}${ApiConstants.myFavorites}?skip=$skip&limit=$limit",
+      );
+
+      final headers = _getHeaders(requiresAuth: true);
+      print("🔍 Headers: $headers");
+      
       final response = await http.get(
         Uri.parse(
           '${ApiConstants.baseUrl}${ApiConstants.myFavorites}?skip=$skip&limit=$limit',
         ),
-        headers: _getHeaders(requiresAuth: true),
+        headers: headers,
       );
+      
+      print("🔍 Response status: ${response.statusCode}");
+      print("🔍 Response body: ${response.body}");
+      
       final data = _handleResponse(response);
-      return (data as List).map((json) => Favorite.fromJson(json)).toList();
+      print("🔍 Parsed data: $data");
+
+      final favorites =
+          (data as List).map((json) => Favorite.fromJson(json)).toList();
+      print("🔍 Favorites count: ${favorites.length}");
+
+      return favorites;
     } catch (e) {
+      print("❌ getMyFavorites error: $e");
       throw Exception('Failed to get my favorites: $e');
     }
   }
@@ -628,7 +685,7 @@ class ApiService {
     }
   }
 
-  // Update listing with photo
+  // Update listing with photos
   Future<Listing> updateListing({
     required int listingId,
     String? title,
@@ -643,6 +700,7 @@ class ApiService {
     int? capacity,
     List<String>? amenities,
     File? photo,
+    List<File>? photos,
     int? roomCount,
     int? bedCount,
     int? bathroomCount,
@@ -702,6 +760,31 @@ class ApiService {
         print('DEBUG - Flutter UpdateListing: amenities null, eklenmedi');
       }
 
+      // Fotoğrafları ekle
+      if (photos != null && photos.isNotEmpty) {
+        print(
+          'DEBUG - Flutter UpdateListing: ${photos.length} adet fotoğraf ekleniyor...',
+        );
+        for (int i = 0; i < photos.length; i++) {
+          final photo = photos[i];
+          final fieldName = 'photos[$i]'; // Backend'de array olarak alınacak
+          request.files.add(
+            await http.MultipartFile.fromPath(fieldName, photo.path),
+          );
+          print(
+            'DEBUG - Flutter UpdateListing: Fotoğraf ${i + 1} eklendi: ${photo.path}',
+          );
+        }
+      } else if (photo != null) {
+        // Tek fotoğraf için geriye dönük uyumluluk
+        print('DEBUG - Flutter UpdateListing: Tek fotoğraf ekleniyor...');
+        request.files.add(
+          await http.MultipartFile.fromPath('photo', photo.path),
+        );
+      } else {
+        print('DEBUG - Flutter UpdateListing: Fotoğraf eklenmedi');
+      }
+
       print(
         'DEBUG - Flutter UpdateListing: Request fields = ${request.fields}',
       );
@@ -723,6 +806,24 @@ class ApiService {
     } catch (e) {
       print('DEBUG - Flutter UpdateListing: Error = $e');
       throw Exception('İlan güncellenemedi: $e');
+    }
+  }
+
+  // ========== BOOKING ENDPOINTS ==========
+
+  // Create a new booking
+  Future<Map<String, dynamic>> createBooking(
+    Map<String, dynamic> bookingData,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/bookings/'),
+        headers: _getHeaders(requiresAuth: true),
+        body: json.encode(bookingData),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      throw Exception('Booking oluşturulamadı: $e');
     }
   }
 

@@ -3,6 +3,8 @@ import 'package:stayzi_ui/screens/detail/detail_scren.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
 import 'package:stayzi_ui/screens/payment/payment_details.dart';
 import 'package:stayzi_ui/screens/payment/payment_form.dart';
+import 'package:stayzi_ui/services/api_service.dart';
+import 'package:stayzi_ui/services/storage_service.dart';
 
 class PaymentScreen extends StatelessWidget {
   final DateTimeRange selectedRange;
@@ -13,6 +15,53 @@ class PaymentScreen extends StatelessWidget {
     required this.selectedRange,
     required this.listing,
   });
+
+  Future<void> _createBooking(BuildContext context) async {
+    try {
+      // Token'ı al
+      final token = await StorageService().getToken();
+      if (token != null) {
+        ApiService().setAuthToken(token.accessToken);
+      }
+
+      // Toplam tutarı hesapla
+      final int totalNights = selectedRange.duration.inDays;
+      final double nightlyPrice = (listing['price'] ?? 0).toDouble();
+      final double amount = nightlyPrice * totalNights;
+      const double tax = 500;
+      final double totalPrice = amount + tax;
+
+      // Booking verilerini hazırla
+      final bookingData = {
+        'listing_id': listing['id'],
+        'start_date': selectedRange.start.toIso8601String().split('T')[0],
+        'end_date': selectedRange.end.toIso8601String().split('T')[0],
+        'guests': 1, // Varsayılan değer, gerekirse değiştirilebilir
+        'total_price': totalPrice, // ✅ Toplam fiyat eklendi
+      };
+
+      print('🔍 Booking oluşturuluyor: $bookingData');
+
+      // Backend'e booking oluşturma isteği gönder
+      final booking = await ApiService().createBooking(bookingData);
+      print('✅ Booking başarıyla oluşturuldu: $booking');
+
+      // Başarılı ödeme ekranına yönlendir
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const PaymentSuccessScreen()),
+      );
+    } catch (e) {
+      print('❌ Booking oluşturma hatası: $e');
+      // Hata durumunda kullanıcıya bilgi ver
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Rezervasyon oluşturulurken hata oluştu: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,14 +95,7 @@ class PaymentScreen extends StatelessWidget {
                     buttonText: "Ödemeyi Tamamla",
                     buttonColor: Colors.black,
                     textColor: Colors.white,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PaymentSuccessScreen(),
-                        ),
-                      );
-                    },
+                    onPressed: () => _createBooking(context),
                   ),
                 ),
                 SizedBox(height: 10),

@@ -5,25 +5,33 @@ from typing import Optional, Any, Dict, List
 from datetime import timedelta, datetime
 import os
 from dotenv import load_dotenv
+import sys
 
 load_dotenv()
 
 # Redis bağlantı ayarları
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
-REDIS_DB = int(os.getenv("REDIS_DB", 0))
-REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", None)
-
-# Asenkron Redis client
-async def get_redis_client():
-    """Asenkron Redis client döndürür"""
-    return redis.Redis(
-        host=REDIS_HOST,
-        port=REDIS_PORT,
-        db=REDIS_DB,
-        password=REDIS_PASSWORD,
-        decode_responses=True
-    )
+REDIS_URL = os.getenv("REDIS_URL")
+if REDIS_URL:
+    def get_redis_client():
+        logging.info(f"[REDIS] get_redis_client çağrıldı. REDIS_URL={REDIS_URL}")
+        return redis.from_url(REDIS_URL, decode_responses=True)
+else:
+    if sys.platform.startswith("win"):
+        REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+    else:
+        REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+    REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
+    REDIS_DB = int(os.getenv("REDIS_DB", 0))
+    REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", None)
+    def get_redis_client():
+        logging.info(f"[REDIS] get_redis_client çağrıldı. host={REDIS_HOST}, port={REDIS_PORT}, db={REDIS_DB}")
+        return redis.Redis(
+            host=REDIS_HOST,
+            port=REDIS_PORT,
+            db=REDIS_DB,
+            password=REDIS_PASSWORD,
+            decode_responses=True
+        )
 
 class RedisCache:
     """Redis önbellekleme işlemleri için yardımcı sınıf"""
@@ -31,6 +39,7 @@ class RedisCache:
     @staticmethod
     async def set_cache(key: str, value: Any, expire: int = 3600) -> bool:
         """Veriyi Redis'e kaydet"""
+        logging.info(f"[REDIS] set_cache: key={key}, value={str(value)[:100]}, expire={expire}")
         try:
             redis_conn = await get_redis_client()
             if isinstance(value, (dict, list)):
@@ -53,6 +62,7 @@ class RedisCache:
     @staticmethod
     async def get_cache(key: str) -> Optional[Any]:
         """Redis'ten veri oku"""
+        logging.info(f"[REDIS] get_cache: key={key}")
         try:
             redis_conn = await get_redis_client()
             value = await redis_conn.get(key)
@@ -71,6 +81,7 @@ class RedisCache:
     @staticmethod
     async def delete_cache(key: str) -> bool:
         """Redis'ten veri sil"""
+        logging.info(f"[REDIS] delete_cache: key={key}")
         try:
             redis_conn = await get_redis_client()
             result = await redis_conn.delete(key)
@@ -83,6 +94,7 @@ class RedisCache:
     @staticmethod
     async def exists_cache(key: str) -> bool:
         """Anahtarın Redis'te var olup olmadığını kontrol et"""
+        logging.info(f"[REDIS] exists_cache: key={key}")
         try:
             redis_conn = await get_redis_client()
             result = await redis_conn.exists(key)
@@ -97,6 +109,7 @@ _redis_available = None
 
 async def is_redis_available() -> bool:
     """Redis'in kullanılabilir olup olmadığını kontrol et"""
+    logging.info(f"[REDIS] is_redis_available çağrıldı.")
     global _redis_available
     if _redis_available is None:
         try:
@@ -115,18 +128,21 @@ class SessionManager:
     @staticmethod
     async def set_session(user_id: int, session_data: Dict) -> bool:
         """Kullanıcı session'ını kaydet"""
+        logging.info(f"[REDIS] set_session: user_id={user_id}, session_data={str(session_data)[:100]}")
         key = f"session:{user_id}"
         return await RedisCache.set_cache(key, session_data, expire=86400)  # 24 saat
     
     @staticmethod
     async def get_session(user_id: int) -> Optional[Dict]:
         """Kullanıcı session'ını oku"""
+        logging.info(f"[REDIS] get_session: user_id={user_id}")
         key = f"session:{user_id}"
         return await RedisCache.get_cache(key)
     
     @staticmethod
     async def delete_session(user_id: int) -> bool:
         """Kullanıcı session'ını sil"""
+        logging.info(f"[REDIS] delete_session: user_id={user_id}")
         key = f"session:{user_id}"
         return await RedisCache.delete_cache(key)
 
@@ -136,6 +152,7 @@ class JWTBlacklist:
     @staticmethod
     async def add_to_blacklist(token: str, expire_time: int) -> bool:
         """JWT token'ı kara listeye ekle"""
+        logging.info(f"[REDIS] add_to_blacklist: token={token[:10]}..., expire_time={expire_time}")
         try:
             key = f"blacklist:{token}"
             return await RedisCache.set_cache(key, {"blacklisted": True}, expire=expire_time)
@@ -146,6 +163,7 @@ class JWTBlacklist:
     @staticmethod
     async def is_blacklisted(token: str) -> bool:
         """Token'ın kara listede olup olmadığını kontrol et"""
+        logging.info(f"[REDIS] is_blacklisted: token={token[:10]}...")
         try:
             key = f"blacklist:{token}"
             return await RedisCache.exists_cache(key)
@@ -159,6 +177,7 @@ class RateLimiter:
     @staticmethod
     async def check_rate_limit(user_id: int, endpoint: str, limit: int = 100, window: int = 3600) -> bool:
         """Rate limit kontrolü"""
+        logging.info(f"[REDIS] check_rate_limit: user_id={user_id}, endpoint={endpoint}, limit={limit}, window={window}")
         key = f"rate_limit:{user_id}:{endpoint}"
         try:
             redis_conn = await get_redis_client()
@@ -184,6 +203,7 @@ class RateLimiter:
 # Redis bağlantı test fonksiyonu
 async def test_redis_connection():
     """Redis bağlantısını test et"""
+    logging.info(f"[REDIS] test_redis_connection çağrıldı.")
     try:
         redis_conn = await get_redis_client()
         await redis_conn.ping()

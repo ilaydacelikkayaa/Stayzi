@@ -154,28 +154,10 @@ class _OnboardScreenState extends State<OnboardScreen> {
                                 if (exists) {
                                   final prefs =
                                       await SharedPreferences.getInstance();
-                                  final savedPassword = prefs.getString(
-                                    'user_password',
-                                  );
-
-                                  if (savedPassword == null) {
-                                    print("❌ Kayıtlı şifre bulunamadı.");
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          "Bu telefon numarası ile kayıtlı şifre bulunamadı. Lütfen önce kayıt olun veya farklı bir numara deneyin.",
-                                        ),
-                                        duration: Duration(seconds: 4),
-                                      ),
-                                    );
-                                    return;
-                                  }
-
+                                  
+                                  // Şifresiz giriş yap
                                   final token = await ApiService()
-                                      .loginWithPhone(
-                                        standardizedPhone,
-                                        savedPassword,
-                                      );
+                                      .loginWithPhone(standardizedPhone);
 
                                   print(
                                     '🪪 Kullanıcının tokenı: ${token.accessToken}',

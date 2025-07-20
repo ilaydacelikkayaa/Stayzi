@@ -8,9 +8,16 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - db
-      - redis
-      - rabbitmq
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    environment:
+      - DATABASE_URL=postgresql://postgres:243a243a243@db:5432/stayzi_db
+      - REDIS_URL=redis://redis:6379/0
+    entrypoint: ["/bin/sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"]
 
   db:
     image: postgres
@@ -20,6 +27,11 @@ services:
       POSTGRES_DB: stayzi_db
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d stayzi_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis
@@ -31,3 +43,6 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest

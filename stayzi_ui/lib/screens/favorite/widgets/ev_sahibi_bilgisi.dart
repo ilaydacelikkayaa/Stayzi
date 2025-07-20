@@ -1,56 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:stayzi_ui/screens/detail/host_detail_screen.dart';
 import 'package:stayzi_ui/services/api_constants.dart';
-import 'package:stayzi_ui/services/api_service.dart';
 
-class EvSahibiBilgisi extends StatefulWidget {
+class EvSahibiBilgisi extends StatelessWidget {
   final Map<String, dynamic> listing;
 
   const EvSahibiBilgisi({super.key, required this.listing});
 
   @override
-  State<EvSahibiBilgisi> createState() => _EvSahibiBilgisiState();
-}
-
-class _EvSahibiBilgisiState extends State<EvSahibiBilgisi> {
-  Map<String, dynamic>? listingWithHost;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadHostData();
-  }
-
-  Future<void> _loadHostData() async {
-    try {
-      // Favori sayfasında her zaman normal ev sahibi bilgilerini al
-      final listing = await ApiService().getListingWithHostById(
-        widget.listing['id'],
-      );
-      setState(() {
-        listingWithHost = listing.toJson();
-      });
-    } catch (e) {
-      print("❌ Host bilgisi alınamadı: $e");
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (listingWithHost == null) {
-      return const Center(child: CircularProgressIndicator());
+    print("🏠 EvSahibiBilgisi - İlan verisi: $listing");
+    
+    // Host bilgisini al
+    final hostData = listing['host'];
+    print("🏠 Host verisi: $hostData");
+    
+    if (hostData == null) {
+      return Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            Icon(Icons.person_off, color: Colors.grey, size: 40),
+            SizedBox(height: 8),
+            Text(
+              'Ev sahibi bilgisi bulunamadı',
+              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      );
     }
 
-    final host = listingWithHost!['host'];
-    final int hostId = host?['id'] ?? 0;
-    final String hostName = host?['name'] ?? 'Bilinmiyor';
-    final String? profileImageRaw = host?['profile_image'];
+    final int hostId = hostData['id'] ?? 0;
+    final String hostName = hostData['name'] ?? 'Bilinmiyor';
+    final String? profileImageRaw = hostData['profile_image'];
     final String? profileImage =
         (profileImageRaw != null && profileImageRaw.isNotEmpty)
             ? (profileImageRaw.startsWith('/')
                 ? '${ApiConstants.baseUrl}$profileImageRaw'
                 : profileImageRaw)
             : null;
+
+    print("🏠 Host bilgileri:");
+    print("  ID: $hostId");
+    print("  İsim: $hostName");
+    print("  Profil resmi: $profileImage");
 
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -75,7 +69,7 @@ class _EvSahibiBilgisiState extends State<EvSahibiBilgisi> {
                       MaterialPageRoute(
                         builder:
                             (context) => HostDetailScreen(
-                              listingID: widget.listing['id'],
+                              listingID: listing['id'],
                             ),
                       ),
                     );

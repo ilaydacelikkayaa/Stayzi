@@ -26,33 +26,41 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    print("👤 User.fromJson çağrıldı");
     print("👤 Gelen HOST JSON: $json");
     json.forEach((key, value) {
       print("🔍 $key => $value (${value.runtimeType})");
     });
-    return User(
-      id: json['id'],
-      email: json['email'],
-      name: json['name'],
-      surname: json['surname'],
-      birthdate:
-          json['birthdate'] != null
-              ? DateTime.parse(json['birthdate'])
-              : DateTime(2000, 1, 1),
-      phone: json['phone'],
-      country: json['country'],
-      profileImage:
-          json['profile_image'] != null && json['profile_image'] is String
-              ? (json['profile_image'].toString().startsWith('/')
-                  ? '${ApiConstants.baseUrl}${json['profile_image']}'
-                  : json['profile_image'].toString())
-              : null,
-      isActive: json['is_active'] ?? true,
-      createdAt:
-          json['created_at'] != null
-              ? DateTime.parse(json['created_at'])
-              : null,
-    );
+    
+    try {
+      return User(
+        id: json['id'],
+        email: json['email'],
+        name: json['name'] ?? '',
+        surname: json['surname'] ?? '',
+        birthdate:
+            json['birthdate'] != null
+                ? DateTime.parse(json['birthdate'])
+                : DateTime(2000, 1, 1), // Fallback tarih
+        phone: json['phone'],
+        country: json['country'],
+        profileImage:
+            json['profile_image'] != null && json['profile_image'] is String
+                ? (json['profile_image'].toString().startsWith('/')
+                    ? '${ApiConstants.baseUrl}${json['profile_image']}'
+                    : json['profile_image'].toString())
+                : null,
+        isActive: json['is_active'] ?? true,
+        createdAt:
+            json['created_at'] != null
+                ? DateTime.parse(json['created_at'])
+                : null,
+      );
+    } catch (e) {
+      print("❌ User.fromJson hatası: $e");
+      print("❌ JSON verisi: $json");
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {

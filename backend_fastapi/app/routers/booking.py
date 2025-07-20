@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import date
+import pika
+import json
 from app.db.session import get_db
 from app.schemas.booking import BookingCreate, BookingOut, BookingUpdate
 from app.crud import booking as crud_booking
@@ -8,6 +10,43 @@ from app.dependencies import get_current_user
 from app.models.user import User
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
+
+def send_notification(message_type: str, user_id: int, listing_id: int, message: str):
+    """RabbitMQ'ya notification mesajı gönderir"""
+    try:
+        # RabbitMQ bağlantısı
+        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        channel = connection.channel()
+        
+        # Queue'yu tanımla
+        queue_name = 'notification_queue'
+        channel.queue_declare(queue=queue_name, durable=True)
+        
+        # Mesajı hazırla
+        notification_data = {
+            "type": message_type,
+            "user_id": user_id,
+            "listing_id": listing_id,
+            "message": message,
+            "timestamp": date.today().isoformat()
+        }
+        
+        # Mesajı gönder
+        channel.basic_publish(
+            exchange='',
+            routing_key=queue_name,
+            body=json.dumps(notification_data, ensure_ascii=False),
+            properties=pika.BasicProperties(
+                delivery_mode=2,  # Kalıcı mesaj
+            )
+        )
+        
+        print(f"📤 Notification gönderildi: {message_type} - {message}")
+        
+        connection.close()
+        
+    except Exception as e:
+        print(f"❌ Notification gönderme hatası: {e}")
 
 # ✅ 1. Giriş yapan kullanıcının rezervasyonlarını filtreleyerek getir
 @router.get("/", response_model=list[BookingOut])
@@ -34,7 +73,18 @@ def create_booking(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return crud_booking.create_booking(db, booking, user_id=current_user.id)
+    # Rezervasyon oluştur
+    new_booking = crud_booking.create_booking(db, booking, user_id=current_user.id)
+    
+    # Notification gönder
+    send_notification(
+        message_type="booking_confirmation",
+        user_id=current_user.id,
+        listing_id=booking.listing_id,
+        message=f"Rezervasyonunuz onaylandı! {booking.start_date} - {booking.end_date}"
+    )
+    
+    return new_booking
 
 # 🔍 3. Tek bir rezervasyonu getir
 @router.get("/{booking_id}", response_model=BookingOut)
