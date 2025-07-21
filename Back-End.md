@@ -33,6 +33,7 @@ CI/CD: Kullanıldı.
 7. Konum Bilgisi
 8. Ev Kuralları
 9. Olanaklar
+10. Docker Entegrasyonu
 
 # İclal Karahisar Backend #
 1. Arama Yapma
