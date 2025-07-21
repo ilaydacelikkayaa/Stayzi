@@ -317,7 +317,7 @@ class _MyHomesScreenState extends State<MyHomesScreen> {
     final imageUrl =
         listing.imageUrls != null && listing.imageUrls!.isNotEmpty
             ? '${ApiConstants.baseUrl.replaceFirst(RegExp(r'/$'), '')}/${listing.imageUrls!.first.replaceFirst(RegExp(r'^/'), '')}'
-            : 'https://via.placeholder.com/150';
+            : 'https://placehold.co/300x200?text=Resim+';
 
     return Material(
       child: InkWell(

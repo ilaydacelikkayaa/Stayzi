@@ -36,15 +36,19 @@ class PaymentScreen extends StatelessWidget {
         'listing_id': listing['id'],
         'start_date': selectedRange.start.toIso8601String().split('T')[0],
         'end_date': selectedRange.end.toIso8601String().split('T')[0],
-        'guests': 1, // Varsayılan değer, gerekirse değiştirilebilir
-        'total_price': totalPrice, // ✅ Toplam fiyat eklendi
+        'guests': 1, // Varsayılan değer
+        'total_price': totalPrice,
       };
 
       print('🔍 Booking oluşturuluyor: $bookingData');
 
       // Backend'e booking oluşturma isteği gönder
-      final booking = await ApiService().createBooking(bookingData);
-      print('✅ Booking başarıyla oluşturuldu: $booking');
+      final booking = await ApiService().createBooking(
+        bookingData,
+      ); // ✅ Artık Booking modeli
+      print("📦 Booking ID: ${booking.id}");
+      print("📅 Tarihler: ${booking.startDate} - ${booking.endDate}");
+      print("💰 Toplam Tutar: ${booking.totalPrice}");
 
       // Başarılı ödeme ekranına yönlendir
       Navigator.push(
@@ -53,7 +57,6 @@ class PaymentScreen extends StatelessWidget {
       );
     } catch (e) {
       print('❌ Booking oluşturma hatası: $e');
-      // Hata durumunda kullanıcıya bilgi ver
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Rezervasyon oluşturulurken hata oluştu: $e'),

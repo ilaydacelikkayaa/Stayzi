@@ -21,3 +21,4 @@ class User(Base):
     # ✅ İlişkiyi buraya alıyoruz
     bookings = relationship("Booking", back_populates="user")
     reviews = relationship("Review", back_populates="user")
+    listings = relationship("Listing", back_populates="user")

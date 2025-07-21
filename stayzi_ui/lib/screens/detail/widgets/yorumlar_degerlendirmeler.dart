@@ -50,46 +50,44 @@ class _YorumlarState extends State<Yorumlar> {
     }
 
     return Column(
-      children: reviews.take(3).map((review) {
-        final profileImageUrl =
-            review.user.profileImage != null
-                ? '${ApiConstants.baseUrl}${review.user.profileImage}'
-                : 'https://via.placeholder.com/150';
+      children:
+          reviews.take(3).map((review) {
+            final profileImageUrl =
+                review.user.profileImage != null
+                    ? '${ApiConstants.baseUrl}${review.user.profileImage}'
+                    : 'https://placehold.co/300x200.png?text=Resim%20Yok';
 
-        return Container(
-          margin: EdgeInsets.only(bottom: 16),
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+            return Container(
+              margin: EdgeInsets.only(bottom: 16),
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(profileImageUrl),
-                    radius: 16,
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundImage: NetworkImage(profileImageUrl),
+                        radius: 16,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        '${review.user.name ?? ''} ${review.user.surname ?? ''}',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Spacer(),
+                      Text(review.date ?? '', style: TextStyle(fontSize: 12)),
+                    ],
                   ),
-                  SizedBox(width: 8),
-                  Text(
-                    '${review.user.name ?? ''} ${review.user.surname ?? ''}',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Spacer(),
-                  Text(review.date ?? '', style: TextStyle(fontSize: 12)),
+                  SizedBox(height: 8),
+                  Text(review.comment ?? '', style: TextStyle(fontSize: 14)),
                 ],
               ),
-              SizedBox(height: 8),
-              Text(
-                review.comment ?? '',
-                style: TextStyle(fontSize: 14),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
+            );
+          }).toList(),
     );
   }
 }

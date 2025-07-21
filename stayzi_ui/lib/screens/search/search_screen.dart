@@ -456,7 +456,7 @@ class _TinyHomeCardState extends State<TinyHomeCard> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '\$${listing['price']} night',
+                          '₺${listing['price']} night',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Row(

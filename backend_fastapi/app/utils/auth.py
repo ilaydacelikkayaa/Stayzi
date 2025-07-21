@@ -13,10 +13,10 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 
 # 👇 Giriş endpoint'in doğruysa bu olmalı
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/email")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login/email")
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
-    print("🔑 Gelen Token:", token)  # Token terminalde görünür
+    print("🔑 Gelen Token:", token)
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -26,18 +26,24 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")  # e-posta veya telefon olabilir
+        username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
 
-    # hem e-mail hem telefonla kayıt yapan kullanıcılar olabilir
-    user = get_user_by_email(db, username) or get_user_by_phone(db, username)
+    # 🔍 Email veya telefon kontrolü
+    if "@" in username:
+        print(f">>> Çözülmüş email: {username}")
+        user = get_user_by_email(db, username)
+    else:
+        print(f">>> Çözülmüş phone: {username}")
+        user = get_user_by_phone(db, username)
+
     if user is None:
+        print(">>> Kullanıcı objesi: None")
         raise credentials_exception
 
-    # ⛔ DEVRE DIŞI kontrolü burada!
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Kullanıcı hesabı devre dışı bırakılmış.")
 

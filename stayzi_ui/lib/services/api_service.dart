@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:stayzi_ui/models/booking_model.dart';
 import 'package:stayzi_ui/models/review_model.dart';
 import 'package:stayzi_ui/services/storage_service.dart';
 
@@ -100,11 +101,18 @@ class ApiService {
   // Login with email
   Future<Token> loginWithEmail(String email, String password) async {
     try {
+      final url = '${ApiConstants.baseUrl}${ApiConstants.loginEmail}';
+      print("📡 Login URL: $url");
+
       final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.loginEmail}'),
-        headers: _getHeaders(),
-        body: {'username': email, 'password': password},
+        Uri.parse('${ApiConstants.baseUrl}/auth/login/email'),
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: {"username": email, "password": password},
       );
+
+      print("📥 Status Code: ${response.statusCode}");
+      print("📥 Body: ${response.body}");
+
       final data = _handleResponse(response);
       return Token.fromJson(data);
     } catch (e) {
@@ -121,7 +129,7 @@ class ApiService {
           password != null
               ? jsonEncode({'phone': phone, 'password': password})
               : jsonEncode({'phone': phone});
-      
+
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}${ApiConstants.loginPhone}'),
         headers: _getHeaders(), // ✅ Doğru header'ları kullan
@@ -294,7 +302,7 @@ class ApiService {
 
       final headers = _getHeaders(requiresAuth: true);
       print("🔍 Headers: $headers");
-      
+
       final response = await http.get(
         Uri.parse(
           '${ApiConstants.baseUrl}${ApiConstants.listings}?skip=$skip&limit=$limit',
@@ -330,7 +338,7 @@ class ApiService {
 
       final headers = _getHeaders(requiresAuth: true);
       print("🏠 Headers: $headers");
-      
+
       final response = await http.get(
         Uri.parse('${ApiConstants.baseUrl}/listings/$listingId/with-host'),
         headers: headers,
@@ -406,34 +414,34 @@ class ApiService {
   Future<List<Favorite>> getMyFavorites({int skip = 0, int limit = 100}) async {
     try {
       print("🔍 getMyFavorites çağrıldı");
-      print(
-        "🔍 URL: ${ApiConstants.baseUrl}${ApiConstants.myFavorites}?skip=$skip&limit=$limit",
-      );
 
-      final headers = _getHeaders(requiresAuth: true);
-      print("🔍 Headers: $headers");
-      
+      // ✅ Token'ı direkt storage'dan al
+      final Token? token = await StorageService().getToken();
+      if (token == null) {
+        throw Exception("Giriş yapmanız gerekiyor. Token bulunamadı.");
+      }
+
+      final headers = {
+        'Authorization': 'Bearer ${token.accessToken}',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+
       final response = await http.get(
         Uri.parse(
           '${ApiConstants.baseUrl}${ApiConstants.myFavorites}?skip=$skip&limit=$limit',
         ),
         headers: headers,
       );
-      
+
       print("🔍 Response status: ${response.statusCode}");
       print("🔍 Response body: ${response.body}");
-      
+
       final data = _handleResponse(response);
-      print("🔍 Parsed data: $data");
-
-      final favorites =
-          (data as List).map((json) => Favorite.fromJson(json)).toList();
-      print("🔍 Favorites count: ${favorites.length}");
-
-      return favorites;
+      return (data as List).map((json) => Favorite.fromJson(json)).toList();
     } catch (e) {
       print("❌ getMyFavorites error: $e");
-      throw Exception('Failed to get my favorites: $e');
+      throw Exception('Favoriler alınamadı: $e');
     }
   }
 
@@ -516,32 +524,37 @@ class ApiService {
   // ========== USER LISTINGS ENDPOINTS ==========
 
   // Get user's own listings
-  Future<List<Listing>> getMyListings({String? token}) async {
-    print('getMyListings çağrıldı, token: ${token ?? 'YOK'}');
+  Future<List<Listing>> getMyListings() async {
+    try {
+      print("getMyListings çağrıldı");
 
-    // Token yoksa mevcut token'ı kullan
-    String? authToken = token ?? _authToken;
-    if (authToken == null) {
-      throw Exception('Authentication token required');
-    }
+      final Token? token = await StorageService().getToken();
+      if (token == null) {
+        throw Exception("Token bulunamadı. Giriş yapmanız gerekiyor.");
+      }
 
-    final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}/listings/my-listings'),
-      headers: {
-        'Authorization': 'Bearer $authToken',
+      final headers = {
+        'Authorization': 'Bearer ${token.accessToken}',
         'Content-Type': 'application/json',
-      },
-    );
+      };
 
-    print('getMyListings response status: ${response.statusCode}');
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/listings/my-listings'),
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      print('getMyListings tamamlandı, ilan sayısı: ${data.length}');
-      return data.map((json) => Listing.fromJson(json)).toList();
-    } else {
-      print('getMyListings hata: ${response.body}');
-      throw Exception('İlanlar yüklenemedi');
+      print('getMyListings response status: ${response.statusCode}');
+      print('getMyListings response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => Listing.fromJson(json)).toList();
+      } else {
+        throw Exception('İlanlar yüklenemedi');
+      }
+    } catch (e) {
+      print("❌ getMyListings error: $e");
+      throw Exception('getMyListings hata: $e');
     }
   }
 
@@ -713,7 +726,7 @@ class ApiService {
       print('DEBUG - Flutter UpdateListing: Başlıyor...');
       print('DEBUG - Flutter UpdateListing: listingId = $listingId');
       print('DEBUG - Flutter UpdateListing: amenities = $amenities');
-      
+
       var request = http.MultipartRequest(
         'PUT',
         Uri.parse(
@@ -795,12 +808,12 @@ class ApiService {
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      
+
       print(
         'DEBUG - Flutter UpdateListing: Response status = ${response.statusCode}',
       );
       print('DEBUG - Flutter UpdateListing: Response body = ${response.body}');
-      
+
       final data = _handleResponse(response);
       return Listing.fromJson(data);
     } catch (e) {
@@ -812,16 +825,15 @@ class ApiService {
   // ========== BOOKING ENDPOINTS ==========
 
   // Create a new booking
-  Future<Map<String, dynamic>> createBooking(
-    Map<String, dynamic> bookingData,
-  ) async {
+  Future<Booking> createBooking(Map<String, dynamic> bookingData) async {
     try {
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/bookings/'),
         headers: _getHeaders(requiresAuth: true),
         body: json.encode(bookingData),
       );
-      return _handleResponse(response);
+      final data = _handleResponse(response);
+      return Booking.fromJson(data);
     } catch (e) {
       throw Exception('Booking oluşturulamadı: $e');
     }

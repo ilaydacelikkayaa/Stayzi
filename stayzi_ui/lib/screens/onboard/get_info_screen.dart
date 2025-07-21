@@ -38,7 +38,10 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
     // Ensure phone is in standardized format
     final standardizedPhone = widget.phone ?? '';
     print("📱 Registering with phone: $standardizedPhone");
-    
+    print(
+      "🛂 Gönderilen JSON: ${jsonEncode({"name": _controllers['firstName']!.text.trim(), "surname": _controllers['lastName']!.text.trim(), "birthdate": _controllers['birthday']!.text.trim(), "phone": standardizedPhone, "email": _controllers['email']!.text.trim(), "password": _controllers['password']!.text.trim(), "country": widget.country})}",
+    );
+
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}/users/register-phone'),
       headers: {'Content-Type': 'application/json'},
@@ -75,7 +78,7 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
       );
     } else {
       print("❌ Kayıt başarısız: ${response.body}");
-      
+
       // Check for specific error messages
       try {
         final errorData = jsonDecode(response.body);
