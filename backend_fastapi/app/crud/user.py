@@ -78,7 +78,7 @@ def update_user_by_current_user(db: Session, current_user: User, user_data: User
 def create_user_from_phone(db: Session, user: PhoneRegister):
     hashed_pw = hash_password(user.password)
     db_user = User(
-        email=None,
+        email=user.email,
         name=user.name,
         surname=user.surname,
         birthdate=user.birthdate,

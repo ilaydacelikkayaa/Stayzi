@@ -1,28 +1,31 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from datetime import date
 import pika
 import json
+
 from app.db.session import get_db
 from app.schemas.booking import BookingCreate, BookingOut, BookingUpdate
 from app.crud import booking as crud_booking
 from app.dependencies import get_current_user
 from app.models.user import User
 
+# 📢 Logger başlat
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
 
+# 📬 RabbitMQ'ya notification gönderme fonksiyonu
 def send_notification(message_type: str, user_id: int, listing_id: int, message: str):
     """RabbitMQ'ya notification mesajı gönderir"""
     try:
-        # RabbitMQ bağlantısı
         connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
         channel = connection.channel()
-        
-        # Queue'yu tanımla
+
         queue_name = 'notification_queue'
         channel.queue_declare(queue=queue_name, durable=True)
-        
-        # Mesajı hazırla
+
         notification_data = {
             "type": message_type,
             "user_id": user_id,
@@ -30,23 +33,19 @@ def send_notification(message_type: str, user_id: int, listing_id: int, message:
             "message": message,
             "timestamp": date.today().isoformat()
         }
-        
-        # Mesajı gönder
+
         channel.basic_publish(
             exchange='',
             routing_key=queue_name,
             body=json.dumps(notification_data, ensure_ascii=False),
-            properties=pika.BasicProperties(
-                delivery_mode=2,  # Kalıcı mesaj
-            )
+            properties=pika.BasicProperties(delivery_mode=2)
         )
-        
-        print(f"📤 Notification gönderildi: {message_type} - {message}")
-        
+
+        logger.info(f"📤 Notification gönderildi: {message_type} - {message}")
         connection.close()
-        
+
     except Exception as e:
-        print(f"❌ Notification gönderme hatası: {e}")
+        logger.error(f"❌ RabbitMQ notification gönderme hatası: {e}")
 
 # ✅ 1. Giriş yapan kullanıcının rezervasyonlarını filtreleyerek getir
 @router.get("/", response_model=list[BookingOut])
@@ -58,7 +57,7 @@ def get_my_bookings_filtered(
 ):
     bookings = crud_booking.get_bookings_by_user(db, current_user.id)
 
-    if status == "active":
+    if status and status.strip() == "active":
         bookings = [b for b in bookings if b.start_date >= date.today()]
 
     if date_from:
@@ -73,17 +72,15 @@ def create_booking(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Rezervasyon oluştur
     new_booking = crud_booking.create_booking(db, booking, user_id=current_user.id)
-    
-    # Notification gönder
+
     send_notification(
         message_type="booking_confirmation",
         user_id=current_user.id,
         listing_id=booking.listing_id,
         message=f"Rezervasyonunuz onaylandı! {booking.start_date} - {booking.end_date}"
     )
-    
+
     return new_booking
 
 # 🔍 3. Tek bir rezervasyonu getir
@@ -96,7 +93,11 @@ def read_booking(booking_id: int, db: Session = Depends(get_db)):
 
 # 🛠️ 4. Rezervasyonu güncelle
 @router.put("/{booking_id}", response_model=BookingOut)
-def update_booking_endpoint(booking_id: int, booking_update: BookingUpdate, db: Session = Depends(get_db)):
+def update_booking_endpoint(
+    booking_id: int,
+    booking_update: BookingUpdate,
+    db: Session = Depends(get_db)
+):
     db_booking = crud_booking.update_booking(db, booking_id, booking_update)
     if not db_booking:
         raise HTTPException(status_code=404, detail="Booking not found")

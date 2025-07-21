@@ -8,6 +8,10 @@ from app.schemas.booking import BookingCreate, BookingUpdate
 from app.utils.rabbitmq_client import send_booking_created_message
 
 # ➕ Booking Oluştur
+from app.models.listing import Listing  # ⬅️ İlan modelini ekle
+
+
+# ➕ Booking Oluştur
 def create_booking(db: Session, booking: BookingCreate, user_id: int):
     today = date.today()
 
@@ -31,20 +35,39 @@ def create_booking(db: Session, booking: BookingCreate, user_id: int):
     if overlapping:
         raise HTTPException(status_code=409, detail="Bu tarih aralığında başka bir rezervasyon mevcut.")
 
-    # ✅ Yeni rezervasyonu ekle
-    db_booking = Booking(**booking.dict(), user_id=user_id)
+    # 🧮 total_price hesapla
+    listing = db.query(Listing).filter(Listing.id == booking.listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="İlan bulunamadı.")
+
+    nights = (booking.end_date - booking.start_date).days
+    total_price = nights * listing.price
+
+    # ✅ Yeni rezervasyonu oluştur
+    db_booking = Booking(
+        user_id=user_id,
+        listing_id=booking.listing_id,
+        start_date=booking.start_date,
+        end_date=booking.end_date,
+        guests=booking.guests,
+        total_price=total_price  # ⬅️ buraya hesapladığın değeri yaz
+    )
+
     db.add(db_booking)
     db.commit()
     db.refresh(db_booking)
-    # RabbitMQ'ya mesaj gönder
+
+    # 📤 RabbitMQ'ya mesaj gönder
     send_booking_created_message({
         "booking_id": db_booking.id,
         "user_id": db_booking.user_id,
         "listing_id": db_booking.listing_id,
         "start_date": str(db_booking.start_date),
         "end_date": str(db_booking.end_date),
-        "created_at": str(db_booking.created_at)
+        "created_at": str(db_booking.created_at),
+        "total_price": float(db_booking.total_price)
     })
+
     return db_booking
 
 # 🔍 Belirli bir booking ID'sini getir
@@ -80,3 +103,6 @@ def update_booking(db: Session, booking_id: int, update_data: BookingUpdate):
 # 👤 Kullanıcıya ait rezervasyonları getir
 def get_bookings_by_user(db: Session, user_id: int):
     return db.query(Booking).filter(Booking.user_id == user_id).all()
+
+def get_bookings_by_listing(db: Session, listing_id: int):
+    return db.query(Booking).filter(Booking.listing_id == listing_id).all()

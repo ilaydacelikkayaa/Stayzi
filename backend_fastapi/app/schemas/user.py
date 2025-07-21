@@ -56,6 +56,7 @@ class UserOut(BaseModel):
 
 
 class PhoneRegister(BaseModel):
+    email: Optional[EmailStr] = None
     name: str
     surname: str
     birthdate: date
@@ -65,4 +66,8 @@ class PhoneRegister(BaseModel):
 
 class PhoneLogin(BaseModel):
     phone: str
-    password: Optional[str] = None  # Şifre artık opsiyonel
+    password: Optional[str] = None # Şifre artık opsiyonel
+
+class EmailLoginRequest(BaseModel):
+    username: str
+    password: str

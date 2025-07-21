@@ -30,7 +30,7 @@ def filter_listings(
     min_price:  Optional[float]= Query(None, alias="min_price"),
     max_price:  Optional[float]= Query(None, alias="max_price"),
     db:         Session        = Depends(get_db),
-    current_user: User = Depends(get_current_user),  # kullanıcıyı al
+    current_user: Optional[User] = Depends(get_current_user_optional),  # kullanıcıyı al
 ):
     sd = datetime.fromisoformat(start_date).date() if start_date else None
     ed = datetime.fromisoformat(end_date).date()   if end_date   else None
