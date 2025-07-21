@@ -2,11 +2,11 @@ Docker: Kullanıldı.
 
 REST API: Kullanıldı.
 
-Redis:Kullanıldı.
+Redis: Kullanıldı.
 
 RabbitMQ: Kullanıldı.
 
-CI/CD: Kullanıldı/Kullanılmadı.
+CI/CD: Kullanıldı.
 
 # Ahmet Koca Backend #
 1. Profil Göster
