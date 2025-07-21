@@ -15,7 +15,7 @@ def create_listing(db: Session, listing: ListingCreate, user_id: int):
     
     # Boolean değerleri integer'a çevir
     for key in ['allow_events', 'allow_smoking', 'allow_commercial_photo']:
-        if key in data and isinstance(data[key], bool):
+       if key in data and isinstance(data[key], bool):
             data[key] = 1 if data[key] else 0
     
     # Handle amenities if they exist

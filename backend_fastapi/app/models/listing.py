@@ -38,4 +38,4 @@ class Listing(Base):
 
     # ✅ İlişki satırı sınıfın içinde olmalı
     bookings = relationship("Booking", back_populates="listing")
-
+    user = relationship("User", back_populates="listings")

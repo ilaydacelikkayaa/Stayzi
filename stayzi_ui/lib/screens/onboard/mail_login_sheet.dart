@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:stayzi_ui/screens/onboard/get_info_screen.dart';
+import 'package:stayzi_ui/screens/navigation/bottom_nav.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/basic_button.dart';
 import 'package:stayzi_ui/screens/onboard/widgets/form_widget.dart';
+import 'package:stayzi_ui/services/api_service.dart';
+import 'package:stayzi_ui/services/storage_service.dart';
 
 // kullanıcı eğer maille giriş yapmak isterse alttan açılan bu sheet ile giris yapacak..
 //Yeni bir sayfa değil mevcut sayfada alttan açılan bir bar şeklinde olacak.
@@ -74,14 +76,42 @@ class _MailLogInSheetState extends State<MailLogInSheet> {
                 textColor: Colors.white,
                 onPressed:
                     _isButtonEnabled
-                        ? () {
-                          Navigator.pop(context); //shetti kapatmak icin
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => GetInfoScreen(),
-                            ),
-                          );
+                        ? () async {
+                          print("Log in basıldı.");
+                          final email = _emailController.text.trim();
+                          final password = _passwordController.text.trim();
+
+                          try {
+                            final token = await ApiService().loginWithEmail(
+                              email,
+                              password,
+                            );
+
+                            // API token ayarla
+                            ApiService().setAuthToken(token.accessToken);
+
+                            // Token'ı local'e kaydet
+                            await StorageService().saveToken(token);
+
+                            // Sayfalar arası geçiş
+                            Navigator.pop(context); // Sheet'i kapat
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => const BottomNavigationWidget(),
+                              ),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  "❌ Login failed: ${e.toString()}",
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         }
                         : null,
               ),

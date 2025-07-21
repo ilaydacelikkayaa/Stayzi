@@ -104,7 +104,7 @@ class _CommentPageState extends State<CommentPage> {
                               review.user.profileImage != null &&
                                       review.user.profileImage!.isNotEmpty
                                   ? '${ApiConstants.baseUrl}${review.user.profileImage!}'
-                                  : 'https://via.placeholder.com/150',
+                                  : 'https://placehold.co/300x200?text=Resim+',
                         );
                       },
                     ),

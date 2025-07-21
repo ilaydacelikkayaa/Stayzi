@@ -46,12 +46,22 @@ class Listing(ListingBase):
 
 class ListingOut(BaseModel):
     id: int
+    user_id: Optional[int]
     title: str
     description: Optional[str]
     price: float
     location: str
     created_at: datetime
     image_urls: Optional[List[str]]
+    average_rating: Optional[float]
+
+    class Config:
+        from_attributes = True
+
+class ListingWithHost(ListingBase):
+    id: int
+    created_at: datetime
+    user: Optional[UserOut] = None
 
     class Config:
         from_attributes = True

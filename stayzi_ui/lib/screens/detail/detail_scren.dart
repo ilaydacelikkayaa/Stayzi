@@ -198,7 +198,34 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                   endIndent: 20,
                   indent: 20,
                 ),
-
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundImage: NetworkImage(
+                          'https://api.dicebear.com/6.x/personas/svg?seed=Host', // fake avatar
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Ev Sahibi: İlayda Çelikkaya',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                //EvSahibiBilgisi(listing: listing),
+                SizedBox(height: 16),
                 Divider(
                   thickness: 1,
                   color: Colors.grey,
@@ -215,8 +242,9 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                   indent: 20,
                 ),
                 KonumBilgisi(
-                  latitude: (listing['lat'] as num?)?.toDouble() ?? 0.0,
-                  longitude: (listing['lng'] as num?)?.toDouble() ?? 0.0,
+                  latitude: (listing['lat'] as num?)?.toDouble(),
+                  longitude: (listing['lng'] as num?)?.toDouble(),
+                  locationName: listing['location']?.toString(),
                 ),
                 Divider(
                   thickness: 1,
@@ -326,10 +354,7 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                     CircleAvatar(
                       backgroundColor: Colors.black.withOpacity(0.5),
                       child: IconButton(
-                        icon: const Icon(
-                          Icons.ios_share,
-                          color: Colors.white,
-                        ),
+                        icon: const Icon(Icons.ios_share, color: Colors.white),
                         onPressed: () {},
                       ),
                     ),
@@ -339,10 +364,7 @@ class _ListingDetailPageState extends State<ListingDetailPage> {
                       child: IconButton(
                         icon:
                             isFavorite
-                                ? const Icon(
-                                  Icons.favorite,
-                                  color: Colors.red,
-                                )
+                                ? const Icon(Icons.favorite, color: Colors.red)
                                 : const Icon(
                                   Icons.favorite_border,
                                   color: Colors.white,
