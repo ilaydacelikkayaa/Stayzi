@@ -46,6 +46,7 @@ jobs:
 
       - name: Alembic migration
         run: alembic upgrade head
+        working-directory: backend_fastapi
 
       - name: Testleri çalıştır
         run: pytest || echo "Test yok"
