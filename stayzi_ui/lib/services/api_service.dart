@@ -646,6 +646,9 @@ class ApiService {
     bool? allowSmoking,
     bool? allowCommercialPhoto,
     int? maxGuests,
+    int? roomCount,
+    int? bedCount,
+    int? bathroomCount,
   }) async {
     try {
       var request = http.MultipartRequest(
@@ -672,6 +675,11 @@ class ApiService {
             (allowCommercialPhoto ? 1 : 0).toString();
       if (maxGuests != null)
         request.fields['max_guests'] = maxGuests.toString();
+      if (roomCount != null)
+        request.fields['room_count'] = roomCount.toString();
+      if (bedCount != null) request.fields['bed_count'] = bedCount.toString();
+      if (bathroomCount != null)
+        request.fields['bathroom_count'] = bathroomCount.toString();
 
       if (hostLanguages != null) {
         request.fields['host_languages'] = json.encode(hostLanguages);
@@ -711,7 +719,7 @@ class ApiService {
     List<String>? hostLanguages,
     String? homeRules,
     int? capacity,
-    List<String>? amenities,
+    List<Map<String, dynamic>>? amenities,
     File? photo,
     List<File>? photos,
     int? roomCount,
@@ -768,9 +776,6 @@ class ApiService {
         print(
           'DEBUG - Flutter UpdateListing: amenities JSON = ${json.encode(amenities)}',
         );
-        print('DEBUG - Flutter UpdateListing: amenities field eklendi');
-      } else {
-        print('DEBUG - Flutter UpdateListing: amenities null, eklenmedi');
       }
 
       // Fotoğrafları ekle
@@ -1073,5 +1078,20 @@ class ApiService {
 
     // Fallback: assume no country code
     return {'country': '', 'phone': cleanPhone};
+  }
+
+  Future<List<String>> fetchAmenities() async {
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/amenities'),
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      // Eğer sadece isimler dönüyorsa:
+      return data.map((e) => e['name'] as String).toList();
+      // Eğer doğrudan string listesi dönüyorsa:
+      // return List<String>.from(data);
+    } else {
+      throw Exception('Olanaklar alınamadı');
+    }
   }
 }

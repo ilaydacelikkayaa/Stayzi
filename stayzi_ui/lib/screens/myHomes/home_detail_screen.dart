@@ -164,6 +164,35 @@ class _HomeDetailScreenState extends State<HomeDetailScreen> {
             ),
           ),
         IlanBaslik(listing: listingData),
+        // Özellikler satırı
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (listingData['room_count'] != null)
+                _FeatureIconText(
+                  icon: Icons.meeting_room,
+                  label: '${listingData['room_count']} Oda',
+                ),
+              if (listingData['bed_count'] != null)
+                _FeatureIconText(
+                  icon: Icons.bed,
+                  label: '${listingData['bed_count']} Yatak',
+                ),
+              if (listingData['bathroom_count'] != null)
+                _FeatureIconText(
+                  icon: Icons.bathtub,
+                  label: '${listingData['bathroom_count']} Banyo',
+                ),
+              if (listingData['max_guests'] != null)
+                _FeatureIconText(
+                  icon: Icons.people,
+                  label: '${listingData['max_guests']} Misafir',
+                ),
+            ],
+          ),
+        ),
         Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
         EvSahibiBilgisi(listing: listingData),
         Divider(thickness: 1, color: Colors.grey, endIndent: 20, indent: 20),
@@ -267,5 +296,25 @@ class _HomeDetailScreenState extends State<HomeDetailScreen> {
     }
 
     return rules.isEmpty ? null : rules.join('\n\n');
+  }
+}
+
+class _FeatureIconText extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _FeatureIconText({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Colors.black87),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 15, color: Colors.black87),
+        ),
+      ],
+    );
   }
 }

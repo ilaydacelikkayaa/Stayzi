@@ -36,6 +36,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16),

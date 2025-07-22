@@ -152,198 +152,265 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Favori Listeler'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadFavorites,
-          ),
-        ],
-      ),
-      body:
-          isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : errorMessage != null
-              ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      errorMessage!,
-                      style: const TextStyle(color: Colors.red),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _loadFavorites,
-                      child: const Text('Tekrar Dene'),
-                    ),
-                  ],
-                ),
-              )
-              : favoriListeleri.isEmpty
-              ? const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.favorite_border, size: 64, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Text(
-                      'Henüz favori listeniz yok',
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'İlanları favorilere ekleyerek\nlisteler oluşturabilirsiniz',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              )
-              : Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: GridView.builder(
-                  itemCount: favoriListeleri.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: 1, // Kare yapı
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  itemBuilder: (context, index) {
-                    final liste = favoriListeleri[index];
-                    final ilanlar = List<Map<String, dynamic>>.from(
-                      liste['ilanlar'],
-                    );
-                    final gosterilecekResimler =
-                        ilanlar.take(4).toList(); // en fazla 4 resim al
-                    
-                    print(
-                      "🎨 Liste $index (${liste['listeAdi']}) için ${gosterilecekResimler.length} fotoğraf hazırlanıyor",
-                    );
-                    for (int i = 0; i < gosterilecekResimler.length; i++) {
-                      print(
-                        "  🖼️ Fotoğraf $i: ${gosterilecekResimler[i]['foto']}",
-                      );
-                    }
-
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (_) => FavoriteListDetailScreen(
-                                  listeAdi: liste['listeAdi'],
-                                  ilanlar: ilanlar,
-                                ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.favorite,
+                        color: Colors.red,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Favoriler',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
                           ),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 6,
-                              offset: Offset(2, 2),
+                          SizedBox(height: 4),
+                          Text(
+                            'Tüm favori listelerin burada',
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child:
+                isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : errorMessage != null
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            errorMessage!,
+                            style: const TextStyle(color: Colors.red),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _loadFavorites,
+                            child: const Text('Tekrar Dene'),
+                          ),
+                        ],
+                      ),
+                    )
+                    : favoriListeleri.isEmpty
+                    ? const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.favorite_border,
+                            size: 64,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Henüz favori listeniz yok',
+                            style: TextStyle(fontSize: 18, color: Colors.grey),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'İlanları favorilere ekleyerek\nlisteler oluşturabilirsiniz',
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    )
+                    : Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: GridView.builder(
+                        itemCount: favoriListeleri.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              childAspectRatio: 1, // Kare yapı
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            // Fotoğraf kolajı
-                            SizedBox(
-                              height: 120,
-                              width: double.infinity,
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(22),
+                        itemBuilder: (context, index) {
+                          final liste = favoriListeleri[index];
+                          final ilanlar = List<Map<String, dynamic>>.from(
+                            liste['ilanlar'],
+                          );
+                          final gosterilecekResimler =
+                              ilanlar.take(4).toList(); // en fazla 4 resim al
+
+                          print(
+                            "🎨 Liste $index (${liste['listeAdi']}) için ${gosterilecekResimler.length} fotoğraf hazırlanıyor",
+                          );
+                          for (
+                            int i = 0;
+                            i < gosterilecekResimler.length;
+                            i++
+                          ) {
+                            print(
+                              "  🖼️ Fotoğraf $i: ${gosterilecekResimler[i]['foto']}",
+                            );
+                          }
+
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => FavoriteListDetailScreen(
+                                        listeAdi: liste['listeAdi'],
+                                        ilanlar: ilanlar,
+                                      ),
                                 ),
-                                child: Table(
-                                  defaultColumnWidth: const FlexColumnWidth(1),
-                                  children: [
-                                    TableRow(
-                                      children: [
-                                        _buildCollageImage(
-                                          gosterilecekResimler,
-                                          0,
-                                          topLeft: true,
-                                        ),
-                                        _buildCollageImage(
-                                          gosterilecekResimler,
-                                          1,
-                                          topRight: true,
-                                        ),
-                                      ],
-                                    ),
-                                    TableRow(
-                                      children: [
-                                        _buildCollageImage(
-                                          gosterilecekResimler,
-                                          2,
-                                          bottomLeft: true,
-                                        ),
-                                        _buildCollageImage(
-                                          gosterilecekResimler,
-                                          3,
-                                          bottomRight: true,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                top: 10,
-                                left: 8,
-                                right: 8,
-                                bottom: 4,
+                              );
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 6,
+                                    offset: Offset(2, 2),
+                                  ),
+                                ],
                               ),
                               child: Column(
                                 children: [
-                                  Text(
-                                    liste['listeAdi'],
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 17,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Text(
-                                      '${ilanlar.length} ilan',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.black54,
+                                  // Fotoğraf kolajı
+                                  SizedBox(
+                                    height: 120,
+                                    width: double.infinity,
+                                    child: ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(22),
                                       ),
+                                      child: Table(
+                                        defaultColumnWidth:
+                                            const FlexColumnWidth(1),
+                                        children: [
+                                          TableRow(
+                                            children: [
+                                              _buildCollageImage(
+                                                gosterilecekResimler,
+                                                0,
+                                                topLeft: true,
+                                              ),
+                                              _buildCollageImage(
+                                                gosterilecekResimler,
+                                                1,
+                                                topRight: true,
+                                              ),
+                                            ],
+                                          ),
+                                          TableRow(
+                                            children: [
+                                              _buildCollageImage(
+                                                gosterilecekResimler,
+                                                2,
+                                                bottomLeft: true,
+                                              ),
+                                              _buildCollageImage(
+                                                gosterilecekResimler,
+                                                3,
+                                                bottomRight: true,
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      top: 10,
+                                      left: 8,
+                                      right: 8,
+                                      bottom: 4,
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          liste['listeAdi'],
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 17,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[200],
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            '${ilanlar.length} ilan',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.black54,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
-              ),
+                    ),
+          ),
+        ],
+      ),
     );
   }
 }

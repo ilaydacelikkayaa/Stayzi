@@ -84,6 +84,17 @@ class Listing {
         }
       }
 
+      List<Amenity>? amenities;
+      if (json['amenities'] != null &&
+          json['amenities'] is List &&
+          json['amenities'].isNotEmpty &&
+          json['amenities'][0] is Map) {
+        amenities =
+            (json['amenities'] as List)
+                .map((e) => Amenity.fromJson(e as Map<String, dynamic>))
+                .toList();
+      }
+
       return Listing(
         id: json['id'],
         userId: json['user_id'],
@@ -105,12 +116,7 @@ class Listing {
         averageRating: (json['average_rating'] ?? 0.0).toDouble(),
         homeRules: json['home_rules'],
         capacity: json['capacity'],
-        amenities:
-            json['amenities'] != null
-                ? (json['amenities'] as List)
-                    .map((e) => Amenity.fromJson(e as Map<String, dynamic>))
-                    .toList()
-                : null,
+        amenities: amenities,
         roomCount: json['room_count'],
         bedCount: json['bed_count'],
         bathroomCount: json['bathroom_count'],

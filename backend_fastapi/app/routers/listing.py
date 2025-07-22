@@ -60,6 +60,9 @@ async def create_listing_route(
     home_rules: Optional[str] = Form(None),
     capacity: Optional[int] = Form(None),
     amenities: Optional[str] = Form(None),  # JSON string olarak gelecek
+    room_count: Optional[int] = Form(None),
+    bed_count: Optional[int] = Form(None),
+    bathroom_count: Optional[int] = Form(None),
     photo: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -113,7 +116,10 @@ async def create_listing_route(
         "image_urls": image_urls,
         "home_rules": home_rules,
         "capacity": capacity,
-        "amenities": amenities_list
+        "amenities": amenities_list,
+        "room_count": room_count,
+        "bed_count": bed_count,
+        "bathroom_count": bathroom_count,
     }
 
     listing = ListingCreate(**listing_data)
