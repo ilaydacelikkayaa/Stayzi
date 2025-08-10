@@ -135,6 +135,7 @@ class _GetInfoScreenState extends State<GetInfoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       // appBar: AppBar(), // ihtiyac olmadigi icin yorum satırına alindi
       body: SafeArea(
         child: SingleChildScrollView(

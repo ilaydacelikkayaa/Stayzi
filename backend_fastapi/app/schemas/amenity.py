@@ -16,4 +16,4 @@ class Amenity(AmenityBase):
 
 class AmenityInListing(BaseModel):
     id: int
-    name: Optional[str] = None
+    name: str

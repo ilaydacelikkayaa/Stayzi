@@ -319,15 +319,27 @@ class ApiService {
   // Get listing by ID
   Future<Listing> getListingById(int listingId) async {
     try {
+      print("🔍 getListingById çağrıldı: ID=$listingId");
+      
       final response = await http.get(
         Uri.parse(
           '${ApiConstants.baseUrl}${ApiConstants.listingById}$listingId',
         ),
         headers: _getHeaders(),
       );
+      
+      print("🔍 Response status: ${response.statusCode}");
+      print("🔍 Response body: ${response.body}");
+      
       final data = _handleResponse(response);
-      return Listing.fromJson(data);
+      print("🔍 Parsed data: $data");
+
+      final listing = Listing.fromJson(data);
+      print("🔍 Listing amenities: ${listing.amenities}");
+
+      return listing;
     } catch (e) {
+      print("❌ getListingById hatası: $e");
       throw Exception('Failed to get listing: $e');
     }
   }
@@ -646,6 +658,9 @@ class ApiService {
     bool? allowSmoking,
     bool? allowCommercialPhoto,
     int? maxGuests,
+    int? roomCount,
+    int? bedCount,
+    int? bathroomCount,
   }) async {
     try {
       var request = http.MultipartRequest(
@@ -672,6 +687,11 @@ class ApiService {
             (allowCommercialPhoto ? 1 : 0).toString();
       if (maxGuests != null)
         request.fields['max_guests'] = maxGuests.toString();
+      if (roomCount != null)
+        request.fields['room_count'] = roomCount.toString();
+      if (bedCount != null) request.fields['bed_count'] = bedCount.toString();
+      if (bathroomCount != null)
+        request.fields['bathroom_count'] = bathroomCount.toString();
 
       if (hostLanguages != null) {
         request.fields['host_languages'] = json.encode(hostLanguages);
@@ -711,7 +731,7 @@ class ApiService {
     List<String>? hostLanguages,
     String? homeRules,
     int? capacity,
-    List<String>? amenities,
+    List<Map<String, dynamic>>? amenities,
     File? photo,
     List<File>? photos,
     int? roomCount,
@@ -768,9 +788,6 @@ class ApiService {
         print(
           'DEBUG - Flutter UpdateListing: amenities JSON = ${json.encode(amenities)}',
         );
-        print('DEBUG - Flutter UpdateListing: amenities field eklendi');
-      } else {
-        print('DEBUG - Flutter UpdateListing: amenities null, eklenmedi');
       }
 
       // Fotoğrafları ekle
@@ -1073,5 +1090,44 @@ class ApiService {
 
     // Fallback: assume no country code
     return {'country': '', 'phone': cleanPhone};
+  }
+
+  Future<List<String>> fetchAmenities() async {
+    try {
+      print("🔍 fetchAmenities çağrıldı");
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/amenities'),
+      );
+      
+      print("🔍 Response status: ${response.statusCode}");
+      print("🔍 Response body: ${response.body}");
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        print("🔍 Parsed data: $data");
+
+        // Null-safe parsing of amenity names
+        final List<String> amenities =
+            data.map((e) {
+              final name = e['name'];
+              if (name == null) {
+                print("⚠️ Null amenity name found: $e");
+                return 'Unknown Amenity';
+              }
+              return name.toString();
+            }).toList();
+
+        print("🔍 Parsed amenities: $amenities");
+        return amenities;
+      } else {
+        print(
+          "❌ fetchAmenities error: ${response.statusCode} - ${response.body}",
+        );
+        throw Exception('Olanaklar alınamadı: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("❌ fetchAmenities exception: $e");
+      throw Exception('Olanaklar alınırken hata oluştu: $e');
+    }
   }
 }

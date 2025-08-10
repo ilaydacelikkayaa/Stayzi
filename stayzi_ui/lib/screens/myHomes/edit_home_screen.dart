@@ -24,7 +24,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
   late TextEditingController descriptionController;
   late TextEditingController locationController;
   late TextEditingController priceController;
-  late TextEditingController capacityController;
+  // capacityController kaldırıldı
 
   late TextEditingController roomCountController;
   late TextEditingController bedCountController;
@@ -35,7 +35,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
   bool _isLoading = false;
   String? _error;
   String? _success;
-  List<String> _selectedAmenities = [];
+  List<int> _selectedAmenityIds = [];
   
   // İzin alanları
   bool _allowEvents = false;
@@ -49,22 +49,22 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
   bool _isLocationLoading = false;
   String? _locationError;
   
-  final List<String> _availableAmenities = [
-    'WiFi',
-    'Klima',
-    'Mutfak',
-    'Çamaşır Makinesi',
-    'Bulaşık Makinesi',
-    'TV',
-    'Parking',
-    'Balkon',
-    'Bahçe',
-    'Havuz',
-    'Spor Salonu',
-    'Güvenlik',
-    'Asansör',
-    'Sigara İçilmez',
-    'Evcil Hayvan Kabul',
+  List<Map<String, dynamic>> _availableAmenities = [
+    {'id': 1, 'name': 'WiFi'},
+    {'id': 2, 'name': 'Klima'},
+    {'id': 3, 'name': 'Mutfak'},
+    {'id': 4, 'name': 'Çamaşır Makinesi'},
+    {'id': 5, 'name': 'Bulaşık Makinesi'},
+    {'id': 6, 'name': 'TV'},
+    {'id': 7, 'name': 'Otopark'},
+    {'id': 8, 'name': 'Balkon'},
+    {'id': 9, 'name': 'Bahçe'},
+    {'id': 10, 'name': 'Havuz'},
+    {'id': 11, 'name': 'Spor Salonu'},
+    {'id': 12, 'name': 'Güvenlik'},
+    {'id': 13, 'name': 'Asansör'},
+    {'id': 14, 'name': 'Sigara İçilmez'},
+    {'id': 15, 'name': 'Evcil Hayvan Kabul'},
   ];
 
   @override
@@ -80,10 +80,6 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
     priceController = TextEditingController(
       text: widget.listing.price.toString(),
     );
-    capacityController = TextEditingController(
-      text: widget.listing.capacity?.toString() ?? '',
-    );
-
     roomCountController = TextEditingController(
       text: widget.listing.roomCount?.toString() ?? '',
     );
@@ -93,34 +89,25 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
     bathroomCountController = TextEditingController(
       text: widget.listing.bathroomCount?.toString() ?? '',
     );
-    _selectedAmenities =
-        widget.listing.amenities != null
-            ? widget.listing.amenities!.map((amenity) => amenity.name).toList()
-            : [];
-    
-    // İzin alanlarını mevcut değerlerle yükle
+    // Amenity id'lerini hem objeden hem id listesinden destekle
+    print('🔍 EditHomeScreen - Listing amenities: ${widget.listing.amenities}');
+    if (widget.listing.amenities != null &&
+        widget.listing.amenities!.isNotEmpty) {
+      _selectedAmenityIds = widget.listing.amenities!.map((a) => a.id).toList();
+      print('🔍 EditHomeScreen - Selected amenity IDs: $_selectedAmenityIds');
+    } else {
+      _selectedAmenityIds = [];
+      print('🔍 EditHomeScreen - No amenities found, empty list');
+    }
     _allowEvents = widget.listing.allowEvents == 1;
     _allowSmoking = widget.listing.allowSmoking == 1;
     _allowCommercialPhoto = widget.listing.allowCommercialPhoto == 1;
-    _maxGuests = widget.listing.maxGuests ?? widget.listing.capacity ?? 1;
-    
-    // Mevcut koordinatları yükle
+    _maxGuests = widget.listing.maxGuests ?? 1;
     _selectedLatitude = widget.listing.lat;
     _selectedLongitude = widget.listing.lng;
-  }
-
-  @override
-  void dispose() {
-    titleController.dispose();
-    descriptionController.dispose();
-    locationController.dispose();
-    priceController.dispose();
-    capacityController.dispose();
-
-    roomCountController.dispose();
-    bedCountController.dispose();
-    bathroomCountController.dispose();
-    super.dispose();
+    
+    // API'den olanakları çek
+    _fetchAmenities();
   }
 
   // Fotoğraf seçme fonksiyonu - birden fazla fotoğraf için
@@ -147,12 +134,12 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
     });
   }
 
-  void _toggleAmenity(String amenity) {
+  void _toggleAmenity(int amenityId) {
     setState(() {
-      if (_selectedAmenities.contains(amenity)) {
-        _selectedAmenities.remove(amenity);
+      if (_selectedAmenityIds.contains(amenityId)) {
+        _selectedAmenityIds.remove(amenityId);
       } else {
-        _selectedAmenities.add(amenity);
+        _selectedAmenityIds.add(amenityId);
       }
     });
   }
@@ -245,6 +232,48 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
     }
   }
 
+  // API'den olanakları çek
+  Future<void> _fetchAmenities() async {
+    try {
+      print("🔍 EditHomeScreen - _fetchAmenities başlatıldı");
+      final amenities = await ApiService().fetchAmenities();
+      print("🔍 EditHomeScreen - Alınan amenities: $amenities");
+
+      // String listesini Map formatına çevir
+      final amenitiesMap =
+          amenities.asMap().entries.map((entry) {
+            return {'id': entry.key + 1, 'name': entry.value};
+          }).toList();
+
+      setState(() {
+        _availableAmenities = amenitiesMap;
+      });
+      print("🔍 EditHomeScreen - Amenities güncellendi: $_availableAmenities");
+    } catch (e) {
+      print("❌ EditHomeScreen - _fetchAmenities hatası: $e");
+      // Hata durumunda varsayılan listeyi kullan
+      setState(() {
+        _availableAmenities = [
+          {'id': 1, 'name': 'WiFi'},
+          {'id': 2, 'name': 'Klima'},
+          {'id': 3, 'name': 'Mutfak'},
+          {'id': 4, 'name': 'Çamaşır Makinesi'},
+          {'id': 5, 'name': 'Bulaşık Makinesi'},
+          {'id': 6, 'name': 'TV'},
+          {'id': 7, 'name': 'Otopark'},
+          {'id': 8, 'name': 'Balkon'},
+          {'id': 9, 'name': 'Bahçe'},
+          {'id': 10, 'name': 'Havuz'},
+          {'id': 11, 'name': 'Spor Salonu'},
+          {'id': 12, 'name': 'Güvenlik'},
+          {'id': 13, 'name': 'Asansör'},
+          {'id': 14, 'name': 'Sigara İçilmez'},
+          {'id': 15, 'name': 'Evcil Hayvan Kabul'},
+        ];
+      });
+    }
+  }
+
   // Haritadan konum seç
   void _selectLocationFromMap() {
     Navigator.of(context).push(
@@ -323,7 +352,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
 
     try {
       final price = double.tryParse(priceController.text.trim());
-      final capacity = int.tryParse(capacityController.text.trim());
+      // final capacity = int.tryParse(capacityController.text.trim()); // capacityController kaldırıldı
 
       if (price == null) {
         throw Exception('Geçerli bir fiyat giriniz');
@@ -379,9 +408,16 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
         lat: lat,
         lng: lng,
         price: price,
-        capacity: capacity,
+        // capacity: capacity, // capacityController kaldırıldı
         homeRules: _buildHomeRulesText(),
-        amenities: _selectedAmenities.isNotEmpty ? _selectedAmenities : null,
+        amenities:
+            _selectedAmenityIds.map((id) {
+                  final amenity = _availableAmenities.firstWhere(
+                    (a) => a['id'] == id,
+                  );
+                  return {'id': amenity['id'], 'name': amenity['name']};
+                }).toList()
+                as List<Map<String, dynamic>>?,
         photos: _selectedImages.isNotEmpty ? _selectedImages : null,
         roomCount: int.tryParse(roomCountController.text.trim()),
         bedCount: int.tryParse(bedCountController.text.trim()),
@@ -394,10 +430,10 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
 
       setState(() {
         _success = 'İlan başarıyla güncellendi!';
+        // Güncellenen değerleri state'e yansıtma kaldırıldı (listing alanları final)
       });
 
       if (context.mounted) {
-        // Başarı mesajını göster ve geri dön
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_success!),
@@ -951,12 +987,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                               ),
                               const SizedBox(height: 16),
 
-                              _buildTextField(
-                                controller: capacityController,
-                                label: 'Kapasite',
-                                hint: 'Misafir sayısı',
-                                keyboardType: TextInputType.number,
-                              ),
+                              // capacityController kaldırıldı
 
                               const SizedBox(height: 24),
 
@@ -1110,30 +1141,46 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
                                 runSpacing: 8,
                                 children:
                                     _availableAmenities.map((amenity) {
-                                      final isSelected = _selectedAmenities
-                                          .contains(amenity);
-                                      return FilterChip(
-                                        label: Text(
-                                          amenity,
-                                          style: const TextStyle(
-                                            color: Colors.black,
+                                      final isSelected = _selectedAmenityIds
+                                          .contains(amenity['id']);
+                                      return GestureDetector(
+                                        onTap:
+                                            () => _toggleAmenity(
+                                              amenity['id'] as int,
+                                            ),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 8,
                                           ),
-                                        ),
-                                        selected: isSelected,
-                                        onSelected:
-                                            (selected) =>
-                                                _toggleAmenity(amenity),
-                                        selectedColor: Colors.black.withOpacity(
-                                          0.1,
-                                        ),
-                                        checkmarkColor: Colors.black,
-                                        side: BorderSide(
-                                          color:
-                                              isSelected
-                                                  ? Colors.black
-                                                  : Colors.grey.withOpacity(
-                                                    0.3,
-                                                  ),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                isSelected
+                                                    ? Colors.grey[200]
+                                                    : Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                            border: Border.all(
+                                              color:
+                                                  isSelected
+                                                      ? Colors.black
+                                                      : Colors.grey.withOpacity(
+                                                        0.3,
+                                                      ),
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            amenity['name'],
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontWeight:
+                                                  isSelected
+                                                      ? FontWeight.bold
+                                                      : FontWeight.normal,
+                                            ),
+                                          ),
                                         ),
                                       );
                                     }).toList(),

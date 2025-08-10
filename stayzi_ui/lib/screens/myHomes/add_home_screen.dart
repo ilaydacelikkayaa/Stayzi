@@ -21,7 +21,12 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _capacityController = TextEditingController();
+  // final TextEditingController _capacityController = TextEditingController(); // kaldırıldı
+  final TextEditingController _maxGuestsController = TextEditingController();
+  final TextEditingController _bedCountController = TextEditingController();
+  final TextEditingController _bathroomCountController =
+      TextEditingController();
+  final TextEditingController _roomCountController = TextEditingController();
 
   final List<File> _selectedImages = [];
   File? _selectedImage;
@@ -34,7 +39,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   bool _allowEvents = false;
   bool _allowSmoking = false;
   bool _allowCommercialPhoto = false;
-  int _maxGuests = 1;
+  // int _maxGuests = 1; // kaldırıldı, sadece controller kullanılacak
 
   // Konum seçimi için yeni alanlar
   double? _selectedLatitude;
@@ -42,7 +47,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   bool _isLocationLoading = false;
   String? _locationError;
 
-  final List<String> _availableAmenities = [
+  List<String> _availableAmenities = [
     'WiFi',
     'Klima',
     'Mutfak',
@@ -61,13 +66,54 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _fetchAmenities();
+  }
+
+  Future<void> _fetchAmenities() async {
+    try {
+      print("🔍 _fetchAmenities başlatıldı");
+      final amenities = await ApiService().fetchAmenities();
+      print("🔍 Alınan amenities: $amenities");
+      setState(() {
+        _availableAmenities = amenities;
+      });
+    } catch (e) {
+      print("❌ _fetchAmenities hatası: $e");
+      // Hata yönetimi - varsayılan listeyi kullan
+      setState(() {
+        _availableAmenities = [
+          'WiFi',
+          'Klima',
+          'Mutfak',
+          'Çamaşır Makinesi',
+          'Bulaşık Makinesi',
+          'TV',
+          'Otopark',
+          'Balkon',
+          'Bahçe',
+          'Havuz',
+          'Spor Salonu',
+          'Güvenlik',
+          'Asansör',
+          'Sigara İçilmez',
+          'Evcil Hayvan Kabul',
+        ];
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
     _priceController.dispose();
-    _capacityController.dispose();
-
+    _maxGuestsController.dispose();
+    _roomCountController.dispose();
+    _bedCountController.dispose();
+    _bathroomCountController.dispose();
     super.dispose();
   }
 
@@ -104,8 +150,8 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
 
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
-        _selectedLatitude!,
-        _selectedLongitude!,
+        _selectedLatitude ?? 0.0,
+        _selectedLongitude ?? 0.0,
       );
 
       if (placemarks.isNotEmpty) {
@@ -231,7 +277,9 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
     }
 
     // Maksimum misafir sayısı
-    permissions.add('Maksimum misafir sayısı: $_maxGuests');
+    permissions.add(
+      'Maksimum misafir sayısı: ${_maxGuestsController.text.trim()}',
+    );
 
     // İzinleri ekle
     if (permissions.isNotEmpty) {
@@ -242,7 +290,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   }
 
   Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) {
+    if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
       return;
     }
 
@@ -262,7 +310,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
 
     try {
       final price = double.parse(_priceController.text.trim());
-      final capacity = int.tryParse(_capacityController.text.trim());
+      // final capacity = int.tryParse(_capacityController.text.trim()); // kaldırıldı
 
       // Koordinatları belirle
       double? lat = _selectedLatitude;
@@ -294,7 +342,10 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                 ? null
                 : _locationController.text.trim(),
         price: price,
-        capacity: capacity,
+        maxGuests: int.tryParse(_maxGuestsController.text.trim()),
+        roomCount: int.tryParse(_roomCountController.text.trim()),
+        bedCount: int.tryParse(_bedCountController.text.trim()),
+        bathroomCount: int.tryParse(_bathroomCountController.text.trim()),
         amenities:
             _selectedAmenities.isNotEmpty
                 ? _selectedAmenities.map((name) {
@@ -436,7 +487,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    _error!,
+                                    _error ?? 'Bilinmeyen hata',
                                     style: TextStyle(
                                       color: Colors.red[700],
                                       fontSize: 14,
@@ -466,7 +517,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    _success!,
+                                    _success ?? 'Başarılı',
                                     style: TextStyle(
                                       color: Colors.green[700],
                                       fontSize: 14,
@@ -737,7 +788,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            'Koordinatlar alındı: ${_selectedLatitude!.toStringAsFixed(6)}, ${_selectedLongitude!.toStringAsFixed(6)}',
+                                            'Koordinatlar alındı: ${_selectedLatitude?.toStringAsFixed(6) ?? 'N/A'}, ${_selectedLongitude?.toStringAsFixed(6) ?? 'N/A'}',
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: Colors.green[700],
@@ -771,7 +822,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            _locationError!,
+                                            _locationError ?? 'Konum hatası',
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: Colors.red[700],
@@ -801,12 +852,44 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                 ),
                                 const SizedBox(height: 16),
 
+                                // Oda, yatak, banyo alanları
                                 _buildTextField(
-                                  controller: _capacityController,
-                                  label: 'Kapasite',
-                                  hint: 'Misafir sayısı',
+                                  controller: _roomCountController,
+                                  label: 'Oda Sayısı',
+                                  hint: 'Oda sayısı',
                                   keyboardType: TextInputType.number,
                                 ),
+                                const SizedBox(height: 16),
+                                _buildTextField(
+                                  controller: _bedCountController,
+                                  label: 'Yatak Sayısı',
+                                  hint: 'Yatak sayısı',
+                                  keyboardType: TextInputType.number,
+                                ),
+                                const SizedBox(height: 16),
+                                _buildTextField(
+                                  controller: _bathroomCountController,
+                                  label: 'Banyo Sayısı',
+                                  hint: 'Banyo sayısı',
+                                  keyboardType: TextInputType.number,
+                                ),
+                                const SizedBox(height: 16),
+                                _buildTextField(
+                                  controller: _maxGuestsController,
+                                  label: 'İzin Verilen Misafir Sayısı *',
+                                  hint: 'Misafir sayısı',
+                                  keyboardType: TextInputType.number,
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Misafir sayısı zorunludur';
+                                    }
+                                    if (int.tryParse(value.trim()) == null) {
+                                      return 'Geçerli bir misafir sayısı giriniz';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 16),
 
                                 const SizedBox(height: 24),
 
@@ -885,9 +968,17 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                     children: [
                                       IconButton(
                                         onPressed: () {
-                                          if (_maxGuests > 1) {
+                                          final currentValue =
+                                              int.tryParse(
+                                                _maxGuestsController.text
+                                                    .trim(),
+                                              ) ??
+                                              1;
+                                          if (currentValue > 1) {
                                             setState(() {
-                                              _maxGuests--;
+                                              _maxGuestsController.text =
+                                                  (currentValue - 1)
+                                                      .toString();
                                             });
                                           }
                                         },
@@ -895,12 +986,17 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                           Icons.remove_circle_outline,
                                         ),
                                         color:
-                                            _maxGuests > 1
+                                            (int.tryParse(
+                                                      _maxGuestsController.text
+                                                          .trim(),
+                                                        ) ??
+                                                        1) >
+                                                    1
                                                 ? Colors.black
                                                 : Colors.grey,
                                       ),
                                       Text(
-                                        '$_maxGuests',
+                                        _maxGuestsController.text.trim(),
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -908,8 +1004,16 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                       ),
                                       IconButton(
                                         onPressed: () {
+                                          final currentValue =
+                                              int.tryParse(
+                                                _maxGuestsController.text
+                                                    .trim(),
+                                              ) ??
+                                              1;
                                           setState(() {
-                                            _maxGuests++;
+                                            _maxGuestsController.text =
+                                                (currentValue + 1)
+                                                    .toString();
                                           });
                                         },
                                         icon: const Icon(
@@ -941,27 +1045,39 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                       _availableAmenities.map((amenity) {
                                         final isSelected = _selectedAmenities
                                             .contains(amenity);
-                                        return FilterChip(
-                                          label: Text(
-                                            amenity,
-                                            style: TextStyle(
-                                              color: Colors.black,
+                                        return GestureDetector(
+                                          onTap: () => _toggleAmenity(amenity),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 14,
+                                              vertical: 8,
                                             ),
-                                          ),
-                                          selected: isSelected,
-                                          onSelected:
-                                              (selected) =>
-                                                  _toggleAmenity(amenity),
-                                          selectedColor: Colors.black
-                                              .withOpacity(0.1),
-                                          checkmarkColor: Colors.black,
-                                          side: BorderSide(
-                                            color:
-                                                isSelected
-                                                    ? Colors.black
-                                                    : Colors.grey.withOpacity(
-                                                      0.3,
-                                                    ),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  isSelected
+                                                      ? Colors.grey[200]
+                                                      : Colors.white,
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              border: Border.all(
+                                                color:
+                                                    isSelected
+                                                        ? Colors.black
+                                                        : Colors.grey
+                                                            .withOpacity(0.3),
+                                                width: 2,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              amenity,
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight:
+                                                    isSelected
+                                                        ? FontWeight.bold
+                                                        : FontWeight.normal,
+                                              ),
+                                            ),
                                           ),
                                         );
                                       }).toList(),

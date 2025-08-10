@@ -33,6 +33,8 @@ class _FilteredScreenState extends State<FilteredScreen> {
           'min_price': widget.filters['min_price'].toString(),
         if (widget.filters['max_price'] != null)
           'max_price': widget.filters['max_price'].toString(),
+        if (widget.filters['home_type'] != null)
+          'home_type': widget.filters['home_type'].toString(),
       },
     );
 
@@ -51,10 +53,20 @@ class _FilteredScreenState extends State<FilteredScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("Filterelenmiş Sonuçlar"),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Filtrelenmiş Sonuçlar',
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        centerTitle: true,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 15),
+            padding: EdgeInsets.only(right: 15),
             child: IconButton(
               onPressed: () async {
                 final updated = await Navigator.of(
@@ -73,7 +85,7 @@ class _FilteredScreenState extends State<FilteredScreen> {
                   });
                 }
               },
-              icon: Icon(Icons.filter_list),
+              icon: Icon(Icons.filter_list, color: Colors.black),
             ),
           ),
         ],
@@ -86,7 +98,16 @@ class _FilteredScreenState extends State<FilteredScreen> {
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No listings found'));
+            return const Center(
+              child: Text(
+                'Sonuç bulunamadı',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey,
+                ),
+              ),
+            );
           }
 
           final allListings = snapshot.data!;
@@ -103,6 +124,11 @@ class _FilteredScreenState extends State<FilteredScreen> {
               allListings.where((listing) {
                 if (minPrice != null && listing.price < minPrice) return false;
                 if (maxPrice != null && listing.price > maxPrice) return false;
+                if (widget.filters['home_type'] != null &&
+                    listing.homeType?.toLowerCase() !=
+                        widget.filters['home_type'].toString().toLowerCase()) {
+                  return false;
+                }
                 return true;
               }).toList();
 

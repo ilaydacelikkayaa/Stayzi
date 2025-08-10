@@ -235,7 +235,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
-        backgroundColor: Color(0xFFF8F9FA),
+        backgroundColor: Colors.white,
         body: Center(
           child: CircularProgressIndicator(color: Color(0xFF1E88E5)),
         ),
@@ -243,7 +243,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     }
     if (_error != null) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.white,
           foregroundColor: const Color(0xFF1A1A1A),
@@ -275,7 +275,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
         user != null && user.name.isNotEmpty ? user.name[0].toUpperCase() : '?';
         
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF1A1A1A),

@@ -33,10 +33,6 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget> {
       appBar: null,
       body: SafeArea(child: _pages.elementAt(_selectedIndex)),
       bottomNavigationBar: BottomNavigationBar(
-        onTap: _onItemTapped,
-        currentIndex: _selectedIndex,
-        unselectedItemColor: Colors.grey,
-        selectedItemColor: Color.fromRGBO(213, 56, 88, 1),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
           BottomNavigationBarItem(
@@ -46,6 +42,11 @@ class _BottomNavigationWidgetState extends State<BottomNavigationWidget> {
           BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Add'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
+        backgroundColor: Colors.white,
+        onTap: _onItemTapped,
+        currentIndex: _selectedIndex,
+        unselectedItemColor: Colors.grey,
+        selectedItemColor: Color.fromRGBO(213, 56, 88, 1),
       ),
     );
   }

@@ -13,7 +13,7 @@ class CustomSearchAppbar extends StatelessWidget
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      //backgroundColor: Colors.white,
+      backgroundColor: Colors.white,
       elevation: 0,
       title: GestureDetector(
         onTap: () {
@@ -34,19 +34,34 @@ class CustomSearchAppbar extends StatelessWidget
           );
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: Colors.black),
+            borderRadius: BorderRadius.circular(32),
+            gradient: const LinearGradient(
+              colors: [Color(0xFFF8F9FA), Color(0xFFE3E6EA)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.07),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Row(
             children: const [
-              Icon(Icons.search, color: Colors.black),
-              SizedBox(width: 12),
+              Icon(Icons.search, color: Colors.black, size: 28),
+              SizedBox(width: 14),
               Expanded(
                 child: Text(
-                  'Start your search',
-                  style: TextStyle(color: Colors.black),
+                  'Hemen aramaya başla...',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],

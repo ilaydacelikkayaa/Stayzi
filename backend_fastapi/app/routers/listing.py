@@ -60,6 +60,9 @@ async def create_listing_route(
     home_rules: Optional[str] = Form(None),
     capacity: Optional[int] = Form(None),
     amenities: Optional[str] = Form(None),  # JSON string olarak gelecek
+    room_count: Optional[int] = Form(None),
+    bed_count: Optional[int] = Form(None),
+    bathroom_count: Optional[int] = Form(None),
     photo: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -113,7 +116,10 @@ async def create_listing_route(
         "image_urls": image_urls,
         "home_rules": home_rules,
         "capacity": capacity,
-        "amenities": amenities_list
+        "amenities": amenities_list,
+        "room_count": room_count,
+        "bed_count": bed_count,
+        "bathroom_count": bathroom_count,
     }
 
     listing = ListingCreate(**listing_data)
@@ -144,6 +150,14 @@ def read_listing(listing_id: int, db: Session = Depends(get_db)):
     db_listing = get_listing(db, listing_id)
     if not db_listing:
         raise HTTPException(status_code=404, detail="Listing not found")
+    
+    # Debug: Amenities bilgisini yazdır
+    amenities_info = []
+    if db_listing.amenities:
+        for amenity in db_listing.amenities:
+            amenities_info.append({"id": amenity.id, "name": amenity.name})
+    print(f"🔍 Backend - Listing {listing_id} amenities: {amenities_info}")
+    
     return db_listing
 
 @router.delete("/{listing_id}", response_model=Listing)
@@ -238,19 +252,31 @@ async def update(
         try:
             import json
             amenities_data = json.loads(amenities)
-            # String listesini AmenityInListing objelerine çevir
+            # Flutter'dan gelen format: [{"id": id, "name": name}, ...]
             amenities_list = []
-            for amenity_name in amenities_data:
-                # Önce veritabanında bu amenity var mı kontrol et
-                existing_amenity = db.query(Amenity).filter(Amenity.name == amenity_name).first()
-                if existing_amenity:
-                    amenities_list.append({"id": existing_amenity.id, "name": existing_amenity.name})
-                else:
-                    # Yeni amenity oluştur
-                    new_amenity = Amenity(name=amenity_name)
-                    db.add(new_amenity)
-                    db.flush()  # ID'yi almak için flush
-                    amenities_list.append({"id": new_amenity.id, "name": new_amenity.name})
+            for amenity_item in amenities_data:
+                if isinstance(amenity_item, dict) and 'name' in amenity_item:
+                    # Önce veritabanında bu amenity var mı kontrol et
+                    existing_amenity = db.query(Amenity).filter(Amenity.name == amenity_item['name']).first()
+                    if existing_amenity:
+                        amenities_list.append({"id": existing_amenity.id, "name": existing_amenity.name})
+                    else:
+                        # Yeni amenity oluştur
+                        new_amenity = Amenity(name=amenity_item['name'])
+                        db.add(new_amenity)
+                        db.flush()  # ID'yi almak için flush
+                        amenities_list.append({"id": new_amenity.id, "name": new_amenity.name})
+                elif isinstance(amenity_item, str):
+                    # Eski format için geriye uyumluluk: string listesi
+                    existing_amenity = db.query(Amenity).filter(Amenity.name == amenity_item).first()
+                    if existing_amenity:
+                        amenities_list.append({"id": existing_amenity.id, "name": existing_amenity.name})
+                    else:
+                        # Yeni amenity oluştur
+                        new_amenity = Amenity(name=amenity_item)
+                        db.add(new_amenity)
+                        db.flush()  # ID'yi almak için flush
+                        amenities_list.append({"id": new_amenity.id, "name": new_amenity.name})
         except Exception as e:
             print(f"DEBUG: Amenities parse hatası: {e}")
             amenities_list = []
