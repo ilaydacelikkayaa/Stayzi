@@ -319,15 +319,27 @@ class ApiService {
   // Get listing by ID
   Future<Listing> getListingById(int listingId) async {
     try {
+      print("🔍 getListingById çağrıldı: ID=$listingId");
+      
       final response = await http.get(
         Uri.parse(
           '${ApiConstants.baseUrl}${ApiConstants.listingById}$listingId',
         ),
         headers: _getHeaders(),
       );
+      
+      print("🔍 Response status: ${response.statusCode}");
+      print("🔍 Response body: ${response.body}");
+      
       final data = _handleResponse(response);
-      return Listing.fromJson(data);
+      print("🔍 Parsed data: $data");
+
+      final listing = Listing.fromJson(data);
+      print("🔍 Listing amenities: ${listing.amenities}");
+
+      return listing;
     } catch (e) {
+      print("❌ getListingById hatası: $e");
       throw Exception('Failed to get listing: $e');
     }
   }
@@ -1081,17 +1093,41 @@ class ApiService {
   }
 
   Future<List<String>> fetchAmenities() async {
-    final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}/amenities'),
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      // Eğer sadece isimler dönüyorsa:
-      return data.map((e) => e['name'] as String).toList();
-      // Eğer doğrudan string listesi dönüyorsa:
-      // return List<String>.from(data);
-    } else {
-      throw Exception('Olanaklar alınamadı');
+    try {
+      print("🔍 fetchAmenities çağrıldı");
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/amenities'),
+      );
+      
+      print("🔍 Response status: ${response.statusCode}");
+      print("🔍 Response body: ${response.body}");
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        print("🔍 Parsed data: $data");
+
+        // Null-safe parsing of amenity names
+        final List<String> amenities =
+            data.map((e) {
+              final name = e['name'];
+              if (name == null) {
+                print("⚠️ Null amenity name found: $e");
+                return 'Unknown Amenity';
+              }
+              return name.toString();
+            }).toList();
+
+        print("🔍 Parsed amenities: $amenities");
+        return amenities;
+      } else {
+        print(
+          "❌ fetchAmenities error: ${response.statusCode} - ${response.body}",
+        );
+        throw Exception('Olanaklar alınamadı: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("❌ fetchAmenities exception: $e");
+      throw Exception('Olanaklar alınırken hata oluştu: $e');
     }
   }
 }

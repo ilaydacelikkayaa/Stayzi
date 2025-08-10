@@ -49,7 +49,7 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
   bool _isLocationLoading = false;
   String? _locationError;
   
-  final List<Map<String, dynamic>> _availableAmenities = [
+  List<Map<String, dynamic>> _availableAmenities = [
     {'id': 1, 'name': 'WiFi'},
     {'id': 2, 'name': 'Klima'},
     {'id': 3, 'name': 'Mutfak'},
@@ -90,11 +90,14 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
       text: widget.listing.bathroomCount?.toString() ?? '',
     );
     // Amenity id'lerini hem objeden hem id listesinden destekle
+    print('🔍 EditHomeScreen - Listing amenities: ${widget.listing.amenities}');
     if (widget.listing.amenities != null &&
         widget.listing.amenities!.isNotEmpty) {
       _selectedAmenityIds = widget.listing.amenities!.map((a) => a.id).toList();
+      print('🔍 EditHomeScreen - Selected amenity IDs: $_selectedAmenityIds');
     } else {
       _selectedAmenityIds = [];
+      print('🔍 EditHomeScreen - No amenities found, empty list');
     }
     _allowEvents = widget.listing.allowEvents == 1;
     _allowSmoking = widget.listing.allowSmoking == 1;
@@ -102,6 +105,9 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
     _maxGuests = widget.listing.maxGuests ?? 1;
     _selectedLatitude = widget.listing.lat;
     _selectedLongitude = widget.listing.lng;
+    
+    // API'den olanakları çek
+    _fetchAmenities();
   }
 
   // Fotoğraf seçme fonksiyonu - birden fazla fotoğraf için
@@ -222,6 +228,48 @@ class _EditHomeScreenState extends State<EditHomeScreen> {
       setState(() {
         _locationError = 'Adres işlenirken hata oluştu';
         _isLocationLoading = false;
+      });
+    }
+  }
+
+  // API'den olanakları çek
+  Future<void> _fetchAmenities() async {
+    try {
+      print("🔍 EditHomeScreen - _fetchAmenities başlatıldı");
+      final amenities = await ApiService().fetchAmenities();
+      print("🔍 EditHomeScreen - Alınan amenities: $amenities");
+
+      // String listesini Map formatına çevir
+      final amenitiesMap =
+          amenities.asMap().entries.map((entry) {
+            return {'id': entry.key + 1, 'name': entry.value};
+          }).toList();
+
+      setState(() {
+        _availableAmenities = amenitiesMap;
+      });
+      print("🔍 EditHomeScreen - Amenities güncellendi: $_availableAmenities");
+    } catch (e) {
+      print("❌ EditHomeScreen - _fetchAmenities hatası: $e");
+      // Hata durumunda varsayılan listeyi kullan
+      setState(() {
+        _availableAmenities = [
+          {'id': 1, 'name': 'WiFi'},
+          {'id': 2, 'name': 'Klima'},
+          {'id': 3, 'name': 'Mutfak'},
+          {'id': 4, 'name': 'Çamaşır Makinesi'},
+          {'id': 5, 'name': 'Bulaşık Makinesi'},
+          {'id': 6, 'name': 'TV'},
+          {'id': 7, 'name': 'Otopark'},
+          {'id': 8, 'name': 'Balkon'},
+          {'id': 9, 'name': 'Bahçe'},
+          {'id': 10, 'name': 'Havuz'},
+          {'id': 11, 'name': 'Spor Salonu'},
+          {'id': 12, 'name': 'Güvenlik'},
+          {'id': 13, 'name': 'Asansör'},
+          {'id': 14, 'name': 'Sigara İçilmez'},
+          {'id': 15, 'name': 'Evcil Hayvan Kabul'},
+        ];
       });
     }
   }

@@ -65,13 +65,15 @@ def update_listing(db: Session, listing_id: int, listing: ListingCreate):
         if 'amenities' in data:
             print(f"DEBUG - CRUD Update: Amenities data = {data['amenities']}")
             if data['amenities']:
-                # AmenityInListing objelerinden name'leri al (dict veya obje olabilir)
+                # Flutter'dan gelen format: [{"id": id, "name": name}, ...]
                 amenity_names = []
                 for a in data['amenities']:
                     if isinstance(a, dict) and 'name' in a:
                         amenity_names.append(a['name'])
                     elif hasattr(a, 'name'):
                         amenity_names.append(a.name)
+                    elif isinstance(a, str):
+                        amenity_names.append(a)
                 
                 print(f"DEBUG - CRUD Update: Amenity names = {amenity_names}")
                 

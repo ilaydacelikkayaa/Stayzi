@@ -15,7 +15,11 @@ def create(amenity: AmenityCreate, db: Session = Depends(get_db)):
 
 @router.get("/", response_model=list[Amenity])
 def read_all(db: Session = Depends(get_db)):
-    return get_all_amenities(db)
+    amenities = get_all_amenities(db)
+    print(f"🔍 Backend - Returning {len(amenities)} amenities:")
+    for amenity in amenities:
+        print(f"   - ID: {amenity.id}, Name: '{amenity.name}' (type: {type(amenity.name)})")
+    return amenities
 
 @router.get("/{amenity_id}", response_model=Amenity)
 def read_one(amenity_id: int, db: Session = Depends(get_db)):

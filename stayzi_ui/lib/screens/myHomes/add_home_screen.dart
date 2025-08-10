@@ -73,14 +73,33 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
 
   Future<void> _fetchAmenities() async {
     try {
+      print("🔍 _fetchAmenities başlatıldı");
       final amenities = await ApiService().fetchAmenities();
+      print("🔍 Alınan amenities: $amenities");
       setState(() {
         _availableAmenities = amenities;
       });
     } catch (e) {
-      // Hata yönetimi
+      print("❌ _fetchAmenities hatası: $e");
+      // Hata yönetimi - varsayılan listeyi kullan
       setState(() {
-        _availableAmenities = [];
+        _availableAmenities = [
+          'WiFi',
+          'Klima',
+          'Mutfak',
+          'Çamaşır Makinesi',
+          'Bulaşık Makinesi',
+          'TV',
+          'Otopark',
+          'Balkon',
+          'Bahçe',
+          'Havuz',
+          'Spor Salonu',
+          'Güvenlik',
+          'Asansör',
+          'Sigara İçilmez',
+          'Evcil Hayvan Kabul',
+        ];
       });
     }
   }
@@ -131,8 +150,8 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
 
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(
-        _selectedLatitude!,
-        _selectedLongitude!,
+        _selectedLatitude ?? 0.0,
+        _selectedLongitude ?? 0.0,
       );
 
       if (placemarks.isNotEmpty) {
@@ -271,7 +290,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
   }
 
   Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) {
+    if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
       return;
     }
 
@@ -468,7 +487,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    _error!,
+                                    _error ?? 'Bilinmeyen hata',
                                     style: TextStyle(
                                       color: Colors.red[700],
                                       fontSize: 14,
@@ -498,7 +517,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    _success!,
+                                    _success ?? 'Başarılı',
                                     style: TextStyle(
                                       color: Colors.green[700],
                                       fontSize: 14,
@@ -769,7 +788,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            'Koordinatlar alındı: ${_selectedLatitude!.toStringAsFixed(6)}, ${_selectedLongitude!.toStringAsFixed(6)}',
+                                            'Koordinatlar alındı: ${_selectedLatitude?.toStringAsFixed(6) ?? 'N/A'}, ${_selectedLongitude?.toStringAsFixed(6) ?? 'N/A'}',
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: Colors.green[700],
@@ -803,7 +822,7 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
-                                            _locationError!,
+                                            _locationError ?? 'Konum hatası',
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: Colors.red[700],
@@ -949,19 +968,16 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                     children: [
                                       IconButton(
                                         onPressed: () {
-                                          if (int.tryParse(
+                                          final currentValue =
+                                              int.tryParse(
                                                 _maxGuestsController.text
                                                     .trim(),
-                                              )! >
-                                              1) {
+                                              ) ??
+                                              1;
+                                          if (currentValue > 1) {
                                             setState(() {
                                               _maxGuestsController.text =
-                                                  (int.tryParse(
-                                                            _maxGuestsController
-                                                                .text
-                                                                .trim(),
-                                                          )! -
-                                                          1)
+                                                  (currentValue - 1)
                                                       .toString();
                                             });
                                           }
@@ -970,10 +986,11 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                           Icons.remove_circle_outline,
                                         ),
                                         color:
-                                            int.tryParse(
+                                            (int.tryParse(
                                                       _maxGuestsController.text
                                                           .trim(),
-                                                    )! >
+                                                        ) ??
+                                                        1) >
                                                     1
                                                 ? Colors.black
                                                 : Colors.grey,
@@ -987,14 +1004,15 @@ class _AddHomeScreenState extends State<AddHomeScreen> {
                                       ),
                                       IconButton(
                                         onPressed: () {
+                                          final currentValue =
+                                              int.tryParse(
+                                                _maxGuestsController.text
+                                                    .trim(),
+                                              ) ??
+                                              1;
                                           setState(() {
                                             _maxGuestsController.text =
-                                                (int.tryParse(
-                                                          _maxGuestsController
-                                                              .text
-                                                              .trim(),
-                                                        )! +
-                                                        1)
+                                                (currentValue + 1)
                                                     .toString();
                                           });
                                         },
